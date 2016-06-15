@@ -42,6 +42,7 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/2D/GeometryElement2D.h
         ${LIB_INCLUDE_DIR}/base.h
         ${LIB_INCLUDE_DIR}/AnalysisElement.h
+        ${LIB_INCLUDE_DIR}/BoundingBoxIterator.h
         ${LIB_INCLUDE_DIR}/BSplineSpace.h
         ${LIB_INCLUDE_DIR}/DOFManager.h
         ${LIB_INCLUDE_DIR}/Forest.h
@@ -63,7 +64,6 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/quadrature/ISubElem.h
         ${LIB_INCLUDE_DIR}/quadrature/IVertexQuadrature.h
         ${LIB_INCLUDE_DIR}/MultiForest.h
-        ${LIB_INCLUDE_DIR}/MultithreadBEM.h
         ${LIB_INCLUDE_DIR}/NodalElement.h
         ${LIB_INCLUDE_DIR}/NURBSCommon.h
         ${LIB_INCLUDE_DIR}/NURBSCurve.h
@@ -76,6 +76,7 @@ set(LIB_SOURCE_DIR ${confnurbs_SOURCE_DIR}/src/)
 set(libsrcs
   ${LIB_SOURCE_DIR}/algebra.cpp
         ${LIB_SOURCE_DIR}/2D/AnalysisElement2D.cpp
+        ${LIB_SOURCE_DIR}/2D/BoundingBoxIterator.cpp
         ${LIB_SOURCE_DIR}/2D/BSplineSpace2D.cpp
         ${LIB_SOURCE_DIR}/2D/Forest2D.cpp
         ${LIB_SOURCE_DIR}/2D/Geometry2D.cpp

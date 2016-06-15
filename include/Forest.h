@@ -427,8 +427,6 @@ namespace nurbs
             mGlobalDofN = std::make_pair(false, 0);
         }
         
-
-        
         /// Pointer to the geometry object associated with this forest.
         const Geometry* mGeom;
 

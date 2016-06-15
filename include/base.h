@@ -292,16 +292,6 @@ namespace nurbs
     /// N Evenly spaced values defined in the interval [a,b]
     DoubleVec range(const double a, const double b, const uint N);
     
-    /// Legendre function derivative
-    double LegendrePDeriv(const uint n, const double x);
-    
-    /// Get the surfarce current vector (complex) given a sphere of radius a
-    /// and spherical coordinates theta and phi
-    ComplexDoubleVec mieSurfaceCurrent(const double a,
-                                       const double k,
-                                       const double theta,
-                                       const double phi);
-    
     /// Return a vector that splits 'mem' into equal parts.
     /// If a remainder exists, the last term is modified accordingly.
     std::vector<long int> bounds(long int parts, long int mem);
