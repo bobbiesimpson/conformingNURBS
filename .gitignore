@@ -1,0 +1,14 @@
+.DS_Store
+*~
+*.swp
+CMakeCache.txt
+build/
+xcode-build/
+xcodebuild/
+build*
+CMakeFiles/
+doxygen/
+*.vtu
+*.org
+*.dSYM
+*.msh
