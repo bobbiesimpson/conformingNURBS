@@ -18,11 +18,12 @@ namespace nurbs
 			: Point( { x, y, z } )
 		{}
 
-		/// Constructor from vector
-		template< typename T >
-		explicit Point3D( T&& v ) 
-			: Point( std::forward< T >( v ) )
-		{}
+        Point3D(const std::vector<double>& v) : Point(v) {}
+//		/// Constructor from vector
+//		template< typename T >
+//		explicit Point3D( T&& v ) 
+//			: Point( std::forward< T >( v ) )
+//		{}
 		
 		/// number of dimensions
 		inline uint getSize() const { return 3; }
@@ -128,6 +129,12 @@ namespace nurbs
     
     /// Less-than operator
     bool operator<(const Point3D& p1, const Point3D& p2);
+    
+    /// Return the lower bound of the two given points
+    Point3D min(const Point3D& p1, const Point3D& p2);
+    
+    /// Return the upper bound of the two given points
+    Point3D max(const Point3D& p1, const Point3D& p2);
 
 }
 

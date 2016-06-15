@@ -113,6 +113,18 @@ namespace nurbs
         {
             return globalDofN(); // same  as the number of global dof
         }
+        
+        /// Get the number of basis functions for a given space
+        uint basisFuncN(const uint ispace) const
+        {
+            return space(ispace).basisFuncN();
+        }
+        
+        /// Assume smooth basis therefore # colloc points = # basis functions.
+        uint collocPtN(const uint ispace) const
+        {
+            return basisFuncN(ispace);
+        }
 		
 		/// Get element at global index
 		const NAnalysisElement* element(const uint i) const;

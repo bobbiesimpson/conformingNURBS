@@ -76,7 +76,7 @@ set(LIB_SOURCE_DIR ${confnurbs_SOURCE_DIR}/src/)
 set(libsrcs
   ${LIB_SOURCE_DIR}/algebra.cpp
         ${LIB_SOURCE_DIR}/2D/AnalysisElement2D.cpp
-        ${LIB_SOURCE_DIR}/2D/BoundingBoxIterator.cpp
+        ${LIB_SOURCE_DIR}/BoundingBoxIterator.cpp
         ${LIB_SOURCE_DIR}/2D/BSplineSpace2D.cpp
         ${LIB_SOURCE_DIR}/2D/Forest2D.cpp
         ${LIB_SOURCE_DIR}/2D/Geometry2D.cpp

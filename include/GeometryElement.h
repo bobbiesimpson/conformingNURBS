@@ -13,6 +13,8 @@
 #include <map>
 #include <utility>
 #include <mutex>
+#include <limits>
+
 
 namespace nurbs
 {
@@ -86,6 +88,52 @@ namespace nurbs
         {
             return std::max(dist(eval(-1.0, -1.0), eval(1.0, 1.0)),
                             dist(eval(1.0, -1.0), eval(-1.0, 1.0)));
+        }
+        
+        /// Get the approximate min coordinate of this element
+        /// based on the four vertex points
+        Point3D approxLowerBound() const
+        {
+            const double max = std::numeric_limits<double>::max();
+            Point3D currentLB(max, max, max);
+            std::vector<std::pair<double, double>> vpts
+            {
+                {-1.0,-1.0},
+                {1.0,-1.0},
+                {1.0,1.0},
+                {-1.0,1.0},
+                {0.0, 0.0},
+                {0.0, -1.0},
+                {1.0, 0.0},
+                {0.0, 1.0},
+                {-1.0, 0.0}
+            };
+            for(const auto& p : vpts)
+                currentLB = min(currentLB, eval(p.first, p.second));
+            return currentLB;
+        }
+        
+        /// Get the approximate max coordinate of this element
+        /// based on the four vertex points
+        Point3D approxUpperBound() const
+        {
+            const double min = std::numeric_limits<double>::lowest();
+            Point3D currentUB(min, min, min);
+            std::vector<std::pair<double, double>> vpts
+            {
+                {-1.0,-1.0},
+                {1.0,-1.0},
+                {1.0,1.0},
+                {-1.0,1.0},
+                {0.0, 0.0},
+                {0.0, -1.0},
+                {1.0, 0.0},
+                {0.0, 1.0},
+                {-1.0, 0.0}
+            };
+            for(const auto& p : vpts)
+                currentUB = max(currentUB, eval(p.first, p.second));
+            return currentUB;
         }
         
         /// Print function that may be overridden as required.

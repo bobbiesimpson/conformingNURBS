@@ -101,11 +101,14 @@ namespace nurbs
 			: mCoords( l )
 		{}
 
-		/// Constructor with vector
-		template< typename T >
-		Point( T&& v ) 
-			: mCoords( std::forward< T >( v ) )
-		{}
+        Point(const std::vector<double>& v)
+        : mCoords(v) {}
+        
+//		/// Constructor with vector
+//		template< typename T >
+//		Point( T&& v ) 
+//			: mCoords( std::forward< T >( v ) )
+//		{}
 			
 		private:
 

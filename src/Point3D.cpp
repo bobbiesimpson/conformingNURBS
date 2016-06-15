@@ -53,5 +53,20 @@ namespace nurbs
             return p1[1] < p2[1];
         return p1[2] < p2[2];
     }
+    
+    Point3D min(const Point3D& p1, const Point3D& p2)
+    {
+        return Point3D(p1[0] < p2[0] ? p1[0] : p2[0],
+                       p1[1] < p2[1] ? p1[1] : p2[1],
+                       p1[2] < p2[2] ? p1[2] : p2[2]);
+    }
+    
+    /// Return the upper bound of the two given points
+    Point3D max(const Point3D& p1, const Point3D& p2)
+    {
+        return Point3D(p1[0] > p2[0] ? p1[0] : p2[0],
+                       p1[1] > p2[1] ? p1[1] : p2[1],
+                       p1[2] > p2[2] ? p1[2] : p2[2]);
+    }
 	
 }

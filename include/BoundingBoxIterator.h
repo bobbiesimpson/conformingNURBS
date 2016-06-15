@@ -6,12 +6,13 @@
    15th June 2016
 */
 
-#include "Point3D.h"
+#include "base.h"
 
 namespace nurbs {
     
     /// Forward declarations
     class Forest;
+    class Point3D;
 
     /// A class that represents an iterator for computing the set of points and
     /// bounding boxes for the set of of basis functions defined by the given forest.
@@ -27,10 +28,7 @@ namespace nurbs {
     public:
         
         /// Construct with a given forest
-        BoundingBoxIterator(const Forest& f)
-        :
-        mForest(f)
-        {}
+        BoundingBoxIterator(const Forest& f);
         
         /// Increment iterator to next basis function.
         BoundingBoxIterator& operator++();
@@ -38,19 +36,49 @@ namespace nurbs {
         /// Have we finished iterating over all global basis functions for this forest?
         bool isDone() const;
         
+        /// Reset the counter
+        void reset()
+        {
+            mCurrentIndex = 0;
+        }
+        
+        /// Current index getter
+        uint currentIndex() const
+        {
+            return mCurrentIndex;
+        }
+        
         /// Get the current point that defines the 'anchor' for the current global basis function.
         Point3D currentPt() const;
         
         /// Get the limits that define the current bounding box for the current global basis function.
-        DoublePairVec currentBoundingBox() const;
+        std::pair<Point3D, Point3D> currentBoundingBox() const;
+        
+        /// Get lower bound
+        Point3D currentLowerBound() const;
+        
+        /// Get current upper bound
+        Point3D currentUpperBound() const;
+        
+        /// Forest getter
+        const Forest& forest() const { return mForest; }
         
     private:
+        
+        /// Current basis function indeix
+        uint mCurrentIndex;
         
         /// Reference to (non-null) forest
         const Forest& mForest;
         
+        /// Vector of greville point data
+        std::vector<Point3D> mPtData;
+        
+        /// Vector of bounding box data
+        std::vector<std::pair<Point3D, Point3D>> mBBData;
+        
     };
     
-    
 }
+
 #endif

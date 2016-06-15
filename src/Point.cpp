@@ -17,5 +17,7 @@ namespace nurbs
 			v += p1[ i ] * p2[ i ];
 		return v;
 	}
+    
+    
 	
 }
