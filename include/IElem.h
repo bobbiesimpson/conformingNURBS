@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "base.h"
+#include "NURBSSurface.h"
 
 namespace nurbs
 {
@@ -33,7 +34,7 @@ namespace nurbs
 			public:
 
 			/// constructor
-			explicit IElem( const NURBSSurface& ns )
+			explicit IElem(const NURBSSurface& ns)
 				: mSurface( ns ),
 				mCurrentIndex( 0 )
 				{}
@@ -121,6 +122,15 @@ namespace nurbs
 					mTIncrement = ( mCurrentEl.upper_t - mCurrentEl.lower_t ) / static_cast< double >( npts - 1 );
 				}
 
+            /// Default constuctors
+            ISamplePt(const uint npts,
+                      const double ls = -1.0,
+                      const double us = 1.0,
+                      const double lt = -1.0,
+                      const double ut = 1.0)
+            :
+            ISamplePt(Element(ls,us,lt,ut), npts) {}
+            
 			bool isDone() const
 			{
 				return mCurrentIndex == mSamplePtN;
@@ -154,7 +164,7 @@ namespace nurbs
 			private:
 
 			/// The current element we are iterating over
-			const Element& mCurrentEl;
+			const Element mCurrentEl;
 
 			/// The number of points along each knot line
 			const uint mKnotLinePts;

@@ -3,6 +3,7 @@
 #include "Geometry.h"
 #include "Forest.h"
 #include "BoundingBoxIterator.h"
+#include "OutputVTK.h"
 
 using namespace nurbs;
 
@@ -19,23 +20,22 @@ int main(const int argc, const char* argv[])
             error("Failed to load geometry from hbs data");
         
         Forest forest(g);
-        forest.hrefine(0);
+        forest.hrefine(4);
         std::cout << "Constructed forest with " << forest.elemN() << " elements\n";
         
         std::cout << "Creating bounding box data for H-matrix construction\n";
         
-        double max = std::numeric_limits<double>::lowest();
-        double min = std::numeric_limits<double>::max();
+        std::vector<std::pair<Point3D, Point3D>> bbdata;
+        
         for(BoundingBoxIterator it(forest); !it.isDone(); ++it) {
-            std::cout << "Basis function index : " << it.currentIndex() << "\n";
-            const double length = dist(it.currentLowerBound(), it.currentUpperBound());
-            if(length > max) max = length;
-            if(length < min) min = length;
-            std::cout << length << "\n";
+            bbdata.push_back(it.currentBoundingBox());
         }
         
-        std::cout << "min = " << min << " max = " << max << "\n";
-        std::cout << "ratio = " << max / min << "\n";
+        // Output the bounding boxes to a vtu file
+        OutputVTK output("sphere_test");
+        output.outputGeometry(forest);
+        output.outputBoundingBoxSet(bbdata);
+        
         return EXIT_SUCCESS;
     }
     catch(const std::exception& e) {

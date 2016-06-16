@@ -106,10 +106,7 @@ namespace nurbs
 		/// Get tangent at parametric coordinate
 		Point3D tangent(const double s, const double t, const ParamDir dir) const;
 		
-		/// output surface to vtk file ( unstructured grid, paraview ) specifying
-		/// number of grid points for each element in each parametric direction
-		void outputVTKFile( const std::string& filename,
-							const uint ngridpts = DEFAULT_NGRID_PTS ) const;
+
 		
 		protected:
 

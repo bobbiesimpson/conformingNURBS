@@ -7,13 +7,7 @@
 #include "Point.h"
 #include "IElemIntegrate.h"
 
-#include "vtkSmartPointer.h"
-#include "vtkUnstructuredGrid.h"
-#include "vtkDoubleArray.h"
-#include "vtkPoints.h"
-#include "vtkXMLUnstructuredGridWriter.h"
-#include "vtkQuad.h"
-#include "vtkPointData.h"
+
 
 using namespace nurbs::nurbshelper;
 using namespace nurbs::elem;
@@ -78,60 +72,6 @@ namespace nurbs
 
 	
 
-	void NURBSSurface::outputVTKFile( const std::string& filename, const uint ngridpts ) const
-	{
-		const uint seg_n = ngridpts - 1;   // number of cells in each parametric direction
-		vtkSmartPointer< vtkUnstructuredGrid > grid = vtkUnstructuredGrid::New();
-		vtkSmartPointer< vtkPoints > points = vtkPoints::New();
-
-		vtkSmartPointer<vtkDoubleArray> pw_data = vtkDoubleArray::New();
-		pw_data->SetNumberOfComponents(2);
-		pw_data->SetName("plane wave data");
-		pw_data->SetComponentName(0, "real");
-		pw_data->SetComponentName(1, "imag");
-		
-		uint sample_offset = 0;
-		for( IElem ielem( *this ); !ielem.isDone(); ++ielem )
-		{
-			const Element element = ielem.getCurrentEl();
-			//std::cout << element << "\n";
-			uint count = 0;
-			for( ISamplePt isamplept( element, ngridpts ); !isamplept.isDone(); ++isamplept )
-			{
-				const ParamPt samplept = isamplept.getCurrentPt();
-				const Point3D phys_coord = getCoord( samplept.s, samplept.t );
-				points->InsertPoint( sample_offset + count, phys_coord.data() );
-				const double k = 50.0;
-				std::complex<double> pw = std::exp(std::complex<double>(0.0, k * samplept.s));
-				pw_data->InsertComponent(sample_offset + count, 0, std::real(pw));
-				pw_data->InsertComponent(sample_offset + count, 1, std::imag(pw));
-				++count;
-				//std::cout << samplept << "\n";
-				//std::cout << getCoord( samplept.s, samplept.t ) << "\n";
-									 
-			}
-			for( uint t = 0; t < seg_n; ++t )
-			{
-				for( uint s = 0; s < seg_n; ++s )
-				{
-					vtkSmartPointer< vtkCell > cell = vtkQuad::New();
-					cell->GetPointIds()->SetId( 0, sample_offset + t * ngridpts + s );
-					cell->GetPointIds()->SetId( 1, sample_offset + t * ngridpts + s + 1 );
-					cell->GetPointIds()->SetId( 2, sample_offset + ( t + 1 ) * ngridpts + s + 1 );
-					cell->GetPointIds()->SetId( 3, sample_offset + ( t + 1 ) * ngridpts + s );
-					grid->InsertNextCell( cell->GetCellType(), cell->GetPointIds() );
-				}
-			}
-			sample_offset += ngridpts * ngridpts;
-        }
-		grid->SetPoints( points );
-		grid->GetPointData()->AddArray(pw_data);
-		vtkSmartPointer< vtkXMLUnstructuredGridWriter > writer = vtkXMLUnstructuredGridWriter::New();
-		writer->SetFileName( filename.c_str() );
-		writer->SetInputData( grid );
-		if( !writer->Write() )
-			error( "Cannot write vtk file" );
-	}
 	
 	Point3D NURBSSurface::tangent(const double s, const double t, const ParamDir dir) const
 	{

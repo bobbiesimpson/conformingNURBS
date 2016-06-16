@@ -33,6 +33,7 @@ SET(LIB_INCLUDE_DIR ${confnurbs_SOURCE_DIR}/include/)
 INCLUDE_DIRECTORIES(${LIB_INCLUDE_DIR}
                     ${LIB_INCLUDE_DIR}/2D/
                     ${LIB_INCLUDE_DIR}/quadrature/)
+
 SET(libheaders
         ${LIB_INCLUDE_DIR}/algebra.h
         ${LIB_INCLUDE_DIR}/2D/AnalysisElement2D.h
@@ -68,23 +69,36 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/NURBSCommon.h
         ${LIB_INCLUDE_DIR}/NURBSCurve.h
         ${LIB_INCLUDE_DIR}/NURBSSurface.h
+        ${LIB_INCLUDE_DIR}/OutputVTK.h
         ${LIB_INCLUDE_DIR}/Point.h
         ${LIB_INCLUDE_DIR}/Point3D.h
         ${LIB_INCLUDE_DIR}/Point4D.h)
 
 set(LIB_SOURCE_DIR ${confnurbs_SOURCE_DIR}/src/)
 set(libsrcs
-  ${LIB_SOURCE_DIR}/algebra.cpp
+        ${LIB_SOURCE_DIR}/algebra.cpp
         ${LIB_SOURCE_DIR}/2D/AnalysisElement2D.cpp
-        ${LIB_SOURCE_DIR}/BoundingBoxIterator.cpp
         ${LIB_SOURCE_DIR}/2D/BSplineSpace2D.cpp
         ${LIB_SOURCE_DIR}/2D/Forest2D.cpp
         ${LIB_SOURCE_DIR}/2D/Geometry2D.cpp
         ${LIB_SOURCE_DIR}/2D/GeometryElement2D.cpp
+	    ${LIB_SOURCE_DIR}/base.cpp
+        ${LIB_SOURCE_DIR}/BoundingBoxIterator.cpp
         ${LIB_SOURCE_DIR}/GeometryElement.cpp
         ${LIB_SOURCE_DIR}/Geometry.cpp
         ${LIB_SOURCE_DIR}/HCElement.cpp
         ${LIB_SOURCE_DIR}/HConformingForest.cpp
+        ${LIB_SOURCE_DIR}/Forest.cpp
+	    ${LIB_SOURCE_DIR}/Point3D.cpp
+	    ${LIB_SOURCE_DIR}/Point4D.cpp
+	    ${LIB_SOURCE_DIR}/Point.cpp
+	    ${LIB_SOURCE_DIR}/MultiForest.cpp
+	    ${LIB_SOURCE_DIR}/NURBSCurve.cpp
+	    ${LIB_SOURCE_DIR}/NURBSCommon.cpp
+	    ${LIB_SOURCE_DIR}/BSplineSpace.cpp
+	    ${LIB_SOURCE_DIR}/NURBSSurface.cpp
+	    ${LIB_SOURCE_DIR}/NURBSSurface.cpp
+	    ${LIB_SOURCE_DIR}/OutputVTK.cpp
         ${LIB_SOURCE_DIR}/quadrature/IEdgePolarIntegrate.cpp
         ${LIB_SOURCE_DIR}/quadrature/IEdgeQuadrature.cpp
         ${LIB_SOURCE_DIR}/quadrature/IElemIntegrate.cpp
@@ -95,18 +109,7 @@ set(libsrcs
         ${LIB_SOURCE_DIR}/quadrature/IPolarIntegrate.cpp
         ${LIB_SOURCE_DIR}/quadrature/ISubElem.cpp
         ${LIB_SOURCE_DIR}/quadrature/IVertexQuadrature.cpp
-        ${LIB_SOURCE_DIR}/Forest.cpp
-	    ${LIB_SOURCE_DIR}/Point3D.cpp
-	    ${LIB_SOURCE_DIR}/Point4D.cpp
-	    ${LIB_SOURCE_DIR}/Point.cpp
-	    ${LIB_SOURCE_DIR}/MultiForest.cpp
-	    ${LIB_SOURCE_DIR}/NURBSCurve.cpp
-	    ${LIB_SOURCE_DIR}/NURBSCommon.cpp
-	    ${LIB_SOURCE_DIR}/BSplineSpace.cpp
-	    ${LIB_SOURCE_DIR}/NURBSSurface.cpp
-	    ${LIB_SOURCE_DIR}/base.cpp
         ${libheaders})
-
 
 add_library(confnurbs ${libsrcs})
 target_link_libraries(confnurbs ${THIS_LINK_LIBS})
