@@ -3,7 +3,7 @@
 #include "BoundingBoxIterator.h"
 #include "Forest.h"
 #include "Point3D.h"
-
+#include "NodalElement.h"
 
 namespace nurbs {
     
@@ -45,7 +45,7 @@ namespace nurbs {
         
         for(uint ispace = 0; ispace < fref.spaceN(); ++ispace) {
             for(uint ielem = 0; ielem < fref.elemN(ispace); ++ielem) {
-                const NAnalysisElement* elem = fref.element(ispace, ielem);
+                const auto elem = fref.element(ispace, ielem);
                 const Point3D upper = elem->approxUpperBound();
                 const Point3D lower = elem->approxLowerBound();
                 const auto globalBasisVec = elem->globalBasisFuncI();

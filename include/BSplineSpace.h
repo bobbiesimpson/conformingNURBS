@@ -94,6 +94,12 @@ namespace nurbs
 			assert(i < mKnotVecs[dir].size());
 			return mKnotVecs[dir][i];
 		}
+        
+        /// Unique knot vector getter
+        std::vector<double> uniqueKnotVec(const ParamDir dir) const
+        {
+            return mUniqueKnotVecs[dir];
+        }
 
 		/// unique knot coordinate getter
 		inline double uniqueKnot(const uint i, const ParamDir dir) const
@@ -124,6 +130,15 @@ namespace nurbs
             return std::make_pair(mUniqueKnotVecs[dir].front(), mUniqueKnotVecs[dir].back());
         }
         
+        /// Get a 'global' greville abscissa index given parametric indices
+        uint globalGrevillePtI(const uint i,
+                               const uint j) const
+        {
+            assert(i < grevilleAbscissaPtN(ParamDir::S));
+            assert(j < grevilleAbscissaPtN(ParamDir::T));
+            return j * grevilleAbscissaPtN(ParamDir::S) + i;
+            
+        }
         /// Number of greville abscissa points in given direction
         inline uint grevilleAbscissaPtN(const ParamDir dir) const { return basisFuncN(dir); }
         
@@ -138,6 +153,15 @@ namespace nurbs
             for(uint k = i + 1; k < i + degree(dir) + 1; ++k)
                 xi += knot(k, dir) / degree(dir);
             return xi;
+        }
+        
+        /// Return the greville abscissa vector for a given parametric direction
+        std::vector<double> grevilleAbscissa(const ParamDir dir) const
+        {
+            std::vector<double> v;
+            for(uint i = 0; i < grevilleAbscissaPtN(dir); ++i)
+                v.push_back(grevilleAbscissaPt(i, dir));
+            return v;
         }
         
         /// Get a two dimensionl Greville point
@@ -173,6 +197,12 @@ namespace nurbs
                     break;
             }
             return v;
+        }
+        
+        // Number of non-zero knot spans in a given direction
+        inline uint nonzeroKnotSpanN(const ParamDir dir) const
+        {
+            return mUniqueKnotVecs[dir].size() - 1;
         }
         
 		/// Total number of non-zero knot spans (i.e. elements)

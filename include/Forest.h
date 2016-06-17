@@ -49,6 +49,7 @@ namespace nurbs
 				mSpaceMap.insert(std::make_pair("space" + std::to_string(s), s));
 			}
             initEdgeConn();
+            initCollocConn();
 		}
         
         /// Use default destructor
@@ -139,6 +140,17 @@ namespace nurbs
             return space(ispace).nonzeroKnotSpanN();
         }
         
+        /// Get a global element index given a local (space) index numbering
+        uint globalElI(const uint ispace,
+                       uint i,
+                       uint j) const
+        {
+            assert(i < space(ispace).nonzeroKnotSpanN(ParamDir::S));
+            assert(j < space(ispace).nonzeroKnotSpanN(ParamDir::T));
+            const uint nel_s = space(ispace).nonzeroKnotSpanN(ParamDir::S);
+            return globalElI(ispace, nel_s * j + i);
+        }
+        
         /// Get a global element index given an space index and local element index
         uint globalElI(const uint ispace, const uint ielem) const
         {
@@ -213,6 +225,49 @@ namespace nurbs
         std::pair<bool, uint> connectedCollocPtI(const uint icspace,
                                                  const uint icindex,
                                                  const uint ifspace) const;
+        
+        /// Get the number of connected collocation points for the given
+        /// space and local element index
+        uint connectedCollocPtN(const uint ispace, const uint iel) const
+        {
+            const uint iglobalel = globalElI(ispace, iel);
+            return mGlobalCollocConn.at(iglobalel).size();
+        }
+        
+        /// Return the global (connected) collocation index
+        uint connectedGlobalCollocI(const uint ispace,
+                                    const uint iel,
+                                    const uint icpt) const
+        {
+            const uint iglobalel = globalElI(ispace, iel);
+            return mGlobalCollocConn.at(iglobalel)[icpt];
+        }
+        
+        /// Return the global (connected) collocation index vector
+        UIntVec connectedGlobalCollocI(const uint ispace,
+                                       const uint iel) const
+        {
+            const uint iglobalel = globalElI(ispace, iel);
+            return mGlobalCollocConn.at(iglobalel);
+        }
+        
+        /// Return the local (connected) collocation index
+        uint connectedLocalCollocI(const uint ispace,
+                                   const uint iel,
+                                   const uint icpt) const
+        {
+            const uint iglobalel = globalElI(ispace, iel);
+            return mLocalCollocConn.at(iglobalel)[icpt];
+        }
+        
+        /// Return the  local (connected) collocation index vector
+        UIntVec connectedLocalCollocI(const uint ispace,
+                                      const uint iel) const
+        {
+            const uint iglobalel = globalElI(ispace, iel);
+            return mLocalCollocConn.at(iglobalel);
+        }
+        
         
         /// An advancement over connectedEdges() in that this function can determine
         /// if there are multiple edges connected between the two spaces. This happens
@@ -362,6 +417,7 @@ namespace nurbs
             for(auto& s : mSpaces)
                 s.hrefine(n);
             initNodalConn();
+            initCollocConn();
             clearElementData();
         }
         
@@ -382,6 +438,7 @@ namespace nurbs
                 }
             }
             initNodalConn();
+            initCollocConn();
             clearElementData();
         }
 		
@@ -392,8 +449,6 @@ namespace nurbs
 		void print(std::ostream& ost) const;
 		
 		protected:
-
-
 		
 		/// Add a space to the Forest
 		void addSpace(const BSplineSpace& s)
@@ -431,6 +486,9 @@ namespace nurbs
         /// Construct edge connectivity
         void initEdgeConn();
         
+        /// Construct the local element collocation connectivity array
+        void initCollocConn();
+        
         /// Clear all data related to elements (used after applying refinement)
         void clearElementData()
         {
@@ -466,6 +524,16 @@ namespace nurbs
         
         /// Map from a sub-edge to its parent edge index
         std::map<uint, uint> mSuperEdgeMap;
+        
+        /// Global collocation point connectivity mapping global element index
+        /// to vector of collocation point indices contained within this
+        /// element.
+        std::map<uint, std::vector<uint>> mGlobalCollocConn;
+        
+        /// Local (space) collocation connectivity array
+        /// Required to generate parametric and parent coordinates
+        /// of collocation points within an element
+        std::map<uint, std::vector<uint>> mLocalCollocConn;
         
         /// A mapping from a global element index (over all elements over all spaces) to
         /// a space index and element index local to the particular space

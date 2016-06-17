@@ -29,7 +29,6 @@ namespace nurbs {
             for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept)
             {
                 const ParamPt samplept = isamplept.getCurrentPt();
-                std::cout << samplept << "\n";
                 const Point3D phys_coord = e->eval(samplept.s, samplept.t);
                 points->InsertPoint(sample_offset + count, phys_coord.data());
                 ++count;

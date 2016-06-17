@@ -95,6 +95,31 @@ namespace nurbs {
             return space()->degree();
         }
         
+        /// Get the number of connected collocation points on this element
+        uint collocPtN() const override
+        {
+            return forest()->connectedCollocPtN(spaceI(), localElementI());
+        }
+        
+        /// Get the global connected collocation indices
+        UIntVec globalCollocConn() const override
+        {
+            return forest()->connectedGlobalCollocI(spaceI(), localElementI());
+        }
+        
+        /// Get the global collocation index given a local index
+        uint globalCollocI(const uint icpt) const override
+        {
+            return forest()->connectedGlobalCollocI(spaceI(), localElementI(), icpt);
+        }
+        
+        /// Get the parent coordinate of a given collocation point index
+        GPt2D collocPt(const uint icpt) const override
+        {
+            const uint ilocal = forest()->connectedLocalCollocI(spaceI(), localElementI(), icpt);
+            return parentCoord(space()->grevilleAbscissaPt(ilocal));
+        }
+        
         void print(std::ostream& ost) const override
         {
             GeometryElement::print(ost);
@@ -130,6 +155,9 @@ namespace nurbs {
         
     private:
         
+        /// Local element index getter
+        uint localElementI() const { return mElemI; }
+                                                
         /// Pointer to the forest
         const Forest* mForest;
         

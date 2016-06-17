@@ -88,6 +88,34 @@ namespace nurbs {
         /// Local element index getter
         uint elemI() const { return mElemI; }
         
+        /// Get the number of connected collocation points on this element
+        uint collocPtN() const override
+        {
+            // TODO!
+            return 0;
+        }
+        
+        /// Get the global connected collocation indices
+        UIntVec globalCollocConn() const override
+        {
+            // TODO!
+            return UIntVec();
+        }
+        
+        /// Get the global collocation index given a local index
+        uint globalCollocI(const uint icpt) const override
+        {
+            // TODO!
+            return 0;
+        }
+        
+        /// Get the parent coordinate of a given collocation point index
+        GPt2D collocPt(const uint icpt) const override
+        {
+            // TODO!
+            return GPt2D();
+        }
+        
         /// Print function
         void print(std::ostream& ost) const override
         {

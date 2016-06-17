@@ -8,6 +8,7 @@
 #include "Geometry.h"
 #include "NodalElement.h"
 #include "MultiForest.h"
+#include "NodalElement.h"
 
 namespace nurbs
 {
@@ -20,6 +21,7 @@ namespace nurbs
         mNodalConn = f.mNodalConn;
         mGlobalDofN = f.mGlobalDofN;
         initEdgeConn();
+        initCollocConn();
     }
     
     Forest::Forest(const Forest& f)
@@ -34,6 +36,8 @@ namespace nurbs
         mCVertexSpaceMap = f.mCVertexSpaceMap;
         mSubEdgeMap = f.mSubEdgeMap;
         mSuperEdgeMap = f.mSuperEdgeMap;
+        mGlobalCollocConn = f.mGlobalCollocConn;
+        mLocalCollocConn = f.mLocalCollocConn;
         mElemIndexMap = f.mElemIndexMap;
         for(const auto& e : f.mElems)
             mElems.insert(std::make_pair(e.first, e.second->copy()));
@@ -55,6 +59,8 @@ namespace nurbs
         mCVertexSpaceMap = f.mCVertexSpaceMap;
         mSubEdgeMap = f.mSubEdgeMap;
         mSuperEdgeMap = f.mSuperEdgeMap;
+        mGlobalCollocConn = f.mGlobalCollocConn;
+        mLocalCollocConn = f.mLocalCollocConn;
         mElemIndexMap = f.mElemIndexMap;
         for(const auto& e : f.mElems)
             mElems.insert(std::make_pair(e.first, e.second->copy()));
@@ -73,6 +79,8 @@ namespace nurbs
         mCVertexSpaceMap.clear();
         mSubEdgeMap.clear();
         mSuperEdgeMap.clear();
+        mGlobalCollocConn.clear();
+        mLocalCollocConn.clear();
         mElemIndexMap.clear();
         mElems.clear();
         mGlobalDofN = std::make_pair(false, 0);
@@ -97,6 +105,7 @@ namespace nurbs
 		}
 		endOfLoop(ist, '}', "Could not read connectivity vectors\n");
         initEdgeConn();
+        initCollocConn();
 	}
 
 	void Forest::print(std::ostream& ost) const
@@ -307,10 +316,9 @@ namespace nurbs
     
     void Forest::initNodalConn()
     {
-        //mNodalConn.clear();
-        
         // Now construct the new connectivity using the edge connectivy that
         // is independent of refinement
+        
         const Forest& primal = geometry()->primalForest();
         std::map<uint, std::vector<uint>> temp_conn;
         std::map<uint, std::vector<uint>> edge_map; // map from global edge index to global node indices
@@ -502,6 +510,89 @@ namespace nurbs
 //                }
 //            }
 //        }
+    }
+    
+    void Forest::initCollocConn()
+    {
+        
+        // Loop through spaces and determine which collocation points lie in each
+        // element and assign the indices of these points to the relevant entry
+        // in the connectivity array
+        
+        // The aim is to construct the following maps...
+        std::map<uint, std::vector<uint>> gconn; // global connectivity
+        std::map<uint, std::vector<uint>> lconn; // local connectivity
+        
+        for(uint ispace = 0; ispace < spaceN(); ++ispace) {
+            const auto sp = space(ispace);
+            
+            std::vector<ParamDir> paramvec{ParamDir::S, ParamDir::T};
+            std::map<ParamDir,std::vector<std::vector<uint>>> param_conn;   // colloc. connectivity along each
+                                                                            //parametric direction for this space
+            for(const auto& dir : paramvec) {
+                const auto gvec = sp.grevilleAbscissa(dir);
+                const auto uknots = sp.uniqueKnotVec(dir);
+                const uint nel = uknots.size() - 1;
+                
+                auto& conn = param_conn[dir];
+                conn.resize(nel);
+
+                uint iel = 0; // current local element index
+                uint igrev = 0; // current greville abscissa index
+                double lower = uknots[iel];
+                double upper = uknots[iel + 1];
+                
+                while(true) {
+                    const double currentgpt = gvec[igrev];
+                    if(approximatelyEqual(currentgpt, upper, 1.e-9)) {
+                        conn[iel].push_back(igrev);
+                        ++iel; // move to next element
+                        if(iel > nel - 1)
+                            break; // we're done
+                        lower = uknots[iel];
+                        upper = uknots[iel + 1];
+                    }
+                    else if(currentgpt < upper) {
+                        conn[iel].push_back(igrev);
+                        ++igrev; // move to next greville point
+                    }
+                    else { // point must lie within next element
+                        ++iel;
+                        if(iel > nel - 1)
+                            error("Bad element data while constructing Forest collocation connectivity");
+                        lower = uknots[iel];
+                        upper = uknots[iel + 1];
+                    }
+                }
+
+            }
+            // Now determine the global and local connectivity arrays
+            // using the connectivity along each parametric direction
+            for(uint j = 0; j < param_conn[ParamDir::T].size(); ++j) {
+                const auto& jconn = param_conn[ParamDir::T][j];
+                for(uint i = 0; i < param_conn[ParamDir::S].size(); ++i) {
+                    const auto& iconn = param_conn[ParamDir::S][i];
+                    const uint ielem_g = globalElI(ispace, i, j);
+                    for(const auto& jcpt : jconn) {
+                        for(const auto& icpt : iconn) {
+                            const uint space_index = sp.globalGrevillePtI(icpt, jcpt);
+                            const uint global_index = globalCollocI(ispace, space_index);
+                            gconn[ielem_g].push_back(global_index);
+                            lconn[ielem_g].push_back(space_index);
+                        }
+                    }
+                }
+            }
+
+        }
+//        for(const auto& l : lconn)
+//            std::cout << l.first << "\t" <<l.second << "\n";
+//        for(const auto& l : gconn)
+//            std::cout << l.first << "\t" <<l.second << "\n";
+        
+        // and finally assign global collocation connectivity
+        mGlobalCollocConn = gconn;
+        mLocalCollocConn = lconn;
     }
     
     std::istream& operator>>(std::istream& ist, Forest& f)

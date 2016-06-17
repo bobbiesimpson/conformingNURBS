@@ -135,6 +135,7 @@ namespace nurbs
                 currentUB = max(currentUB, eval(p.first, p.second));
             return currentUB;
         }
+
         
         /// Print function that may be overridden as required.
         virtual void print(std::ostream& ost) const;
@@ -163,11 +164,18 @@ namespace nurbs
             return p;
         }
         
+
         /// Get the parent coordinate given a paramatric coordinate
         GPt2D parentCoord(const double s, const double t) const
         {
             return GPt2D((2.0 * s - (upperBound(S) + lowerBound(S))) / (upperBound(S) - lowerBound(S)),
                          (2.0 * t - (upperBound(T) + lowerBound(T))) / (upperBound(T) - lowerBound(T)));
+        }
+        
+        /// Get the parent coordinate given a paramatric coordinate
+        GPt2D parentCoord(const GPt2D& paramcoord) const
+        {
+            return parentCoord(paramcoord.s, paramcoord.t);
         }
         
         /// Get lower bound (knot coordinate) for specified parametric direction

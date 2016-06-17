@@ -20,7 +20,15 @@ int main(const int argc, const char* argv[])
             error("Failed to load geometry from hbs data");
         
         Forest forest(g);
-        forest.hrefine(4);
+        forest.hrefine(1);
+        
+        for(uint ielem = 0; ielem < forest.elemN(); ++ielem) {
+            const auto el = forest.element(ielem);
+            std::cout << *el << "\n";
+            for(uint icpt = 0; icpt < el->collocPtN(); ++icpt){
+                std::cout << el->collocPt(icpt) << "\n";
+            }
+        }
         std::cout << "Constructed forest with " << forest.elemN() << " elements\n";
         
         std::cout << "Creating bounding box data for H-matrix construction\n";
