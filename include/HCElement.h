@@ -110,7 +110,7 @@ namespace nurbs {
         }
         
         /// Get the parent coordinate of a given collocation point index
-        GPt2D collocPt(const uint icpt) const override
+        GPt2D collocParentCoord(const uint icpt) const override
         {
             // TODO!
             return GPt2D();

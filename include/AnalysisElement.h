@@ -138,7 +138,7 @@ namespace nurbs {
         virtual uint globalCollocI(const uint icpt) const = 0;
         
         /// Get the parent coordinate of a given collocation point index
-        virtual GPt2D collocPt(const uint icpt) const = 0;
+        virtual GPt2D collocParentCoord(const uint icpt) const = 0;
         
         /// Print function as used by output operator
         virtual void print(std::ostream& ost) const = 0;

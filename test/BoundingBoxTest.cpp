@@ -24,9 +24,9 @@ int main(const int argc, const char* argv[])
         
         for(uint ielem = 0; ielem < forest.elemN(); ++ielem) {
             const auto el = forest.element(ielem);
-            std::cout << *el << "\n";
             for(uint icpt = 0; icpt < el->collocPtN(); ++icpt){
-                std::cout << el->collocPt(icpt) << "\n";
+                std::cout << el->collocParentCoord(icpt) << "\n";
+                
             }
         }
         std::cout << "Constructed forest with " << forest.elemN() << " elements\n";
