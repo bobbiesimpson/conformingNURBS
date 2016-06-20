@@ -29,6 +29,14 @@ namespace nurbs {
             :
             IPolarIntegrate(spt, {n,n}, {nang, nradial}) {}
             
+            /// Construct with vector of integration orders
+            IPolarIntegrate(const GPt2D& spt,
+                            const UIntVec& orders,
+                            const uint nang = 1,
+                            const uint nradial = 1)
+            :
+            IPolarIntegrate(spt, orders, {nang, nradial}) {}
+            
             
             /// Constructor with specified orders and offset and location
             /// of singularity in the parametric interval [-1,1]^2
