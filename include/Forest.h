@@ -532,7 +532,8 @@ namespace nurbs
         
         /// Local (space) collocation connectivity array
         /// Required to generate parametric and parent coordinates
-        /// of collocation points within an element
+        /// of collocation points within an element.
+        /// Maps global element index to a vector of global collocation indices
         std::map<uint, std::vector<uint>> mLocalCollocConn;
         
         /// A mapping from a global element index (over all elements over all spaces) to
