@@ -46,6 +46,8 @@ namespace nurbs
     Point3D Geometry::normal(const double s, const double t, const uint sp) const
     {
         Point3D n = cross(tangent(s,t,sp,S), tangent(s,t,sp,T));
+        if(normalsFlipped())
+            n *= -1;
         return n / n.length();
     }
     

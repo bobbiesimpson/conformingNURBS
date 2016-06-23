@@ -40,9 +40,11 @@ namespace nurbs
         Geometry() {}
         
         Geometry(const Forest& f,
-                 const std::vector<Point4D>& cpts)
+                 const std::vector<Point4D>& cpts,
+                 bool b = false)
         : mPrimalForest(f),
-          mCPts(cpts) {}
+          mCPts(cpts),
+          mFlipNormals(b) {}
 
         /// Clear all the data for this geometry object
         void clear()
@@ -97,6 +99,12 @@ namespace nurbs
         /// Print to a file stream
         void print(std::ostream& ost) const;
         
+        /// set flipped normals flag
+        void flipNormals(bool b) { mFlipNormals = b; }
+        
+        /// normal flipped getter
+        bool normalsFlipped() const { return mFlipNormals; }
+        
         protected:
         
         /// Get point given a set of local indices for each parmetric direction
@@ -115,6 +123,9 @@ namespace nurbs
         /// The set of control points which are interpolated by the basis functions
         /// defined by the forest.
         std::vector<Point4D> mCPts;
+        
+        /// flag to indicate if normals are flipped
+        bool mFlipNormals;
         
         /// Overload input operator
         friend std::istream& operator>>(std::istream& ist, Geometry& g);

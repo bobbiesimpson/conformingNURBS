@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 
+
 #include "base.h"
+
 
 namespace nurbs {
     
@@ -38,6 +40,10 @@ namespace nurbs {
         /// for defining support of basis functions for H-matrices
         void outputBoundingBoxSet(const std::vector<std::pair<Point3D, Point3D>>& bdata) const;
         
+        void outputComplexAnalysisField(const Forest& f,
+                                        const std::vector<std::complex<double>>& soln) const;
+        
+        
         /// Sample point number setter
         void setSamplePtN(const uint n)
         {
@@ -63,6 +69,9 @@ namespace nurbs {
         /// Number of sample points
         uint mSamplePtN;
     };
+    
+
+    
     
 }
 #endif
