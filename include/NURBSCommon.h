@@ -61,6 +61,10 @@ namespace nurbs
         DoubleVec uniformKnotInsertion(const DoubleVec& knotvec,
                                        const uint refine = 1);
         
+        /// Return the set of Bernstein polynomails evaluate at xi \in [-1,1]
+        /// for degree p
+        DoubleVec bernsteinPolynomial(const double xi, const uint p);
+        
 		/* /// Interpolate a set of points and return the associate nurbs curve */
 		/* NURBSCurve interpolatePts( const std::vector< Point3D >& pts, */
 		/* 						   const uint p, */

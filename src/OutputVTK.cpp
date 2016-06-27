@@ -7,7 +7,7 @@
 #include "vtkQuad.h"
 #include "vtkPointData.h"
 #include <vtkHexahedron.h>
-
+#include <complex>
 #include "Forest.h"
 #include "IElem.h"
 
@@ -95,6 +95,7 @@ namespace nurbs {
     
         /// specialisation for complex types
         void OutputVTK::outputComplexAnalysisField(const Forest& f,
+                                                   const std::string& fieldname,
                                                    const std::vector<std::complex<double>>& soln) const
         {
             const uint nsample = samplePtN();   // number of sample points in each parametric direction
@@ -103,7 +104,7 @@ namespace nurbs {
             vtkSmartPointer<vtkPoints> points = vtkPoints::New();
             vtkSmartPointer<vtkDoubleArray> solndata = vtkDoubleArray::New();
             solndata->SetNumberOfComponents(3);
-            solndata->SetName("acoustic pressure");
+            solndata->SetName(fieldname.c_str());
             solndata->SetComponentName(0, "real");
             solndata->SetComponentName(1, "imag");
             solndata->SetComponentName(2, "abs");
@@ -126,6 +127,8 @@ namespace nurbs {
                     std::complex<double> val;
                     for(uint ibasis = 0; ibasis < basisvec.size(); ++ibasis)
                         val += soln[gbasisivec[ibasis]] * basisvec[ibasis];
+                    
+//                    val = std::exp(std::complex<double>(0.0, 1.0 * nurbs::dot(Point3D(1.0, 0.0, 0.0), phys_coord)));
                     solndata->InsertComponent(sample_offset + count, 0, val.real());
                     solndata->InsertComponent(sample_offset + count, 1, val.imag());
                     solndata->InsertComponent(sample_offset + count, 2, std::abs(val));

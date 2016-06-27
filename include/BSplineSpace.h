@@ -325,6 +325,13 @@ namespace nurbs
             degreeReduce(T);
         }
         
+        /// Raise degree in all parametric directions
+        void degreeElevate()
+        {
+            degreeElevate(S);
+            degreeElevate(T);
+        }
+        
         /// Degree elevate in given parametric direction
         void degreeElevate(const ParamDir dir);
         
@@ -397,6 +404,9 @@ namespace nurbs
 
 		/// The name of this space
 		std::string mName;
+        
+        /// bezier element coefficients
+        std::vector<std::vector<double>> mBezierCoeffs;
 		
 		/// Print function
 		void printData(std::ostream& ost) const;

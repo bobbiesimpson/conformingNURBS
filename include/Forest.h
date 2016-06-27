@@ -421,6 +421,7 @@ namespace nurbs
             clearElementData();
         }
         
+        /// Apply degree reduction n times
         void degreeReduce(const uint n)
         {
             if(0 == n) {
@@ -441,6 +442,33 @@ namespace nurbs
             initCollocConn();
             clearElementData();
         }
+        
+        /// TODO: this does not produce the right connectivity at present
+        
+        /// Apply degree elevation n times
+        void degreeElevate(const uint n)
+        {
+            if(0 == n) {
+                std::cerr << "Degree elevate of 0 requested: carrying on\n";
+                return;
+            }
+            const uint max_degree = 20;
+            
+            for(uint i = 0; i < n; ++i) {
+                for(auto& s : mSpaces) {
+                    const auto dvec = s.degree();
+                    if(dvec[0] >= max_degree || dvec[1] >= max_degree) {
+                        std::cerr << "Reached max degree p=20";
+                        break;
+                    }
+                    s.degreeElevate();
+                }
+            }
+            initNodalConn();
+            initCollocConn();
+            clearElementData();
+        }
+        
 		
 		/// Load from an input stream
 		void load(std::istream& ist);

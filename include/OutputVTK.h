@@ -41,6 +41,7 @@ namespace nurbs {
         void outputBoundingBoxSet(const std::vector<std::pair<Point3D, Point3D>>& bdata) const;
         
         void outputComplexAnalysisField(const Forest& f,
+                                        const std::string& fieldname,
                                         const std::vector<std::complex<double>>& soln) const;
         
         

@@ -281,6 +281,46 @@ namespace nurbs
             return refined_kv;
         }
         
+        DoubleVec bernsteinPolynomial(const double xi, const uint p)
+        {
+            const double x = 0.5 * (xi + 1.0);
+            
+            switch(p) {
+                case 0:
+                    return {1};
+                case 1:
+                    return {1.0 - x, x};
+                case 2:
+                    return
+                    {
+                        std::pow(1.0 - x, 2.0),
+                        2.0 * x * (1.0 - x),
+                        x * x
+                    };
+                case 3:
+                    return
+                    {
+                        std::pow(1.0 - x, 3.0),
+                        3.0 * x * std::pow((1.0 - x), 2),
+                        3 * x * x * (1.0 - x),
+                        std::pow(x, 3)
+                    };
+                case 4:
+                    return
+                    {
+                        std::pow(1.0 - x, 4.0),
+                        4.0 * x * std::pow((1.0 - x), 3),
+                        6.0 * x * x * std::pow((1.0 - x), 2),
+                        4.0 * std::pow(x,3) * (1.0 - x),
+                        std::pow(x, 4)
+                    };
+                default:
+                    DoubleVec temp;
+                    for(uint i = 0; i < p + 1; ++i)
+                        temp.push_back(boost::math::binomial_coefficient<double>(p,i) * std::pow(x, i) * std::pow(1.0 - x, p - i));
+                    return temp;
+            }
+        }
 
 	// 	/// generate a NURBS curve by interpolating a set of points
 	// 	NURBSCurve interpolatePts( const std::vector< Point3D >& pts,

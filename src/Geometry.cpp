@@ -218,6 +218,15 @@ namespace nurbs
         std::cout << "\n- end geometry object -\n";
     }
     
+    void Geometry::rescale(const double sf)
+    {
+        for(uint ipoint = 0; ipoint < controlPtN(); ++ipoint) {
+            auto& pt = point(ipoint);
+            for(uint i = 0; i < 3; ++i)
+                pt[i] *= sf;
+        }
+    }
+    
     std::istream& operator>>(std::istream& ist, Geometry& g)
     {
         g.load(ist);

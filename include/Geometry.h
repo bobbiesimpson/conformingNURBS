@@ -63,6 +63,9 @@ namespace nurbs
             return mCPts[i];
         }
         
+        /// number of control points
+        uint controlPtN() const { return mCPts.size(); }
+        
         /// Number of B-spline spaces
         uint spaceN() const
         { return primalForest().spaceN(); }
@@ -105,11 +108,20 @@ namespace nurbs
         /// normal flipped getter
         bool normalsFlipped() const { return mFlipNormals; }
         
+        /// rescale geometry by a given factor.
+        void rescale(const double sf);
+        
         protected:
         
         /// Get point given a set of local indices for each parmetric direction
 		const Point4D& point(const uint sp, const uint i, const uint j) const
 		{ return mCPts.at(primalForest().globalI(sp,i,j)); }
+        
+        /// Non-const point accessor
+        Point4D& point(const uint i)
+        {
+            return mCPts[i];
+        }
 		
 		/// Get a point given a 'global' index. Use a row major numbering system
 		const Point4D& point(const uint sp, const uint i) const
