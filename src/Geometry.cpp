@@ -52,7 +52,9 @@ namespace nurbs
     }
     
     /// Tangent
-    Point3D Geometry::tangent(const double s, const double t, const uint sp,
+    Point3D Geometry::tangent(const double s,
+                              const double t,
+                              const uint sp,
                               const ParamDir dir) const
     {
         const ParamDir dir2 = (dir == S) ? T : S;
@@ -62,6 +64,13 @@ namespace nurbs
 		UIntVec span = b_space.span(s, t);
 		DoubleVecVec basis = b_space.tensorBasis(s,t,span);
 		DoubleVecVec ders = b_space.tensorBasisDers(s,t,span);
+
+        std::vector<double> result;
+        for(uint j = 0; j < basis[T].size(); ++j)
+            for(uint i = 0; i < ders[S].size(); ++i)
+                result.push_back(basis[T][j] * ders[S][i]);
+//        std::cout << result << "\n";
+        
 		Point3D a, ader;
 		double w = 0.0, wder = 0.0;
 		for(uint i = 0; i < b_space.degree(S) + 1; ++i ) {
@@ -75,6 +84,9 @@ namespace nurbs
 				wder += p.getWeight() * ders[dir][der_i] * basis[dir2][nder_i];
 			}
 		}
+//        std::cout << "w = " << w << "\n\n";
+//        std::cout << "wder = " << wder << "\n\n";
+        
 		return nurbshelper::getNonRationalDeriv( { a, ader }, { w, wder } );
     }
     

@@ -63,6 +63,46 @@ namespace nurbs {
                 return std::make_pair(false, DoubleVec{});
             }
             
+            /// Check if bspline basis has been cached and populate with relevant value
+            std::pair<bool, DoubleVec> bernsteinBasis(const double s,
+                                                      const uint p) const
+            {
+                auto it = mBernsteinBasisMap.find(std::make_tuple(s,p));
+                if(it != mBernsteinBasisMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, DoubleVec{});
+            }
+            
+            /// Cache the given span
+            bool cacheBernsteinBasis(double s,
+                                     const uint p,
+                                     const DoubleVec& basis)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mBernsteinBasisMap.insert(std::make_pair(std::make_tuple(s,p), basis));
+                return insert.second;
+            }
+            
+            /// Check if bspline basis has been cached and populate with relevant value
+            std::pair<bool, DoubleVec> bernsteinBasisDeriv(const double s,
+                                                           const uint p) const
+            {
+                auto it = mBernsteinBasisDerivMap.find(std::make_tuple(s,p));
+                if(it != mBernsteinBasisDerivMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, DoubleVec{});
+            }
+            
+            /// Cache the given span
+            bool cacheBernsteinBasisDeriv(double s,
+                                          const uint p,
+                                          const DoubleVec& basis)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mBernsteinBasisDerivMap.insert(std::make_pair(std::make_tuple(s,p), basis));
+                return insert.second;
+            }
+            
             /// Cache the given span
             bool cacheBasis(double s,
                             const uint span,
@@ -71,7 +111,7 @@ namespace nurbs {
                             const DoubleVec& basis)
             {
 //                std::lock_guard<std::mutex> lock(mMutex);
-//                auto insert = mBasisMap.insert(std::make_pair(std::make_tuple(s,span,knotvec,p), basis));
+//                auto insert = mBasisMap.insert(std::make_pair(std::make_tuple(s,span, knotvec, p), basis));
 //                return insert.second;
                 return true;
             }
@@ -135,6 +175,12 @@ namespace nurbs {
             
             /// Basis derivatives cache
             std::map<std::tuple<double, uint, DoubleVec, uint, DerivOrder>, DoubleVecVec> mBasisDerMap;
+            
+            /// Bernstein basis cache
+            std::map<std::tuple<double, uint>, DoubleVec> mBernsteinBasisMap;
+            
+            /// Bernstein derivative basis cache
+            std::map<std::tuple<double, uint>, DoubleVec> mBernsteinBasisDerivMap;
             
         };
         

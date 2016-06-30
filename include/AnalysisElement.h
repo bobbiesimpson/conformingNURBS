@@ -143,12 +143,29 @@ namespace nurbs {
         /// Print function as used by output operator
         virtual void print(std::ostream& ost) const = 0;
         
+        /// parent element getter
+        const AnalysisElement* parent() const { return mpParent; }
+        
+        /// parent setter
+        void setParent(const AnalysisElement* p) { mpParent = p; }
+        
+        /// Given a parent coordinate for this element in [-1,1]
+        /// transform this to the parent coordinate in the parent element
+        /// also in [-1,1]
+        GPt2D transformToParentElParentCoord(const GPt2D& gp) const
+        {
+            ParamCoord c = paramCoord(gp);
+            return parent()->parentCoord(c.s, c.t);
+        }
+        
     protected:
         
         /// Constructor which simply calls BaseElement constructor
-        AnalysisElement(const Geometry& g, const uint sp,
+        AnalysisElement(const Geometry& g,
+                        const uint sp,
                         const DoublePairVec& knots)
-        : GeometryElement(g, sp, knots) {}
+        : GeometryElement(g, sp, knots),
+          mpParent(nullptr) {}
         
     private:
         
@@ -158,6 +175,12 @@ namespace nurbs {
         
         /// Reference to elements connected to edges of this element.
         std::map<Edge, const AnalysisElement*> mEdgeEls;
+        
+        /// Reference to geometry space this element lives in
+        //const BSplineSpace* mpGeomSpace;
+        
+        /// Pointer to parent element that lives in the primal forest
+        const AnalysisElement* mpParent;
         
         /// Overload output operator
         friend std::ostream& operator<<(std::ostream& ost, const AnalysisElement& e)

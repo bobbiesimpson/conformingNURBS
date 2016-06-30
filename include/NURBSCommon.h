@@ -65,6 +65,9 @@ namespace nurbs
         /// for degree p
         DoubleVec bernsteinPolynomial(const double xi, const uint p);
         
+        /// First derivatives of bernstein polynomails
+        DoubleVec bernsteinPolynomialDeriv(const double xi, const uint p);
+        
 		/* /// Interpolate a set of points and return the associate nurbs curve */
 		/* NURBSCurve interpolatePts( const std::vector< Point3D >& pts, */
 		/* 						   const uint p, */

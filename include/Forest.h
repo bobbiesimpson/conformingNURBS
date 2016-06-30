@@ -15,6 +15,7 @@
 #include "BSplineSpace.h"
 #include "AnalysisElement.h"
 
+
 namespace nurbs
 {
 	/// A forest class is responsible for the set of Bspline spaces, associated
@@ -133,6 +134,13 @@ namespace nurbs
         /// Get an element given a space index and local element index
         const NAnalysisElement* element(const uint ispace, const uint ielem) const
         { return element(globalElI(ispace, ielem)); }
+        
+        /// Get element at global index
+        const NAnalysisElement* bezierElement(const uint i) const;
+        
+        /// Get an element given a space index and local element index
+        const NAnalysisElement* bezierElement(const uint ispace, const uint ielem) const
+        { return bezierElement(globalElI(ispace, ielem)); }
 		
         /// Get the number of elements on the given space
         const uint elemN(const uint ispace) const
@@ -521,6 +529,7 @@ namespace nurbs
         void clearElementData()
         {
             mElems.clear();
+            mBezierElems.clear();
             mElemIndexMap.clear();
             mGlobalDofN = std::make_pair(false, 0);
         }
@@ -570,6 +579,9 @@ namespace nurbs
         
         /// Map from a (space, local element index) pair to an element instance
 		mutable std::map<uint, std::unique_ptr<NAnalysisElement>> mElems;
+        
+        /// Map from a (space, local element index) pair to a bezier element instance
+        mutable std::map<uint, std::unique_ptr<NAnalysisElement>> mBezierElems;
         
         /// Cached global dof
         mutable std::pair<bool, uint> mGlobalDofN;

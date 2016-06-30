@@ -1,7 +1,8 @@
 #include <iostream>
-
+#include <chrono>
 #include "Geometry.h"
 #include "Forest.h"
+#include "IPolarIntegrate.h"
 
 using namespace nurbs;
 
@@ -18,13 +19,29 @@ int main(const int argc, const char* argv[])
             error("Failed to load geometry from hbs data");
         
         Forest forest(g);
-        std::cout << "Performing h-refinement test...\n";
-        const uint nrefine = 10;
-        forest.hrefine(nrefine);
+        uint refine = 0;
+        if(argc > 2)
+            refine = std::atoi(argv[2]);
+        forest.hrefine(refine);
         
         std::cout << "Constructed forest with " << forest.elemN() << " elements\n";
         
         std::cout << "Read successful\n";
+        
+        auto start = std::chrono::high_resolution_clock::now();
+        for(uint ielem = 0; ielem < forest.elemN(); ++ielem) {
+            const auto el = forest.element(ielem);
+            for(nurbs::IPolarIntegrate igpt(nurbs::GPt2D(0.0, 0.0), el->integrationOrder()); !igpt.isDone(); ++igpt) {
+                const auto gp = igpt.get();
+                const auto p = el->eval(gp.s, gp.t);
+                auto n = el->normal(gp.s, gp.t);
+//                auto basis = el->basis(gp.s, gp.t);
+                //auto jacob = el->jacDet(gp.s, gp.t);
+            }
+        }
+        auto time =  std::chrono::high_resolution_clock::now() - start;
+        std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::seconds>(time).count() << "(s)" << "\n";
+        
         return EXIT_SUCCESS;
     }
     catch(const std::exception& e) {

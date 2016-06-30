@@ -13,6 +13,7 @@
 #include "BSplineSpace.h"
 #include "Forest.h"
 #include "base.h"
+#include "NURBSCommon.h"
 
 #include <fstream>
 #include <algorithm>
@@ -33,8 +34,12 @@ namespace nurbs {
         
         /// Construct a nodal element from a forest, space index and local
         /// element index
-        NodalElement(const Forest* f, const uint ispace, const uint iel)
-        : NAnalysisElement(*f->geometry(), ispace, f->knotIntervals(ispace, iel)),
+        NodalElement(const Forest* f,
+                     const uint ispace,
+                     const uint iel)
+        : NAnalysisElement(*f->geometry(),
+                           ispace,
+                           f->knotIntervals(ispace, iel)),
           mForest(f),
           mSpace(&f->space(ispace)),
           mElemI(iel) {}
@@ -74,6 +79,9 @@ namespace nurbs {
         {
             ParamCoord p = paramCoord(u,v);
             return space()->basis(p.s, p.t, span());
+            
+            
+            
         }
         
         /// Get the local basis derivatives

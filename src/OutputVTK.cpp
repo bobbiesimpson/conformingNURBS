@@ -23,7 +23,7 @@ namespace nurbs {
         uint sample_offset = 0;
         
         for(uint i = 0; i < f.elemN(); ++i) {
-            const auto e = f.element(i);
+            const auto e = f.bezierElement(i);
 
             uint count = 0;
             for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept)

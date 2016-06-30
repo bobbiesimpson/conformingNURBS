@@ -43,7 +43,7 @@ namespace nurbs
         uint spaceI() const {return mSpaceI;}
         
         /// Evaluate the physical point given a parent coordinate.
-        Point3D eval(const double u, const double v) const;
+        virtual Point3D eval(const double u, const double v) const;
         
         /// Same as above but passing a 2d guass point
         Point3D eval(const GPt2D
@@ -53,25 +53,25 @@ namespace nurbs
         Point3D evalVertex(const Vertex v) const;
         
         /// Get jacobian determinant from parent to physical space
-        double jacDet(const double u, const double v) const;
+        virtual double jacDet(const double u, const double v) const;
         
         /// Same as above but passing a 2d guass point
         double jacDet(const GPt2D& gp) const {return jacDet(gp.s, gp.t); }
         
         /// Get jacobian
-        DoubleVecVec jacob(const double u, const double v) const;
+        virtual DoubleVecVec jacob(const double u, const double v) const;
         
         /// Same as above but passing a 2d guass point
         DoubleVecVec jacob(const GPt2D& gp) const {return jacob(gp.s, gp.t); }
         
         /// Get the normal
-        Point3D normal(const double u, const double v) const;
+        virtual Point3D normal(const double u, const double v) const;
         
         /// Same as above but passing a 2d guass point
         Point3D normal(const GPt2D& gp) const {return normal(gp.s, gp.t); }
         
         /// Get the tangent
-        Point3D tangent(const double u, const double v, const ParamDir d) const;
+        virtual Point3D tangent(const double u, const double v, const ParamDir d) const;
         
         /// Same as above but passing a 2d guass point
         Point3D tangent(const GPt2D& gp, const ParamDir d) const {return tangent(gp.s, gp.t, d); }
@@ -79,9 +79,18 @@ namespace nurbs
         /// Get the degree for all parametric directions.
         UIntVec geometryDegree() const;
         
+        /// Wrapper for other function
+        std::pair<bool, GPt2D> containsParamPt(const GPt2D& g) const
+        {
+            return containsParamPt(g.s, g.t);
+        }
+        
         /// Does this element contain the given parametric point? If so, return true
         /// with local parent coordinate
         std::pair<bool, GPt2D> containsParamPt(const double s, const double t) const;
+        
+        /// Is this element a subelement of this element
+        bool contains(const GeometryElement& e) const;
         
         /// Get approximate element size
         double size() const
@@ -136,12 +145,22 @@ namespace nurbs
             return currentUB;
         }
 
+        /// parametric lower bound
+        GPt2D lowerBound() const
+        {
+            return GPt2D(lowerBound(S), lowerBound(T));
+        }
+        
+        /// parametric upper bound
+        GPt2D upperBound() const
+        {
+            return GPt2D(upperBound(S), upperBound(T));
+        }
         
         /// Print function that may be overridden as required.
         virtual void print(std::ostream& ost) const;
         
-    protected:
-        
+        /// Jacobian from parent space to parametric space
         DoubleVecVec jacobParam(const double u, const double v) const
         {
             return { { (upperBound(S) - lowerBound(S)) / 2.0, 0.0},
@@ -164,6 +183,11 @@ namespace nurbs
             return p;
         }
         
+        /// Wrapper for above function
+        ParamCoord paramCoord(const GPt2D& g) const
+        {
+            return paramCoord(g.s, g.t);
+        }
 
         /// Get the parent coordinate given a paramatric coordinate
         GPt2D parentCoord(const double s, const double t) const
@@ -198,6 +222,8 @@ namespace nurbs
             assert(mKnotIntervals.size() > 1);
             return mKnotIntervals[dir];
         }
+        
+    protected:
         
     private:
         

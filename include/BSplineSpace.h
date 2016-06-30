@@ -7,10 +7,9 @@
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
-
+#include <map>
 #include <boost/icl/continuous_interval.hpp>
 #include <boost/icl/closed_interval.hpp>
-
 #include "base.h"
 #include "InputDataStructures.h"
 
@@ -293,6 +292,15 @@ namespace nurbs
                 throw std::runtime_error("Bad derivative type specified.");
             return dvec;
         }
+        
+        /// Get B-spline basis using Bezier extraction
+        /// coefficients.
+        DoubleVec fastBasis(const double s,
+                            const double t,
+                            const uint iel)
+        {
+            return {};
+        }
 		
 		/// Return the non-zero local basis function indices for this parametric coordinate
 		/// Returns a set of vectors corresponding to the indices in each parametric direction
@@ -315,6 +323,39 @@ namespace nurbs
 		/// Get the knot indices for given parametric coordinate
 		UIntVec span(const double s, const double t) const;
 
+        /// Get local element indices (i,j) along each parametric direction
+        /// given a 'global' element index.
+        std::pair<uint, uint> localIndices(const uint iel) const
+        {
+            const uint ns = uniqueKnotN(S) - 1;
+            return std::make_pair(iel % ns, iel / ns);
+        }
+        
+        /// Get the extraction operators given an element index for
+        /// this space
+//        std::vector<DoubleVecVec> extractionOperator(const uint iel) const
+//        {
+//            const auto l_indices = localIndices(iel);
+//            return {extractionOperator(l_indices.first, S),
+//                    extractionOperator(l_indices.second, T)};
+//        }
+        
+        /// Extraction operator getter
+        const std::vector<std::vector<double>>& extractionOperator(const uint iel,
+                                                                   const ParamDir dir) const
+        {
+            switch(dir) {
+                case ParamDir::S:
+                    return mSExtractionOperators.at(iel);
+                    break;
+                case ParamDir::T:
+                    return mTExtractionOperators.at(iel);
+                    break;
+                default:
+                    throw std::runtime_error("Bad parametric direction in Bezier element");
+            }
+        }
+        
         /// Degree reduce in given parametric direction
         void degreeReduce(const ParamDir dir);
         
@@ -344,27 +385,7 @@ namespace nurbs
 		private:
 
 		/// recalculate unique knots and intervals
-		void init()
-		{
-            mUniqueKnotVecs.clear(); // clear data
-            mIntervalVec.clear();
-            mNumBasisVec.clear();
-            
-			for(uint i = 0; i < paramDimN(); ++i) {
-				mIntervalVec.push_back(boost::icl::construct<Interval>
-									   (mKnotVecs[i].front(), mKnotVecs[i].back(),
-										boost::icl::interval_bounds::closed()));
-				Interval& last = mIntervalVec.back();
-				if(essentiallyEqual(last.upper(), last.lower(), TOL))
-					error("Cannot prescribe a b-spline space with non-zero parametric area.");
-				mNumBasisVec.push_back(mKnotVecs[i].size() - mDegrees[i] - 1);
-			}
-			// construct unique knot vectors
-			for(auto kv : mKnotVecs) {
-				auto last = std::unique(kv.begin(), kv.end());
-				mUniqueKnotVecs.emplace_back( DoubleVec( kv.begin(), last ) );
-			}			
-		}
+        void init();
 		
 		/// Clear all data
 		void clear()
@@ -374,6 +395,8 @@ namespace nurbs
 			mDegrees.clear();
 			mNumBasisVec.clear();
 			mIntervalVec.clear();
+            mSExtractionOperators.clear();
+            mTExtractionOperators.clear();
 		}
 		
 		/// Is this a valid parametric coordinate? I.e. does it lie in the parametric space?
@@ -385,6 +408,27 @@ namespace nurbs
 					return false;
 			return true;
 		}
+        
+        /// Set the extraction operator for the given element index
+        /// and parametric direction
+        void setExtractionOperator(const uint iel,
+                                   const ParamDir dir,
+                                   const std::vector<std::vector<double>>& op)
+        {
+            switch(dir) {
+                    
+                case ParamDir::S:
+                    mSExtractionOperators[iel] = op;
+                    break;
+                case ParamDir::T:
+                    mTExtractionOperators[iel] = op;
+                    break;
+                default:
+                    throw std::runtime_error("Bad parametric direction in Bspline space");
+            }
+        }
+        
+
 		
 		/// Global knot vectors
 		DoubleVecVec mKnotVecs;
@@ -405,8 +449,11 @@ namespace nurbs
 		/// The name of this space
 		std::string mName;
         
-        /// bezier element coefficients
-        std::vector<std::vector<double>> mBezierCoeffs;
+        /// S-direction element extraction operators
+        std::map<uint, std::vector<std::vector<double>>> mSExtractionOperators;
+        
+        /// T-direction element extraction operators
+        std::map<uint, std::vector<std::vector<double>>> mTExtractionOperators;
 		
 		/// Print function
 		void printData(std::ostream& ost) const;

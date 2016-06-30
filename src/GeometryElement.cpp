@@ -108,6 +108,13 @@ namespace nurbs {
             return std::make_pair(false, GPt2D());
     }
     
+    bool GeometryElement::contains(const GeometryElement& e) const
+    {
+        if(containsParamPt(e.lowerBound()).first && containsParamPt(e.upperBound()).first)
+            return true;
+        return false;
+    }
+    
     void GeometryElement::print(std::ostream& ost) const
     {
         ost << "Geometry: " << &mGeom << "\n";

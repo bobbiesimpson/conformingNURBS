@@ -101,7 +101,128 @@ namespace nurbs
 		init(); // recalculate unique knots + intervals
 	}
 	
-	
+    void BSplineSpace::init()
+    {
+        mUniqueKnotVecs.clear(); // clear data
+        mIntervalVec.clear();
+        mNumBasisVec.clear();
+        mSExtractionOperators.clear();
+        mTExtractionOperators.clear();
+        
+        for(uint i = 0; i < paramDimN(); ++i) {
+            mIntervalVec.push_back(boost::icl::construct<Interval>
+                                   (mKnotVecs[i].front(), mKnotVecs[i].back(),
+                                    boost::icl::interval_bounds::closed()));
+            Interval& last = mIntervalVec.back();
+            if(essentiallyEqual(last.upper(), last.lower(), TOL))
+                error("Cannot prescribe a b-spline space with non-zero parametric area.");
+                mNumBasisVec.push_back(mKnotVecs[i].size() - mDegrees[i] - 1);
+                }
+        
+        // construct unique knot vectors
+        for(auto kv : mKnotVecs) {
+            auto last = std::unique(kv.begin(), kv.end());
+            mUniqueKnotVecs.emplace_back( DoubleVec( kv.begin(), last ) );
+        }
+        
+        //
+        // construct element extraction operators from knot vectors
+        //
+        for(uint iparam = 0; iparam < paramDimN(); ++iparam) {
+            
+            const ParamDir dir = ParamDirType(iparam);
+            const uint p = degree(dir);
+            auto kvec = knotVec(dir);
+            
+            const uint m = knotVec(dir).size();
+            
+            uint a = p;
+            uint b = a + 1;
+            uint nb = 0;                // # bezier elements in this direction
+            
+            /// Identity matrix
+            std::vector<std::vector<double>> I(p + 1, std::vector<double>(p+1, 0.0));
+            for(uint i = 0; i < p + 1; ++i)
+                I[i][i] = 1.0;
+            
+            // if linear, the extraction operator is simply the identity matrix
+            // since linear Bsplines and linear Bernstein polynomials are equivalent
+            if(1 == degree(dir)) {
+                for(uint iel = 0; iel < uniqueKnotN(dir)-1; ++iel)
+                    setExtractionOperator(iel, dir, I);
+                continue;
+            }
+            
+            // code for degree > 1
+            
+            /// Initialise extraction matrices
+            auto Ccurrent = I;
+            auto Cnext = I;
+            
+            while(b < m) {
+
+                // We're done.
+                if(nb == uniqueKnotN(dir) - 2) {
+                    setExtractionOperator(nb, dir, Ccurrent);
+//                    std::cout << Ccurrent << "\n";
+                    break;
+                }
+                
+                uint i = b;
+                uint mult = 0;
+                
+                // count multiplitiy of knot at location b
+                while(b < m && essentiallyEqual(kvec[b+1], kvec[b], 1.e-7))
+                    b += 1;
+                
+                mult = b - i + 1;
+                
+                // initialise alpha
+                std::vector<double> alphas(p + 1, 0.0);
+                
+                if(mult < p) {
+                    const double numer = kvec[b] - kvec[a];
+                    for(uint j = p; j > mult; j--)
+                        alphas[j-mult-1] = numer / (kvec[a+j] - kvec[a]);
+                    
+                    const uint r = p - mult;
+                    
+                    // update matrix coefficients
+                    for(uint j = 1; j <= r; ++j) {
+                        const uint save = r - j;
+                        const uint s = mult + j;
+                        for(uint k = p; k >= s; k--) {
+                            const double alpha = alphas[k-s];
+                            for(uint irow = 0; irow < Ccurrent.size(); ++irow) {
+                                Ccurrent[irow][k] = alpha * Ccurrent[irow][k]
+                                + (1.0 - alpha) * Ccurrent[irow][k-1];
+                            }
+                        }
+                        if(b < m) {
+                            for(uint i = 0; i <= j; ++i)
+                                Cnext[save+i][save] = Ccurrent[p-j+i][p];
+                        }
+                    }
+                    
+                    // store current operator
+                    setExtractionOperator(nb, dir, Ccurrent);
+//                    std::cout << Ccurrent << "\n";
+                    
+                    // Set next operator equal to current and increment element counter
+                    Ccurrent = Cnext;
+                    Cnext = I;
+                    nb += 1;
+                    
+                    // update indices for next operator
+                    if(b < m) {
+                        a = b;
+                        b += 1;
+                    }
+                }
+            }
+        }
+    }
+    
 	void BSplineSpace::printData(std::ostream& ost) const
 	{
 		ost << "--------- NURBS SPACE DATA -------------\n\n";

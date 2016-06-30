@@ -9,6 +9,7 @@
 #include "NodalElement.h"
 #include "MultiForest.h"
 #include "NodalElement.h"
+#include "BezierNodalElement.h"
 
 namespace nurbs
 {
@@ -41,6 +42,8 @@ namespace nurbs
         mElemIndexMap = f.mElemIndexMap;
         for(const auto& e : f.mElems)
             mElems.insert(std::make_pair(e.first, e.second->copy()));
+        for(const auto& e : f.mBezierElems)
+            mBezierElems.insert(std::make_pair(e.first, e.second->copy()));
         mGlobalDofN = f.mGlobalDofN;
     }
     
@@ -64,6 +67,8 @@ namespace nurbs
         mElemIndexMap = f.mElemIndexMap;
         for(const auto& e : f.mElems)
             mElems.insert(std::make_pair(e.first, e.second->copy()));
+        for(const auto& e : f.mBezierElems)
+            mBezierElems.insert(std::make_pair(e.first, e.second->copy()));
         mGlobalDofN = f.mGlobalDofN;
         return *this;
     }
@@ -83,6 +88,7 @@ namespace nurbs
         mLocalCollocConn.clear();
         mElemIndexMap.clear();
         mElems.clear();
+        mBezierElems.clear();
         mGlobalDofN = std::make_pair(false, 0);
     }
     
@@ -138,9 +144,60 @@ namespace nurbs
             auto r_i = mElemIndexMap.insert(std::make_pair(i, std::make_pair(s, local_i)));
             if(!r_i.second)
                 error("Failure inserting element index mapping");
-            return mElems[i].get();
+            auto el = mElems[i].get();
+            
+            // search for parent
+            for(uint ielem = 0; ielem < geometry()->primalForest().space(s).nonzeroKnotSpanN(); ++ielem) {
+                const auto pel = geometry()->primalForest().element(s, ielem);
+                if(pel->contains(*el))
+                    el->setParent(pel);
+            }
+            assert(el->parent() != nullptr);
+            return el;
         }
         error("Failed to create element"); return nullptr;
+    }
+    
+    const NAnalysisElement* Forest::bezierElement(const uint i) const
+    {
+        auto e = mBezierElems.find(i);
+        if(e != mBezierElems.end())
+            return e->second.get();
+        uint start_i = 0;
+        for(uint s = 0; s < spaceN(); ++s) {
+            const uint el_n = space(s).nonzeroKnotSpanN();
+            if((i - start_i) > (el_n - 1)) {
+                start_i += el_n;
+                continue;
+            }
+            const uint local_i = i - start_i;
+            
+            // create the element
+            auto r = mBezierElems.insert(std::make_pair(i, make_unique<BezierNodalElement>(this,
+                                                                                           s,
+                                                                                           local_i)));
+            if(!r.second)
+                error("Failed attempt to create element");
+            
+            // create mapping from global element index to space and local element index
+            mElemIndexMap.insert(std::make_pair(i, std::make_pair(s, local_i)));
+//            if(!r_i.second)
+//                std::cout << "Failure inserting bezier element index mapping. Carrying on...\n";
+            
+            auto el = mBezierElems[i].get();
+            
+            // finally, create a referece to the parent element in the primal forest
+            
+            // search for parent element
+            for(uint ielem = 0; ielem < geometry()->primalForest().space(s).nonzeroKnotSpanN(); ++ielem) {
+                const auto pel = geometry()->primalForest().bezierElement(s, ielem);
+                if(pel->contains(*el))
+                    el->setParent(pel);
+            }
+            assert(el->parent() != nullptr);
+            return el;
+        }
+        error("Failed to create Bezier element"); return nullptr;
     }
     
     uint Forest::globalVertexI(const uint ispace, const Vertex v) const
