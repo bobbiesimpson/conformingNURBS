@@ -2,6 +2,7 @@
 
 #include "BoundingBoxIterator.h"
 #include "Forest.h"
+#include "Geometry.h"
 #include "Point3D.h"
 #include "NodalElement.h"
 
@@ -14,6 +15,12 @@ namespace nurbs {
     {
         // First compute and store collocation data
         const Forest& fref = forest();
+        
+        
+//        mPtData.resize(fref.geometry()->controlPtN());
+//        for(uint icpt = 0; icpt < fref.geometry()->controlPtN(); ++icpt)
+//            mPtData[icpt] = fref.geometry()->controlPt(icpt).asCartesian();
+        
         std::vector<Point3D> pdata;
         pdata.resize(fref.collocPtN());
         std::vector<bool> cached(fref.collocPtN(), false);
@@ -29,9 +36,10 @@ namespace nurbs {
             }
         }
         mPtData = pdata;
-//        mPtData.resize(fref.collocPtN());
-//        for(uint i = 0; i < pdata.size(); ++i)
-//            mPtData[i] = pdata[i];
+        
+        mPtData.resize(fref.collocPtN());
+        for(uint i = 0; i < pdata.size(); ++i)
+            mPtData[i] = pdata[i];
         
         // Now compute bounding boxes of basis function spans
         const double minval = std::numeric_limits<double>::lowest();
