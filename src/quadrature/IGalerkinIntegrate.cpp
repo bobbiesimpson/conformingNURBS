@@ -26,7 +26,6 @@ namespace nurbs {
         return r_pt;
     }
     
-    
     void IGalerkinIntegrate::incrementImpl()
     {
         mDidUpdateSrcI = false; // assume false to start with
@@ -68,8 +67,8 @@ namespace nurbs {
             throw std::runtime_error("Cannot open file for writing quadrature points");
         for(restart(); !isDone(); ++(*this)) {
             const auto gpt = get();
-            ofs << gpt[0] << "\t" << gpt[1] << "\n";
-            off << gpt[2] << "\t" << gpt[3] << "\n";
+            ofs << gpt[0] << "\t" << gpt[1] << "\t" << getWeight() << "\n";
+            off << gpt[2] << "\t" << gpt[3] << "\t" << getWeight() << "\n";
         }
     }
     void IGalerkinIntegrate::print(std::ostream& ost) const

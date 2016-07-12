@@ -81,7 +81,7 @@ namespace nurbs {
         /// Rotate gauss point with rotation matrix
         GPt4D rotate(const DoubleVecVec& smat,
                      const DoubleVecVec& fmat) const;
-        
+
         /// Vector while holds 4-d coordinates
         std::vector<double> data;
         
@@ -100,8 +100,9 @@ namespace nurbs {
     
     /// Points are returned as a 4D gauss pt (see GPt above) in
     /// [-1,1]^4
-    
-	class IGalerkinIntegrate {
+    ///
+	class IGalerkinIntegrate
+    {
         
     public:
         
@@ -119,7 +120,8 @@ namespace nurbs {
 		/// Restart the quadrature iteration
 		virtual void restart()
 		{
-			std::for_each(mBaseQuadratureVec.begin(), mBaseQuadratureVec.end(),
+			std::for_each(mBaseQuadratureVec.begin(),
+                          mBaseQuadratureVec.end(),
 						  [](IElemIntegrate& i){ i.restart(); });
 			mSubCellI = 0;
             mDidUpdateSrcI = true;

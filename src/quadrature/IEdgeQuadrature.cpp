@@ -15,58 +15,61 @@ namespace nurbs
 		GPt4D p = getCurrentUnitIntervalPt();
 		const Range unit_interval = make_interval(UNIT_PARENT_SPACE_INTERVAL);
 		const Range parent_interval = make_interval(PARENT_SPACE_INTERVAL);
-		const double s = p[0];
-		const double s1 = p[1];
-		const double s2 = p[2];
-		const double s3 = p[3];
-		switch(subCellI()) {
+        
+		const double xsi = p[0];
+		const double eta1 = p[1];
+		const double eta2 = p[2];
+		const double eta3 = p[3];
+        
+		switch(subCellI())
+        {
             case 0:
-                return convert_interval(GPt4D((1.0 - s) * s3 + s,
-                                                     s * s2,
-                                                     (1.0 - s) * s3,
-                                                     s * s1),
-                                               unit_interval,
-                                               parent_interval).rotate(sourceRotMat(), fieldRotMat());
+                return convert_interval(GPt4D(( 1. - xsi ) * eta3 + xsi,
+                                              xsi * eta2,
+                                              ( 1. - xsi ) * eta3,
+                                              xsi * eta1),
+                                        unit_interval,
+                                        parent_interval).rotate(sourceRotMat(), fieldRotMat());
                 break;
             case 1:
-                return convert_interval(GPt4D((1.0 - s) * s3,
-                                                     s * s2,
-                                                     s + (1.0 - s) * s3,
-                                                     s * s1),
-                                               unit_interval,
-                                               parent_interval).rotate(sourceRotMat(), fieldRotMat());
+                return convert_interval(GPt4D((1.0 - xsi) * eta3,
+                                                xsi * eta2,
+                                                xsi + (1.0 - xsi) * eta3,
+                                                xsi * eta1),
+                                        unit_interval,
+                                        parent_interval).rotate(sourceRotMat(), fieldRotMat());
                 break;
             case 2:
-                return convert_interval(GPt4D((1.0 - s * s1) * s3 + s * s1,
-                                                     s * s2,
-                                                     (1.0 - s * s1) * s3,
-                                                     s),
-                                               unit_interval,
-                                               parent_interval).rotate(sourceRotMat(), fieldRotMat());
+                return convert_interval(GPt4D((1.0 - xsi * eta1) * eta3 + xsi * eta1,
+                                               xsi * eta2,
+                                              (1.0 - xsi * eta1) * eta3,
+                                               xsi),
+                                        unit_interval,
+                                        parent_interval).rotate(sourceRotMat(), fieldRotMat());
                 break;
             case 3:
-                return convert_interval(GPt4D((1.0 - s * s1) * s3 + s * s1,
-                                                     s,
-                                                     (1.0 - s * s1) * s3,
-                                                     s * s2),
-                                               unit_interval,
-                                               parent_interval).rotate(sourceRotMat(), fieldRotMat());
+                return convert_interval(GPt4D((1.0 - xsi * eta1) * eta3 + xsi * eta1,
+                                              xsi,
+                                              (1.0 - xsi * eta1) * eta3,
+                                              xsi * eta2),
+                                        unit_interval,
+                                        parent_interval).rotate(sourceRotMat(), fieldRotMat());
                 break;
             case 4:
-                return convert_interval(GPt4D((1.0 - s * s1) * s3,
-                                                     s * s2,
-                                                     (1.0 - s * s1) * s3 + s * s1,
-                                                     s),
-                                               unit_interval,
-                                               parent_interval).rotate(sourceRotMat(), fieldRotMat());
+                return convert_interval(GPt4D((1.0 - xsi * eta1) * eta3,
+                                              xsi * eta2,
+                                              (1.0 - xsi * eta1) * eta3 + xsi * eta1,
+                                              xsi),
+                                        unit_interval,
+                                        parent_interval).rotate(sourceRotMat(), fieldRotMat());
                 break;
             case 5:
-                return convert_interval(GPt4D((1.0 - s * s1) * s3,
-                                                     s,
-                                                     (1.0 - s * s1) * s3 + s * s1,
-                                                     s * s2),
-                                               unit_interval,
-                                               parent_interval).rotate(sourceRotMat(), fieldRotMat());
+                return convert_interval(GPt4D((1.0 - xsi * eta1) * eta3,
+                                              xsi,
+                                              (1.0 - xsi * eta1) * eta3 + xsi * eta1,
+                                              xsi * eta2),
+                                        unit_interval,
+                                        parent_interval).rotate(sourceRotMat(), fieldRotMat());
 				break;
 			default:
 				std::cerr << "Reached bad subelement. Aborting.\n";
