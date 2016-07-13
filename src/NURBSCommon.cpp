@@ -284,10 +284,10 @@ namespace nurbs
         DoubleVec bernsteinPolynomial(const double xi, const uint p)
         {
             // First search cache
-            NURBSCache& cache = NURBSCache::Instance();
-            auto cp = cache.bernsteinBasis(xi, p);
-            if(cp.first)
-                return cp.second;
+//            NURBSCache& cache = NURBSCache::Instance();
+//            auto cp = cache.bernsteinBasis(xi, p);
+//            if(cp.first)
+//                return cp.second;
             
             const double x = 0.5 * (xi + 1.0);
             
@@ -331,7 +331,7 @@ namespace nurbs
                         rvec.push_back(boost::math::binomial_coefficient<double>(p,i) * std::pow(x, i) * std::pow(1.0 - x, p - i));
                     break;
             }
-            cache.cacheBernsteinBasis(xi, p, rvec);
+            //cache.cacheBernsteinBasis(xi, p, rvec);
             return rvec;
         }
         

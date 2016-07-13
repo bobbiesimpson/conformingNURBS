@@ -6,6 +6,7 @@
 #include "Forest.h"
 #include "base.h"
 #include "NURBSCommon.h"
+#include <mutex>
 
 namespace nurbs {
     
@@ -30,7 +31,16 @@ namespace nurbs {
         mForest(f),
         mSpace(&f->space(ispace)),
         mElemI(iel),
-        mpParentEl(pel) {}
+        mpParentEl(pel)
+        {
+            // initialise connectivity
+            ParamCoord c = paramCoord(lowerBound(S), lowerBound(T));
+            mLocalBasisFuncI = space()->globalBasisFuncI(c.s, c.t);
+            
+            for(const auto& i : mLocalBasisFuncI)
+                mGlobalBasisFuncI.emplace_back(forest()->globalI(spaceI(),i));
+            
+        }
         
         /// Virtual copy function
         std::unique_ptr<AnalysisElement> copy() const override
@@ -83,21 +93,13 @@ namespace nurbs {
         /// relevant Bspline space
         UIntVec localBasisFuncI() const override
         {
-            if(!mLocalBasisFuncI.empty())
-                return mLocalBasisFuncI;
-            ParamCoord c = paramCoord(lowerBound(S), lowerBound(T));
-            mLocalBasisFuncI = space()->globalBasisFuncI(c.s, c.t);
             return mLocalBasisFuncI;
         }
         
         /// Return the global (to the forest) basis function indices
         UIntVec globalBasisFuncI() const override
         {
-            if(!mGlobalBasisFuncI.empty())
-                return mGlobalBasisFuncI;
-            for(const auto& i : localBasisFuncI())
-                mGlobalBasisFuncI.emplace_back(forest()->globalI(spaceI(),i));
-                return mGlobalBasisFuncI;
+            return mGlobalBasisFuncI;
         }
         
         /// REturn the basis function values
@@ -108,15 +110,9 @@ namespace nurbs {
             // Using a reference makes a huge difference to speed
             const auto& op_u = space()->extractionOperator(indices.first, S);
             const auto& op_v = space()->extractionOperator(indices.second, T);
-//
+
             const auto b_u = nurbshelper::bernsteinPolynomial(u, degree(S));
             const auto b_v = nurbshelper::bernsteinPolynomial(v, degree(T));
-            
-//            std::vector<double> rvec;
-//            for(uint j = 0; j < b_v.size(); ++j)
-//                for(uint i = 0; i < b_u.size(); ++i)
-//                    rvec.push_back(b_u[i] * b_v[j]);
-//            return rvec;
             
             const uint n_u = op_u.size();
             std::vector<double> basis_u(n_u, 0.0);
@@ -225,10 +221,6 @@ namespace nurbs {
         void print(std::ostream& ost) const override
         {
             GeometryElement::print(ost);
-            //            ost << "Forest: " << forest() << "\n";
-            //            ost << "Space: " << space() << "\n";
-            //            ost << "Local basis function indices: " << localBasisFuncI() << "\n";
-            //            ost << "Global basis function indicies" << globalBasisFuncI() << "\n";
         }
         
         /// Local element index getter
@@ -259,10 +251,10 @@ namespace nurbs {
         const BezierNodalElement* mpParentEl;
         
         /// Cache the knot span indices for evaluating basis functions
-        mutable UIntVec mLocalBasisFuncI;
+        UIntVec mLocalBasisFuncI;
         
         /// A vector containing the global basis function indices. (i.e. the global forest basis index)
-        mutable UIntVec mGlobalBasisFuncI;
+        UIntVec mGlobalBasisFuncI;
     };
     
 }
