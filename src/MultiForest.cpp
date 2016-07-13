@@ -2,6 +2,7 @@
 #include "Forest.h"
 #include "Geometry.h"
 #include "HCElement.h"
+#include "BezierVectorElement.h"
 
 #include <cassert>
 #include <algorithm>
@@ -22,6 +23,8 @@ namespace nurbs
         mGlobalDofN = f.mGlobalDofN;
         for(const auto& e : f.mElems)
             mElems.insert(std::make_pair(e.first, e.second->copy()));
+        for(const auto& e : f.mBezierElems)
+            mBezierElems.insert(std::make_pair(e.first, e.second->copy()));
         mElemN = f.mElemN;
     }
     
@@ -39,6 +42,8 @@ namespace nurbs
         mGlobalDofN = f.mGlobalDofN;
         for(const auto& e : f.mElems)
             mElems.insert(std::make_pair(e.first, e.second->copy()));
+        for(const auto& e : f.mBezierElems)
+            mBezierElems.insert(std::make_pair(e.first, e.second->copy()));
         mElemN = f.mElemN;
         return *this;
     }
@@ -51,6 +56,7 @@ namespace nurbs
         mSignConn.clear();
         mGlobalDofN = 0;
         mElems.clear();
+        mBezierElems.clear();
         mElemN = std::make_pair(false, -1);
     }
     
@@ -98,6 +104,12 @@ namespace nurbs
     {
         initEl(i);
         return mElems.at(i).get();
+    }
+    
+    const VAnalysisElement* MultiForest::bezierElement(const uint i) const
+    {
+        initBezierEl(i);
+        return mBezierElems.at(i).get();
     }
     
     void MultiForest::prefine(const uint nrefine)
@@ -165,6 +177,7 @@ namespace nurbs
         mGlobalDofN = 0;
         mLocalElemIMap.clear();
         mElems.clear();
+        mBezierElems.clear();
         mElemN = std::make_pair(false, 0);
         
         // Now assign connectivity
@@ -247,8 +260,10 @@ namespace nurbs
             // now set vertex and element adjacency for all elements
             const uint nel_s = space(ispace, S).uniqueKnotN(S) - 1;
             const uint nel_t = space(ispace, S).uniqueKnotN(T) - 1;
-            for(int i = 0; i < nel_t; ++i) {
-                for(int j = 0; j < nel_s; ++j) {
+            for(int i = 0; i < nel_t; ++i)
+            {
+                for(int j = 0; j < nel_s; ++j)
+                {
                     auto curr_el = element(ispace, i, j);
                     curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(ispace, i-1, j-1));
                     curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(ispace, i-1, j+1));
@@ -327,6 +342,18 @@ namespace nurbs
                         else
                             curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(ge_map[Edge::EDGE3][i+1]));
                     }
+
+                    // now get the bezier element and assign the same
+                    // vertex and edge connectivities
+                    auto p_bel = bezierElement(ispace,i,j);
+                    
+                    // first assign vertex connected elements
+                    for(uint ivertex = 0; ivertex < NVERTICES; ++ivertex)
+                        p_bel->setVertexConnectedEl(vertexType(ivertex), curr_el->getVertexConnectedEl(vertexType(ivertex)));
+                    
+                    // and now assign edege connected elements
+                    for(uint iedge = 0; iedge < NEDGES; ++iedge)
+                        p_bel->setEdgeConnectedEl(edgeType(iedge), curr_el->getEdgeConnectedEl(edgeType(iedge)));
                 }
             }
         }
@@ -388,6 +415,12 @@ namespace nurbs
         return mElems[i].get();
     }
     
+    VAnalysisElement* MultiForest::bezierElement(const uint i)
+    {
+        initBezierEl(i);
+        return mBezierElems[i].get();
+    }
+    
     void MultiForest::initEl(const uint i) const
     {
         auto e = mElems.find(i);
@@ -412,6 +445,42 @@ namespace nurbs
         }
     }
     
+    void MultiForest::initBezierEl(const uint i) const
+    {
+        auto e = mBezierElems.find(i);
+        if(e != mBezierElems.end())
+            return;
+        else {
+            uint start_i = 0;
+            for(uint s = 0; s < spaceN(); ++s) {
+                const uint el_n = space(s, S).nonzeroKnotSpanN(); // use S space
+                if((i - start_i) > (el_n - 1)) {
+                    start_i += el_n;
+                    continue;
+                }
+                const uint local_i = i - start_i;
+                auto r = mBezierElems.insert(std::make_pair(i, make_unique<BezierVectorElement>(this, s, local_i)));
+                if(!r.second) {
+                    std::cout << i << "\n";
+                    error("Failed attempt to create element");
+                }
+                
+                auto el = mBezierElems[i].get();
+                
+                // finally, create a reference to the parent element in the primal forest
+                
+                // search for parent element
+                for(uint ielem = 0; ielem < geometry()->primalForest().space(s).nonzeroKnotSpanN(); ++ielem) {
+                    const auto pel = geometry()->primalForest().bezierElement(s, ielem);
+                    if(pel->contains(*el))
+                        el->setParent(pel);
+                }
+                assert(el->parent() != nullptr);
+                return;
+            }
+        }
+    }
+    
     VAnalysisElement* MultiForest::element(const uint ispace,
                                            const int i,
                                            const int j)
@@ -423,6 +492,19 @@ namespace nurbs
         if(i < 0 || i >= nt)
             return nullptr;
         return element(globalElI(ispace, static_cast<uint>(i), static_cast<uint>(j)));
+    }
+    
+    VAnalysisElement* MultiForest::bezierElement(const uint ispace,
+                                                 const int i,
+                                                 const int j)
+    {
+        const uint ns = space(ispace,S).uniqueKnotN(S) - 1;
+        if(j < 0 || j >= ns)
+            return nullptr;
+        const uint nt = space(ispace,T).uniqueKnotN(T) - 1;
+        if(i < 0 || i >= nt)
+            return nullptr;
+        return bezierElement(globalElI(ispace, static_cast<uint>(i), static_cast<uint>(j)));
     }
     
     void MultiForest::print(std::ostream& ost) const

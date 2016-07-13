@@ -63,6 +63,15 @@ namespace nurbs {
                     mFieldRotMatrix = rotMatrix(PI * 0.5);
                     break;
             }
+            
+            // We modify the rotation matrix such that
+            // the local coordinates along the common edge
+            // have identical parameterisations.
+            // i.e. X_{src}(s,0) = X_{field}(s,0) \forall s\in[0,1]
+            
+            for(uint i = 0; i < 2; ++i)
+                mFieldRotMatrix[i][0] *= -1.0;
+            
         }
         
     private:

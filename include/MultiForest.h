@@ -54,8 +54,29 @@ namespace nurbs {
         /// Vector Element getter
         const VAnalysisElement* element(const uint i) const;
         
+        /// Bezier element getter
+        const VAnalysisElement* bezierElement(const uint i) const;
+        
         /// Non-const element getter
-        VAnalysisElement* element(const uint ielem);
+        VAnalysisElement* element(const uint i);
+        
+        /// Non-const bezier element getter
+        VAnalysisElement* bezierElement(const uint i);
+        
+        /// Get element given space index and local element index within this space
+        const VAnalysisElement* element(const uint ispace,
+                                        const uint ielem) const
+        {
+            return element(globalElI(ispace, ielem));
+        }
+        
+        /// Get a bezierelement given space index and
+        /// a local element index within this space
+        const VAnalysisElement* bezierElement(const uint ispace,
+                                              const uint ielem) const
+        {
+            return bezierElement(globalElI(ispace, ielem));
+        }
         
         /// Apply prefinement
         void prefine(const uint nrefine);
@@ -117,6 +138,11 @@ namespace nurbs {
         /// Number of global dof.
         uint globalDofN() const { return mGlobalDofN; }
         
+        /// Perform the appropriate Piola transform
+        virtual DoubleVecVec transformBasis(const DoubleVecVec& basis,
+                                            const DoubleVecVec& jacob,
+                                            const double jdet) const = 0;
+        
         /// Normalised element size
         double h() const;
         
@@ -156,6 +182,7 @@ namespace nurbs {
         void initSpaces(const std::vector<uint>& sreduce,
                         const std::vector<uint>& treduce);
         
+
     protected:
         
         /// Add a space for a specified parametric direction
@@ -187,11 +214,6 @@ namespace nurbs {
         
         /// Assign element edge and vertex adjacencies
         void initConnectivity();
-        
-        /// Perform the appropriate Piola transform
-        virtual DoubleVecVec transformBasis(const DoubleVecVec& basis,
-                                            const DoubleVecVec& jacob,
-                                            const double jdet) const = 0;
         
         /// Continuity type getter (must be implemented)
         virtual ContinuityType continuityType() const = 0;
@@ -229,10 +251,19 @@ namespace nurbs {
         /// Implementation of element getter (caches elements)
         void initEl(const uint ielem) const;
         
+        /// Caches bezier element data
+        void initBezierEl(const uint ielem) const;
+        
         /// Get an element given a space index and local tensor product
         /// indices. Note: this returns a nullptr if either of the
         /// local indicies i or j lies outside valid bounds
         VAnalysisElement* element(const uint ispace,
+                                        const int i,
+                                        const int j);
+        
+        /// Get a bezier element with a given space and tensor product
+        /// element indices
+        VAnalysisElement* bezierElement(const uint ispace,
                                         const int i,
                                         const int j);
         
@@ -262,6 +293,9 @@ namespace nurbs {
         
         /// Map containing vector element instances.
         mutable std::map<uint, std::unique_ptr<VAnalysisElement>> mElems;
+        
+        /// Map containing bezier vector element instances.
+        mutable std::map<uint, std::unique_ptr<VAnalysisElement>> mBezierElems;
         
         /// Number of elements. Cached for efficiency.
         mutable std::pair<bool, uint> mElemN;

@@ -12,6 +12,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
         message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.7 or greater.")
     endif ()
 elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    add_definitions ("-Wno-unused-local-typedefs")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 else ()
     message(FATAL_ERROR "Your C++ compiler does not support C++11.")
@@ -44,6 +45,7 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/base.h
         ${LIB_INCLUDE_DIR}/AnalysisElement.h
         ${LIB_INCLUDE_DIR}/BezierNodalElement.h
+        ${LIB_INCLUDE_DIR}/BezierVectorElement.h
         ${LIB_INCLUDE_DIR}/BoundingBoxIterator.h
         ${LIB_INCLUDE_DIR}/BSplineSpace.h
         ${LIB_INCLUDE_DIR}/DOFManager.h
@@ -62,6 +64,7 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/quadrature/IGalerkinIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/IGaussQuadrature1D.h
         ${LIB_INCLUDE_DIR}/quadrature/IGaussQuadrature1D.h
+        ${LIB_INCLUDE_DIR}/quadrature/IRegularQuadrature.h
         ${LIB_INCLUDE_DIR}/quadrature/IPolarIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/ISubElem.h
         ${LIB_INCLUDE_DIR}/quadrature/IVertexQuadrature.h
@@ -85,6 +88,7 @@ set(libsrcs
         ${LIB_SOURCE_DIR}/2D/GeometryElement2D.cpp
 	    ${LIB_SOURCE_DIR}/base.cpp
         ${LIB_SOURCE_DIR}/BezierNodalElement.cpp
+        ${LIB_SOURCE_DIR}/BezierVectorElement.cpp
         ${LIB_SOURCE_DIR}/BoundingBoxIterator.cpp
         ${LIB_SOURCE_DIR}/GeometryElement.cpp
         ${LIB_SOURCE_DIR}/Geometry.cpp

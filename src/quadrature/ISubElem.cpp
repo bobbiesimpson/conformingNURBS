@@ -44,7 +44,6 @@ namespace nurbs
         
         GPt2D ISubElem::get(const GPt2D& pt) const
         {
-            GPt2D parent_pt(pt);
             DoubleVec current_range = getRange();
             const double s =  (current_range[1] - current_range[0] ) / 2.0 * pt.get(0) + (current_range[0] + current_range[1] ) / 2.0;
             const double t =  (current_range[3] - current_range[2] ) / 2.0 * pt.get(1) + ( current_range[2] + current_range[3] ) / 2.0;

@@ -1,8 +1,11 @@
 #include <iostream>
 #include <chrono>
+#include <iomanip>
 #include "Geometry.h"
 #include "Forest.h"
-#include "IPolarIntegrate.h"
+#include "HConformingForest.h"
+#include "IElemIntegrate.h"
+
 
 using namespace nurbs;
 
@@ -18,27 +21,59 @@ int main(const int argc, const char* argv[])
         if(!g.loadHBSFile(ifs))
             error("Failed to load geometry from hbs data");
         
+        // Construct the necessary forests
         Forest forest(g);
+        HDivForest multiforest(g);
         uint refine = 0;
         if(argc > 2)
             refine = std::atoi(argv[2]);
         forest.hrefine(refine);
+        multiforest.hrefine(refine);
         
-        std::cout << "Constructed forest with " << forest.elemN() << " elements\n";
-        
-        std::cout << "Read successful\n";
+        std::cout << "Constructed multi forest with " << multiforest.elemN() << " elements\n";
         
         auto start = std::chrono::high_resolution_clock::now();
-        for(uint ielem = 0; ielem < forest.elemN(); ++ielem) {
-            const auto el = forest.element(ielem);
-            for(nurbs::IPolarIntegrate igpt(nurbs::GPt2D(0.0, 0.0), el->integrationOrder()); !igpt.isDone(); ++igpt) {
-                const auto gp = igpt.get();
-                const auto p = el->eval(gp.s, gp.t);
-                auto n = el->normal(gp.s, gp.t);
-//                auto basis = el->basis(gp.s, gp.t);
-                //auto jacob = el->jacDet(gp.s, gp.t);
+        double area = 0.0;
+        for(uint ielem = 0; ielem < multiforest.elemN(); ++ielem)
+        {
+            const auto p_el = multiforest.element(ielem);
+            const auto p_bel =  multiforest.bezierElement(ielem);
+            for(IElemIntegrate igpt(p_el->equalIntegrationOrder()); !igpt.isDone(); ++igpt)
+            {
+                const auto& gp = igpt.get();
+                const auto& xf = p_bel->eval(gp);
+                const auto& t1 = p_bel->tangent(gp, ParamDir::S);
+                const auto& t2 = p_bel->tangent(gp, ParamDir::T);
+
+                const auto& normal = cross(t1, t2).asNormal();
+                
+                const auto& basis = p_bel->basis(gp.s, gp.t);
+                for(const auto& b : basis)
+                    std::cout << b << "\n";
+                
+                std::cout << "correct basis\n\n";
+                
+                const auto& correctbasis = p_el->basis(gp.s, gp.t);
+                for(const auto& b : correctbasis)
+                    std::cout << b << "\n";
+                
+                const auto& basisder = p_bel->localBasisDers(gp.s, gp.t, DerivType::DS);
+                for(const auto& b : basisder)
+                    std::cout << b << "\n";
+                
+                std::cout << "correct basis fn derivatives\n\n";
+                
+                const auto& correctbasisder = p_el->localBasisDers(gp.s, gp.t, DerivType::DS);
+                for(const auto& b : correctbasisder)
+                    std::cout << b << "\n";
+                
+                area += p_bel->jacDet(gp.s, gp.t, t1, t2) * igpt.getWeight();
             }
+            
         }
+        
+        std::cout << "Area = " << area << "\n";
+        
         auto time =  std::chrono::high_resolution_clock::now() - start;
         std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::seconds>(time).count() << "(s)" << "\n";
         
