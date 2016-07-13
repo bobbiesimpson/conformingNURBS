@@ -225,10 +225,6 @@ namespace nurbs {
         void print(std::ostream& ost) const override
         {
             GeometryElement::print(ost);
-            //            ost << "Forest: " << forest() << "\n";
-            //            ost << "Space: " << space() << "\n";
-            //            ost << "Local basis function indices: " << localBasisFuncI() << "\n";
-            //            ost << "Global basis function indicies" << globalBasisFuncI() << "\n";
         }
         
         /// Local element index getter

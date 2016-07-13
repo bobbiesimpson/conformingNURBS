@@ -144,10 +144,10 @@ namespace nurbs {
         virtual void print(std::ostream& ost) const = 0;
         
         /// parent element getter
-        const AnalysisElement* parent() const { return mpParent; }
+        const AnalysisElement<double>* parent() const { return mpParent; }
         
         /// parent setter
-        void setParent(const AnalysisElement* p) { mpParent = p; }
+        void setParent(const AnalysisElement<double>* p) { mpParent = p; }
         
         /// Given a parent coordinate for this element in [-1,1]
         /// transform this to the parent coordinate in the parent element
@@ -180,7 +180,7 @@ namespace nurbs {
         //const BSplineSpace* mpGeomSpace;
         
         /// Pointer to parent element that lives in the primal forest
-        const AnalysisElement* mpParent;
+        const AnalysisElement<double>* mpParent;
         
         /// Overload output operator
         friend std::ostream& operator<<(std::ostream& ost, const AnalysisElement& e)

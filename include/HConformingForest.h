@@ -25,12 +25,12 @@ namespace nurbs {
         /// Destructor
         virtual ~HDivForest() {}
         
-    private:
-        
         /// Override the Piola transform function
         DoubleVecVec transformBasis(const DoubleVecVec& basis,
                                     const DoubleVecVec& jacob,
                                     const double jdet) const override;
+        
+    private:
         
         /// Override continuity type getter
         virtual ContinuityType continuityType() const override
@@ -53,12 +53,12 @@ namespace nurbs {
         /// Destructor
         virtual ~HCurlForest() {}
         
-    private:
-        
         /// Override the Piola transform function
         DoubleVecVec transformBasis(const DoubleVecVec& basis,
                                     const DoubleVecVec& jacob,
                                     const double jdet) const override;
+    private:
+
         
         /// Override continuity type getter
         virtual ContinuityType continuityType() const override

@@ -1,15 +1,11 @@
 #include <iostream>
 #include <chrono>
+#include <iomanip>
 #include "Geometry.h"
-#include "NodalElement.h"
 #include "Forest.h"
 #include "HConformingForest.h"
-#include "IRegularQuadrature.h"
-#include "IEdgeQuadrature.h"
-#include "IVertexQuadrature.h"
-#include "IEqualQuadrature.h"
-#include "base.h"
-#include <iomanip>
+#include "IElemIntegrate.h"
+
 
 using namespace nurbs;
 
@@ -25,6 +21,7 @@ int main(const int argc, const char* argv[])
         if(!g.loadHBSFile(ifs))
             error("Failed to load geometry from hbs data");
         
+        // Construct the necessary forests
         Forest forest(g);
         HDivForest multiforest(g);
         uint refine = 0;
@@ -33,48 +30,49 @@ int main(const int argc, const char* argv[])
         forest.hrefine(refine);
         multiforest.hrefine(refine);
         
-        std::cout << "Constructed forest with " << forest.elemN() << " elements\n";
-        
-        std::cout << "Read successful\n";
+        std::cout << "Constructed multi forest with " << multiforest.elemN() << " elements\n";
         
         auto start = std::chrono::high_resolution_clock::now();
-
-        const uint n = 5;
-        const UIntVec sorder{n,n};
-        const UIntVec forder{n,n};
-        
-        std::vector<double> data;
-        
-        for(uint ielem_s = 0; ielem_s < multiforest.elemN(); ++ielem_s)
+        double area = 0.0;
+        for(uint ielem = 0; ielem < multiforest.elemN(); ++ielem)
         {
-            const auto p_srcel = multiforest.element(ielem_s);
-            
-            for(uint ielem_f = 0; ielem_f < multiforest.elemN(); ++ielem_f)
+            const auto p_el = multiforest.element(ielem);
+            const auto p_bel =  multiforest.bezierElement(ielem);
+            for(IElemIntegrate igpt(p_el->equalIntegrationOrder()); !igpt.isDone(); ++igpt)
             {
-                double result = 0.0;
-                const auto p_fieldel = multiforest.element(ielem_f);
-                Edge esrc, efield;
-                if(edgeConnected(*p_srcel, *p_fieldel, esrc, efield))
-                {
-                    for(IEdgeQuadrature iedge(sorder, forder, esrc, efield); !iedge.isDone(); ++iedge)
-                    {
-                        const auto& gpt = iedge.get();
-                        const auto w = iedge.getWeight();
-                        const auto xs = p_srcel->eval(gpt.srcPt());
-                        const auto xf = p_fieldel->eval(gpt.fieldPt());
-                        
-                        const auto r = dist(xs, xf);
-                        result += 1.0 / (4.0 * PI * r) * w * p_srcel->jacDet(gpt.srcPt()) * p_fieldel->jacDet(gpt.fieldPt());
-                        
-                        
-                    }
-                    if(esrc == Edge::EDGE2 && efield == Edge::EDGE0)
-                        std::cout << result << "\n";
-                    data.push_back(result);
-                }
-            }
-        }
+                const auto& gp = igpt.get();
+                const auto& xf = p_bel->eval(gp);
+                const auto& t1 = p_bel->tangent(gp, ParamDir::S);
+                const auto& t2 = p_bel->tangent(gp, ParamDir::T);
 
+                const auto& normal = cross(t1, t2).asNormal();
+                
+                const auto& basis = p_bel->basis(gp.s, gp.t);
+                for(const auto& b : basis)
+                    std::cout << b << "\n";
+                
+                std::cout << "correct basis\n\n";
+                
+                const auto& correctbasis = p_el->basis(gp.s, gp.t);
+                for(const auto& b : correctbasis)
+                    std::cout << b << "\n";
+                
+                const auto& basisder = p_bel->localBasisDers(gp.s, gp.t, DerivType::DS);
+                for(const auto& b : basisder)
+                    std::cout << b << "\n";
+                
+                std::cout << "correct basis fn derivatives\n\n";
+                
+                const auto& correctbasisder = p_el->localBasisDers(gp.s, gp.t, DerivType::DS);
+                for(const auto& b : correctbasisder)
+                    std::cout << b << "\n";
+                
+                area += p_bel->jacDet(gp.s, gp.t, t1, t2) * igpt.getWeight();
+            }
+            
+        }
+        
+        std::cout << "Area = " << area << "\n";
         
         auto time =  std::chrono::high_resolution_clock::now() - start;
         std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::seconds>(time).count() << "(s)" << "\n";

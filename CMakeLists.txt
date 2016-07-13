@@ -45,6 +45,7 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/base.h
         ${LIB_INCLUDE_DIR}/AnalysisElement.h
         ${LIB_INCLUDE_DIR}/BezierNodalElement.h
+        ${LIB_INCLUDE_DIR}/BezierVectorElement.h
         ${LIB_INCLUDE_DIR}/BoundingBoxIterator.h
         ${LIB_INCLUDE_DIR}/BSplineSpace.h
         ${LIB_INCLUDE_DIR}/DOFManager.h
@@ -87,6 +88,7 @@ set(libsrcs
         ${LIB_SOURCE_DIR}/2D/GeometryElement2D.cpp
 	    ${LIB_SOURCE_DIR}/base.cpp
         ${LIB_SOURCE_DIR}/BezierNodalElement.cpp
+        ${LIB_SOURCE_DIR}/BezierVectorElement.cpp
         ${LIB_SOURCE_DIR}/BoundingBoxIterator.cpp
         ${LIB_SOURCE_DIR}/GeometryElement.cpp
         ${LIB_SOURCE_DIR}/Geometry.cpp

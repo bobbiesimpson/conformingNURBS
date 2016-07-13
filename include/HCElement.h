@@ -126,15 +126,17 @@ namespace nurbs {
             ost << "Local basis function indices: " << localBasisFuncI() << "\n";
             ost << "Global basis function indices: " << globalBasisFuncI() << "\n";
         }
-        
-    private:
-        
-        /// Get the relevant BSpline space for this element and parametric direction
-        const BSplineSpace& space(const ParamDir d) const
-        {
-            return multiForest()->space(spaceI(), d);
-        }
-        
+            
+        protected:
+            
+            /// Get the relevant BSpline space for this element and parametric direction
+            const BSplineSpace& space(const ParamDir d) const
+            {
+                return multiForest()->space(spaceI(), d);
+            }
+            
+        private:
+            
         /// Get the indices that define the span of the present element in each
         /// B-spline space of the vector basis
         UIntVec span(const ParamDir d) const;
@@ -156,11 +158,7 @@ namespace nurbs {
         
         /// Span (as required by B-spline evaluation routines) for this element
         mutable std::map<ParamDir, UIntVec> mSpan;
-        
-//        mutable std::map<std::pair<double, double>, DoubleVecVec> mLocalBasisCache;
-//        
-//        mutable std::map<std::tuple<double, double, DerivType>, DoubleVecVec> mLocalBasisDCache;
-//        
+                
         /// Overload output operator
         friend std::ostream& operator<<(std::ostream& ost, const HCElement& e)
         { e.print(ost); return ost; }
