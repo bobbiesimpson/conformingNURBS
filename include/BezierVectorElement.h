@@ -252,13 +252,13 @@ namespace nurbs {
                         basis_v[i] += op_v[i][j] * bv[j];
                 
                 const auto param_j = jacobParam(u, v);
-                const double jterm = 1.0;//
-                (DerivType::DS == dtype) ? 1.0/param_j[0][0] : 1.0 / param_j[1][1];
+//                const double jterm =
+//                (DerivType::DS == dtype) ? 1.0/param_j[0][0] : 1.0 / param_j[1][1];
                 
                 for(uint j = 0; j < basis_v.size(); ++j)
                     for(uint i = 0; i < basis_u.size(); ++i)
                     {
-                        rvec.push_back(ParamDir::S == compdir ? DoubleVec{basis_u[i] * basis_v[j] * jterm, 0.0} : DoubleVec{0.0, basis_u[i] * basis_v[j] * jterm});
+                        rvec.push_back(ParamDir::S == compdir ? DoubleVec{basis_u[i] * basis_v[j], 0.0} : DoubleVec{0.0, basis_u[i] * basis_v[j]});
                     }
             }
             

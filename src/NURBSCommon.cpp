@@ -284,10 +284,10 @@ namespace nurbs
         DoubleVec bernsteinPolynomial(const double xi, const uint p)
         {
             // First search cache
-//            NURBSCache& cache = NURBSCache::Instance();
-//            auto cp = cache.bernsteinBasis(xi, p);
-//            if(cp.first)
-//                return cp.second;
+            NURBSCache& cache = NURBSCache::Instance();
+            auto cp = cache.bernsteinBasis(xi, p);
+            if(cp.first)
+                return cp.second;
             
             const double x = 0.5 * (xi + 1.0);
             
@@ -331,12 +331,17 @@ namespace nurbs
                         rvec.push_back(boost::math::binomial_coefficient<double>(p,i) * std::pow(x, i) * std::pow(1.0 - x, p - i));
                     break;
             }
-            //cache.cacheBernsteinBasis(xi, p, rvec);
+            cache.cacheBernsteinBasis(xi, p, rvec);
             return rvec;
         }
         
         DoubleVec bernsteinPolynomialDeriv(const double xi, const uint p)
         {
+            NURBSCache& cache = NURBSCache::Instance();
+            auto cp = cache.bernsteinBasisDeriv(xi, p);
+            if(cp.first)
+                return cp.second;
+            
             auto basis = bernsteinPolynomial(xi, p-1);
             DoubleVec deriv;
             const double dx_dxi = 0.5; // jacobian determinant from [0,1] to [-1,1]
@@ -349,6 +354,7 @@ namespace nurbs
                     t2 += p * basis[k];
                 deriv.push_back(dx_dxi * (t1 - t2));
             }
+            cache.cacheBernsteinBasisDeriv(xi, p, deriv);
             return deriv;
         }
 
