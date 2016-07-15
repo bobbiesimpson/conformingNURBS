@@ -6,12 +6,13 @@
 #include "HConformingForest.h"
 #include "IElemIntegrate.h"
 
-
 using namespace nurbs;
 
 int main(const int argc, const char* argv[])
 {
     try {
+        
+
         
         std::cout << "Trying to open hbs input file....\n";
         std::ifstream ifs(argv[1]);
