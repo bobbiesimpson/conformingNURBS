@@ -18,6 +18,7 @@ namespace nurbs
         mpGeom = f.mpGeom;
         mSpaceS = f.mSpaceS;
         mSpaceT = f.mSpaceT;
+        mForest = f.mForest;
         mConn = f.mConn;
         mSignConn = f.mSignConn;
         mGlobalDofN = f.mGlobalDofN;
@@ -37,6 +38,7 @@ namespace nurbs
         mpGeom = f.mpGeom;
         mSpaceS = f.mSpaceS;
         mSpaceT = f.mSpaceT;
+        mForest = f.mForest;
         mConn = f.mConn;
         mSignConn = f.mSignConn;
         mGlobalDofN = f.mGlobalDofN;
@@ -87,6 +89,7 @@ namespace nurbs
             }
         }
         initConnectivity();
+        
     }
     
     uint MultiForest::elemN() const
@@ -125,6 +128,9 @@ namespace nurbs
             t_space.degreeElevate(ParamDir::T);
         }
         initConnectivity();
+        
+        // and perform equivalent refinement on nodal forest
+        nodalForest().degreeElevate(nrefine);
     }
     
     /// Apply uniform h-refinment to the multiforest
@@ -137,6 +143,9 @@ namespace nurbs
         for(auto& t_space : mSpaceT)
             t_space.hrefine(nrefine);
         initConnectivity();
+        
+        // and perform equivalent refinement on nodal forest
+        nodalForest().hrefine(nrefine);
     }
     
     DoublePairVec MultiForest::knotIntervals(const uint sp, const uint iel) const
@@ -1010,7 +1019,8 @@ namespace nurbs
     
     void MultiForest::printImpl(std::ostream& ost) const
     {
-        for(uint ispace = 0; ispace < spaceN(); ++ispace) {
+        for(uint ispace = 0; ispace < spaceN(); ++ispace)
+        {
             ost << "Space index: " << ispace << "\n";
             ost << "vector basis connectivity: ";
             for(uint ibasis = 0; ibasis < basisFuncN(ispace); ++ibasis) {
@@ -1018,6 +1028,7 @@ namespace nurbs
             }
             ost << "\n";
         }
+        ost << "\n\nAssociated nodal forest has " << nodalForest().elemN() << " elements\n";
     }
     
     GPt2D projectPt(const GPt2D p, const Edge e1, const Edge e2)

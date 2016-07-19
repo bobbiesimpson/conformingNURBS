@@ -24,8 +24,10 @@ namespace nurbs {
         std::vector<Point3D> pdata;
         pdata.resize(fref.collocPtN());
         std::vector<bool> cached(fref.collocPtN(), false);
-        for(uint ispace = 0; ispace < fref.spaceN(); ++ispace) {
-            for(uint icpt = 0; icpt < fref.collocPtN(ispace); ++icpt) {
+        for(uint ispace = 0; ispace < fref.spaceN(); ++ispace)
+        {
+            for(uint icpt = 0; icpt < fref.collocPtN(ispace); ++icpt)
+            {
                 const uint gindex = fref.globalCollocI(ispace, icpt);
                 if(gindex > pdata.size())
                     error("Bad collocation data in BoundingBoxIterator");

@@ -84,6 +84,9 @@ namespace nurbs {
         /// Apply uniform h-refinment to the multiforest
         void hrefine(const uint nrefine = 1);
         
+        /// Get an equivalent nodal forest
+        const Forest& nodalForest() const { return mForest; }
+        
         /// Get global basis function index
         uint globalI(const uint ispace, const uint ibasis, const ParamDir dir) const
         {
@@ -158,8 +161,10 @@ namespace nurbs {
         
         /// Construct with a geometry object
         MultiForest(const Geometry& g)
-        : mpGeom(&g),
-          mElemN(std::make_pair(false, 0)) {}
+        :
+        mpGeom(&g),
+        mForest(g),
+        mElemN(std::make_pair(false, 0)) {}
         
         /// Copy constructor
         MultiForest(const MultiForest& f);
@@ -267,6 +272,9 @@ namespace nurbs {
                                         const int i,
                                         const int j);
         
+        /// Non-const accessor for nodal forest
+        Forest& nodalForest() { return mForest; }
+        
         /// Subclasses can implement this if required.
         virtual void printImpl(std::ostream& ost) const;
         
@@ -278,6 +286,9 @@ namespace nurbs {
         
         /// B-spline spaces, t-direction
         std::vector<BSplineSpace> mSpaceT;
+        
+        /// We store an equivalent forest for generating collocation data etc.
+        Forest mForest;
         
         /// Connectivity of spaces
         std::map<uint, std::vector<uint>> mConn;
