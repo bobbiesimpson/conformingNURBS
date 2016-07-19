@@ -141,9 +141,9 @@ namespace nurbs
             auto r = mElems.insert(std::make_pair(i, make_unique<NodalElement>(this, s, local_i)));
             if(!r.second)
                 error("Failed attempt to create element");
-            mElemIndexMap.insert(std::make_pair(i, std::make_pair(s, local_i)));
-//            if(!r_i.second)
-//                error("Failure inserting element index mapping");
+            auto r_i = mElemIndexMap.insert(std::make_pair(i, std::make_pair(s, local_i)));
+            if(!r_i.second)
+                error("Failure inserting element index mapping");
             auto el = mElems[i].get();
             
             // search for parent

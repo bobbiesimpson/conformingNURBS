@@ -42,11 +42,11 @@ int main(const int argc, const char* argv[])
             for(IElemIntegrate igpt(p_el->equalIntegrationOrder()); !igpt.isDone(); ++igpt)
             {
                 const auto& gp = igpt.get();
-                const auto& xf = p_bel->eval(gp);
+//                const auto& xf = p_bel->eval(gp);
                 const auto& t1 = p_bel->tangent(gp, ParamDir::S);
                 const auto& t2 = p_bel->tangent(gp, ParamDir::T);
 
-                const auto& normal = cross(t1, t2).asNormal();
+//                const auto& normal = cross(t1, t2).asNormal();
                 
                 const auto& basis = p_bel->basis(gp.s, gp.t);
                 for(const auto& b : basis)

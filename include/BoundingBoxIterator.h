@@ -12,6 +12,7 @@ namespace nurbs {
     
     /// Forward declarations
     class Forest;
+    class MultiForest;
     class Point3D;
 
     /// A class that represents an iterator for computing the set of points and
@@ -29,6 +30,9 @@ namespace nurbs {
         
         /// Construct with a given forest
         BoundingBoxIterator(const Forest& f);
+        
+        /// Construct with multiforest
+        BoundingBoxIterator(const MultiForest& f);
         
         /// Increment iterator to next basis function.
         BoundingBoxIterator& operator++();
@@ -48,6 +52,12 @@ namespace nurbs {
             return mCurrentIndex;
         }
         
+        /// Number of bounding boxes
+        uint boundingBoxN() const
+        {
+            return mBoundingBoxN;
+        }
+        
         /// Get the current point that defines the 'anchor' for the current global basis function.
         Point3D currentPt() const;
         
@@ -60,22 +70,19 @@ namespace nurbs {
         /// Get current upper bound
         Point3D currentUpperBound() const;
         
-        /// Forest getter
-        const Forest& forest() const { return mForest; }
-        
     private:
         
         /// Current basis function indeix
         uint mCurrentIndex;
-        
-        /// Reference to (non-null) forest
-        const Forest& mForest;
         
         /// Vector of greville point data
         std::vector<Point3D> mPtData;
         
         /// Vector of bounding box data
         std::vector<std::pair<Point3D, Point3D>> mBBData;
+        
+        /// Total number of bounding boxes
+        const uint mBoundingBoxN;
         
     };
     

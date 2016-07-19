@@ -78,14 +78,19 @@ namespace nurbs {
             return bezierElement(globalElI(ispace, ielem));
         }
         
+        /// Get the number of elements on the given space
+        /// The number of elements in each space is equal,
+        /// therefore use S parametric space as default.
+        const uint elemN(const uint ispace) const
+        {
+            return space(ispace, ParamDir::S).nonzeroKnotSpanN();
+        }
+        
         /// Apply prefinement
         void prefine(const uint nrefine);
         
         /// Apply uniform h-refinment to the multiforest
         void hrefine(const uint nrefine = 1);
-        
-        /// Get an equivalent nodal forest
-        const Forest& nodalForest() const { return mForest; }
         
         /// Get global basis function index
         uint globalI(const uint ispace, const uint ibasis, const ParamDir dir) const
@@ -134,6 +139,36 @@ namespace nurbs {
             + space(ispace, T).basisFuncN();
         }
         
+        /// Get the number of collocation points
+        uint collocPtN() const
+        {
+            return globalDofN(); // same as the number of global dof
+        }
+        
+        /// Get the number of collocation point for this space index
+        /// and parametric direction
+        uint collocPtN(const uint ispace,
+                       const ParamDir d) const
+        {
+            return basisFuncN(ispace,d);
+        }
+        
+        /// Get the global collocation point indes for a given space
+        /// and local index
+        uint globalCollocI(const uint ispace,
+                           const ParamDir d,
+                           const uint i) const
+        {
+            // for now, use the global basis function connectivity
+            return globalI(ispace,i, d);
+        }
+        
+        /// Get the global collocation point for the given space and local
+        /// collocation index
+        Point3D collocPt(const uint ispace,
+                         const ParamDir d,
+                         const uint i) const;
+        
         /// Get the knot interval pairs for this element. This is the same
         /// for both basis directions.
         DoublePairVec knotIntervals(const uint ispace, const uint iel) const;
@@ -163,7 +198,6 @@ namespace nurbs {
         MultiForest(const Geometry& g)
         :
         mpGeom(&g),
-        mForest(g),
         mElemN(std::make_pair(false, 0)) {}
         
         /// Copy constructor
@@ -272,9 +306,6 @@ namespace nurbs {
                                         const int i,
                                         const int j);
         
-        /// Non-const accessor for nodal forest
-        Forest& nodalForest() { return mForest; }
-        
         /// Subclasses can implement this if required.
         virtual void printImpl(std::ostream& ost) const;
         
@@ -286,9 +317,6 @@ namespace nurbs {
         
         /// B-spline spaces, t-direction
         std::vector<BSplineSpace> mSpaceT;
-        
-        /// We store an equivalent forest for generating collocation data etc.
-        Forest mForest;
         
         /// Connectivity of spaces
         std::map<uint, std::vector<uint>> mConn;

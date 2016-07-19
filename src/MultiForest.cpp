@@ -18,7 +18,6 @@ namespace nurbs
         mpGeom = f.mpGeom;
         mSpaceS = f.mSpaceS;
         mSpaceT = f.mSpaceT;
-        mForest = f.mForest;
         mConn = f.mConn;
         mSignConn = f.mSignConn;
         mGlobalDofN = f.mGlobalDofN;
@@ -38,7 +37,6 @@ namespace nurbs
         mpGeom = f.mpGeom;
         mSpaceS = f.mSpaceS;
         mSpaceT = f.mSpaceT;
-        mForest = f.mForest;
         mConn = f.mConn;
         mSignConn = f.mSignConn;
         mGlobalDofN = f.mGlobalDofN;
@@ -128,9 +126,6 @@ namespace nurbs
             t_space.degreeElevate(ParamDir::T);
         }
         initConnectivity();
-        
-        // and perform equivalent refinement on nodal forest
-        nodalForest().degreeElevate(nrefine);
     }
     
     /// Apply uniform h-refinment to the multiforest
@@ -144,8 +139,14 @@ namespace nurbs
             t_space.hrefine(nrefine);
         initConnectivity();
         
-        // and perform equivalent refinement on nodal forest
-        nodalForest().hrefine(nrefine);
+    }
+    
+    Point3D MultiForest::collocPt(const uint ispace,
+                                  const ParamDir d,
+                                  const uint i) const
+    {
+        const GPt2D param_pt = space(ispace, d).grevilleAbscissaPt(i);
+        return geometry()->eval(param_pt.s, param_pt.t, ispace);
     }
     
     DoublePairVec MultiForest::knotIntervals(const uint sp, const uint iel) const
@@ -1028,7 +1029,6 @@ namespace nurbs
             }
             ost << "\n";
         }
-        ost << "\n\nAssociated nodal forest has " << nodalForest().elemN() << " elements\n";
     }
     
     GPt2D projectPt(const GPt2D p, const Edge e1, const Edge e2)
