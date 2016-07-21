@@ -9,10 +9,11 @@
 #include <vtkHexahedron.h>
 #include <complex>
 #include "Forest.h"
+#include "MultiForest.h"
 #include "IElem.h"
 
 namespace nurbs {
-
+    
     void OutputVTK::outputGeometry(const Forest& f) const
     {
         const uint nsample = samplePtN();   // number of sample points in each parametric direction
@@ -24,7 +25,7 @@ namespace nurbs {
         
         for(uint i = 0; i < f.elemN(); ++i) {
             const auto e = f.bezierElement(i);
-
+            
             uint count = 0;
             for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept)
             {
@@ -93,66 +94,168 @@ namespace nurbs {
             error( "Cannot write vtk file for bounding box data" );
     }
     
-        /// specialisation for complex types
-        void OutputVTK::outputComplexAnalysisField(const Forest& f,
-                                                   const std::string& fieldname,
-                                                   const std::vector<std::complex<double>>& soln) const
+    /// specialisation for complex types
+    void OutputVTK::outputComplexNodalField(const Forest& f,
+                                            const std::string& fieldname,
+                                            const std::vector<std::complex<double>>& soln) const
+    {
+        const uint nsample = samplePtN();   // number of sample points in each parametric direction
+        const uint ncell = nsample - 1; // number of cells in each parametric direction
+        vtkSmartPointer<vtkUnstructuredGrid> grid = vtkUnstructuredGrid::New();
+        vtkSmartPointer<vtkPoints> points = vtkPoints::New();
+        vtkSmartPointer<vtkDoubleArray> solndata = vtkDoubleArray::New();
+        solndata->SetNumberOfComponents(3);
+        solndata->SetName(fieldname.c_str());
+        solndata->SetComponentName(0, "real");
+        solndata->SetComponentName(1, "imag");
+        solndata->SetComponentName(2, "abs");
+        
+        uint sample_offset = 0;
+        
+        for(uint i = 0; i < f.elemN(); ++i)
         {
-            const uint nsample = samplePtN();   // number of sample points in each parametric direction
-            const uint ncell = nsample - 1; // number of cells in each parametric direction
-            vtkSmartPointer<vtkUnstructuredGrid> grid = vtkUnstructuredGrid::New();
-            vtkSmartPointer<vtkPoints> points = vtkPoints::New();
-            vtkSmartPointer<vtkDoubleArray> solndata = vtkDoubleArray::New();
-            solndata->SetNumberOfComponents(3);
-            solndata->SetName(fieldname.c_str());
-            solndata->SetComponentName(0, "real");
-            solndata->SetComponentName(1, "imag");
-            solndata->SetComponentName(2, "abs");
-    
-            uint sample_offset = 0;
-    
-            for(uint i = 0; i < f.elemN(); ++i) {
-                const auto e = f.element(i);
-    
-                const auto gbasisivec = e->globalBasisFuncI();
-                uint count = 0;
-                for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept) {
-                    const ParamPt samplept = isamplept.getCurrentPt();
-                    const Point3D phys_coord = e->eval(samplept.s, samplept.t);
-                    points->InsertPoint(sample_offset + count, phys_coord.data());
-    
-                    // now interpolate solution
-                    const auto basisvec = e->basis(samplept.s, samplept.t);
-    
-                    std::complex<double> val;
-                    for(uint ibasis = 0; ibasis < basisvec.size(); ++ibasis)
-                        val += soln[gbasisivec[ibasis]] * basisvec[ibasis];
-                    
-//                    val = std::exp(std::complex<double>(0.0, 1.0 * nurbs::dot(Point3D(1.0, 0.0, 0.0), phys_coord)));
-                    solndata->InsertComponent(sample_offset + count, 0, val.real());
-                    solndata->InsertComponent(sample_offset + count, 1, val.imag());
-                    solndata->InsertComponent(sample_offset + count, 2, std::abs(val));
-                    ++count;
-                }
-                for( uint t = 0; t < ncell; ++t ) {
-                    for( uint s = 0; s < ncell; ++s ) {
-                        vtkSmartPointer< vtkCell > cell = vtkQuad::New();
-                        cell->GetPointIds()->SetId(0, sample_offset + t * nsample + s );
-                        cell->GetPointIds()->SetId(1, sample_offset + t * nsample + s + 1 );
-                        cell->GetPointIds()->SetId(2, sample_offset + ( t + 1 ) * nsample + s + 1 );
-                        cell->GetPointIds()->SetId(3, sample_offset + ( t + 1 ) * nsample + s );
-                        grid->InsertNextCell(cell->GetCellType(), cell->GetPointIds() );
-                    }
-                }
-                sample_offset += nsample * nsample;
+            const auto e = f.bezierElement(i);
+            
+            const auto gbasisivec = e->globalBasisFuncI();
+            uint count = 0;
+            for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept) {
+                const ParamPt samplept = isamplept.getCurrentPt();
+                const Point3D phys_coord = e->eval(samplept.s, samplept.t);
+                points->InsertPoint(sample_offset + count, phys_coord.data());
+                
+                // now interpolate solution
+                const auto basisvec = e->basis(samplept.s, samplept.t);
+                
+                std::complex<double> val;
+                for(uint ibasis = 0; ibasis < basisvec.size(); ++ibasis)
+                    val += soln[gbasisivec[ibasis]] * basisvec[ibasis];
+                
+
+                solndata->InsertComponent(sample_offset + count, 0, val.real());
+                solndata->InsertComponent(sample_offset + count, 1, val.imag());
+                solndata->InsertComponent(sample_offset + count, 2, std::abs(val));
+                ++count;
             }
-            grid->SetPoints(points);
-            grid->GetPointData()->AddArray(solndata);
-            vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer = vtkXMLUnstructuredGridWriter::New();
-            const std::string fname = filename() + "_complex_soln.vtu";
-            writer->SetFileName(fname.c_str());
-            writer->SetInputData(grid);
-            if(!writer->Write())
-                error( "Cannot write vtk file" );
+            for( uint t = 0; t < ncell; ++t ) {
+                for( uint s = 0; s < ncell; ++s ) {
+                    vtkSmartPointer< vtkCell > cell = vtkQuad::New();
+                    cell->GetPointIds()->SetId(0, sample_offset + t * nsample + s );
+                    cell->GetPointIds()->SetId(1, sample_offset + t * nsample + s + 1 );
+                    cell->GetPointIds()->SetId(2, sample_offset + ( t + 1 ) * nsample + s + 1 );
+                    cell->GetPointIds()->SetId(3, sample_offset + ( t + 1 ) * nsample + s );
+                    grid->InsertNextCell(cell->GetCellType(), cell->GetPointIds() );
+                }
+            }
+            sample_offset += nsample * nsample;
         }
+        grid->SetPoints(points);
+        grid->GetPointData()->AddArray(solndata);
+        vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer = vtkXMLUnstructuredGridWriter::New();
+        const std::string fname = filename() + "_complex_soln.vtu";
+        writer->SetFileName(fname.c_str());
+        writer->SetInputData(grid);
+        if(!writer->Write())
+            error( "Cannot write vtk file" );
+    }
+    
+    void OutputVTK::outputComplexVectorField(const MultiForest& f,
+                                             const std::string& fieldname,
+                                             const std::vector<std::complex<double>>& soln) const
+    {
+        // number of sample points and cells in each parametric direction
+        const uint nsample = samplePtN();
+        const uint ncell = nsample - 1;
+        
+        assert(f.globalDofN() == soln.size());
+        
+        // create the vtk grid, points array and solution array
+        vtkSmartPointer<vtkUnstructuredGrid> grid = vtkUnstructuredGrid::New();
+        vtkSmartPointer<vtkPoints> points = vtkPoints::New();
+        vtkSmartPointer<vtkDoubleArray> vtk_realsoln = vtkDoubleArray::New();
+        vtkSmartPointer<vtkDoubleArray> vtk_imagsoln = vtkDoubleArray::New();
+        vtkSmartPointer<vtkDoubleArray> vtk_abssoln = vtkDoubleArray::New();
+        
+        vtk_realsoln->SetNumberOfComponents(3);
+        std::string name = fieldname + "_real";
+        vtk_realsoln->SetName(name.c_str());
+        
+        vtk_imagsoln->SetNumberOfComponents(3);
+        name = fieldname + "_imag";
+        vtk_imagsoln->SetName(name.c_str());
+        
+        vtk_abssoln->SetNumberOfComponents(1);
+        name = fieldname + "_abs";
+        vtk_abssoln->SetName(name.c_str());
+        
+        // now loop over elements and sample solution
+        uint sample_offset = 0;
+        
+        for(uint i = 0; i < f.elemN(); ++i)
+        {
+            const auto e = f.bezierElement(i);
+            const auto gbasisivec = e->globalBasisFuncI();
+            
+            uint count = 0;
+            
+            for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept)
+            {
+                const ParamPt samplept = isamplept.getCurrentPt();
+                const Point3D phys_coord = e->eval(samplept.s, samplept.t);
+                points->InsertPoint(sample_offset + count, phys_coord.data());
+                const auto basis = e->basis(samplept.s, samplept.t);
+                
+                std::vector<std::complex<double>> val(3);
+                for(size_t ibasis = 0; ibasis < basis.size(); ++ibasis)
+                    for(unsigned i = 0; i < 3; ++i)
+                        val[i] += soln[gbasisivec[ibasis]] * basis[ibasis][i];
+                
+                // now put this complex vector into the vtk arrays
+                double absval = 0.0;
+                for(unsigned i = 0; i < 3; ++i)
+                {
+                    const double re = val[i].real();
+                    const double im = val[i].imag();
+                    vtk_realsoln->InsertComponent(sample_offset + count, i, re);
+                    vtk_imagsoln->InsertComponent(sample_offset + count, i, im);
+                    absval += re * re + im * im;
+                }
+                
+                // and finally insert absolute value
+                vtk_abssoln->vtkDataArray::InsertComponent(sample_offset + count, 0, std::sqrt(absval));
+                
+                ++count;
+            }
+            
+            // create the cell connectivity
+            for( uint t = 0; t < ncell; ++t )
+            {
+                for( uint s = 0; s < ncell; ++s )
+                {
+                    vtkSmartPointer< vtkCell > cell = vtkQuad::New();
+                    cell->GetPointIds()->SetId(0, sample_offset + t * nsample + s );
+                    cell->GetPointIds()->SetId(1, sample_offset + t * nsample + s + 1 );
+                    cell->GetPointIds()->SetId(2, sample_offset + ( t + 1 ) * nsample + s + 1 );
+                    cell->GetPointIds()->SetId(3, sample_offset + ( t + 1 ) * nsample + s );
+                    grid->InsertNextCell(cell->GetCellType(), cell->GetPointIds() );
+                }
+            }
+            
+            sample_offset += nsample * nsample;
+        }
+        
+        // and finally add the points and solutions to the grid and write!
+        grid->SetPoints(points);
+        grid->GetPointData()->AddArray(vtk_realsoln);
+        grid->GetPointData()->AddArray(vtk_imagsoln);
+        grid->GetPointData()->AddArray(vtk_abssoln);
+        
+        vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer = vtkXMLUnstructuredGridWriter::New();
+        const std::string fname = filename() + "_complexvector.vtu";
+        writer->SetFileName(fname.c_str());
+        writer->SetInputData(grid);
+        
+        if(!writer->Write())
+            error( "Cannot write vtk file" );
+    }
+
 }

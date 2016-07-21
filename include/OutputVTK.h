@@ -12,6 +12,7 @@ namespace nurbs {
     
     /// Forward declarations
     class Forest;
+    class MultiForest;
     class Point3D;
     
     /// A class responsible for creating output files for the
@@ -40,9 +41,16 @@ namespace nurbs {
         /// for defining support of basis functions for H-matrices
         void outputBoundingBoxSet(const std::vector<std::pair<Point3D, Point3D>>& bdata) const;
         
-        void outputComplexAnalysisField(const Forest& f,
-                                        const std::string& fieldname,
-                                        const std::vector<std::complex<double>>& soln) const;
+        /// Write a complex nodal field to a vtu file
+        void outputComplexNodalField(const Forest& f,
+                                     const std::string& fieldname,
+                                     const std::vector<std::complex<double>>& soln) const;
+        
+        /// Write a complex vector field to a vtu file
+        void outputComplexVectorField(const MultiForest& f,
+                                      const std::string& fieldname,
+                                      const std::vector<std::complex<double>>& soln) const;
+                                      
         
         
         /// Sample point number setter
