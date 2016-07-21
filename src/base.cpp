@@ -4,7 +4,6 @@
 #include <iterator>
 #include <cmath>
 
-#include <gsl/gsl_sf_legendre.h>
 #include <boost/math/special_functions.hpp>
 
 namespace nurbs
