@@ -19,7 +19,7 @@ namespace nurbs {
         HDivForest(const Geometry& g) : MultiForest(g)
         {
             initSpaces({0,1},{1,0});
-            std::cout << "Constructed HDivForest with " << elemN() << " elements\n";
+//            std::cout << "Constructed HDivForest with " << elemN() << " elements\n";
         }
         
         /// Destructor
