@@ -111,6 +111,9 @@ namespace nurbs
         /// rescale geometry by a given factor.
         void rescale(const double sf);
         
+        /// normalise to a unit length in the maximum dimension
+        void normalise();
+        
         protected:
         
         /// Get point given a set of local indices for each parmetric direction

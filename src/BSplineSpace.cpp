@@ -128,7 +128,8 @@ namespace nurbs
         //
         // construct element extraction operators from knot vectors
         //
-        for(uint iparam = 0; iparam < paramDimN(); ++iparam) {
+        for(uint iparam = 0; iparam < paramDimN(); ++iparam)
+        {
             
             const ParamDir dir = ParamDirType(iparam);
             const uint p = degree(dir);
@@ -153,6 +154,28 @@ namespace nurbs
                 continue;
             }
             
+            // and do a check that the knot vector isn't already in bezier form
+            unsigned minrepeats = std::numeric_limits<unsigned>::max();
+            unsigned currentcount = 1;
+            for(size_t i = 0; i < kvec.size() - 1; ++i)
+            {
+                if(essentiallyEqual(kvec[i], kvec[i+1], 1.e-4))
+                    ++currentcount;
+                else
+                {
+                    if(currentcount < minrepeats)
+                        minrepeats = currentcount;
+                    currentcount = 1;
+                }
+            }
+            // if already in bezier form, set the identity matrix for each extraction operator.
+            if(minrepeats >= p)
+            {
+                for(uint iel = 0; iel < uniqueKnotN(dir)-1; ++iel)
+                    setExtractionOperator(iel, dir, I);
+                continue;
+            }
+            
             // code for degree > 1
             
             /// Initialise extraction matrices
@@ -160,9 +183,10 @@ namespace nurbs
             auto Cnext = I;
             
             while(b < m) {
-
+                
                 // We're done.
-                if(nb == uniqueKnotN(dir) - 2) {
+                if(nb == uniqueKnotN(dir) - 2)
+                {
                     setExtractionOperator(nb, dir, Ccurrent);
 //                    std::cout << Ccurrent << "\n";
                     break;
@@ -172,7 +196,7 @@ namespace nurbs
                 uint mult = 0;
                 
                 // count multiplitiy of knot at location b
-                while(b < m && essentiallyEqual(kvec[b+1], kvec[b], 1.e-7))
+                while(b < m && essentiallyEqual(kvec[b+1], kvec[b], 1.e-4))
                     b += 1;
                 
                 mult = b - i + 1;
@@ -221,6 +245,7 @@ namespace nurbs
                 }
             }
         }
+        
     }
     
 	void BSplineSpace::printData(std::ostream& ost) const

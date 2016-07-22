@@ -192,17 +192,28 @@ namespace nurbs {
         
         for(uint i = 0; i < f.elemN(); ++i)
         {
-            const auto e = f.bezierElement(i);
-            const auto gbasisivec = e->globalBasisFuncI();
+            const auto bel = f.bezierElement(i);
+            const auto gbasisivec = bel->globalBasisFuncI();
+            
+            const auto el = f.element(i);
             
             uint count = 0;
             
             for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept)
             {
                 const ParamPt samplept = isamplept.getCurrentPt();
-                const Point3D phys_coord = e->eval(samplept.s, samplept.t);
+                
+                if(std::abs(bel->jacDet(samplept.s, samplept.t) - el->jacDet(samplept.s, samplept.t)) > 1.0e-4 )
+                {
+                    std::cout << bel->basis(samplept.s, samplept.t)<< "\n\n";
+                    std::cout << el->basis(samplept.s, samplept.t)<< "\n\n";
+                    std::cout << "error\n";
+                }
+                
+                const Point3D phys_coord = bel->eval(samplept.s, samplept.t);
+                
                 points->InsertPoint(sample_offset + count, phys_coord.data());
-                const auto basis = e->basis(samplept.s, samplept.t);
+                const auto basis = bel->basis(samplept.s, samplept.t);
                 
                 std::vector<std::complex<double>> val(3);
                 for(size_t ibasis = 0; ibasis < basis.size(); ++ibasis)

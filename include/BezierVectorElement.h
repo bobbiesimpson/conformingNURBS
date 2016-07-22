@@ -169,10 +169,10 @@ namespace nurbs {
                 const auto& op_u = space(compdir).extractionOperator(indices.first, S);
                 const auto& op_v = space(compdir).extractionOperator(indices.second, T);
                 //
-                
+//                
 //                std::cout << op_u << "\n";
 //                std::cout << op_v << "\n";
-                
+//                
                 const auto b_u = nurbshelper::bernsteinPolynomial(u, degree(S, icomp));
                 const auto b_v = nurbshelper::bernsteinPolynomial(v, degree(T, icomp));
                 
