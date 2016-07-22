@@ -1,5 +1,8 @@
 #include <iostream>
 #include "base.h"
+#include "NURBSCommon.h"
+
+#include <map>
 
 using namespace nurbs;
 
@@ -8,16 +11,38 @@ int main(int argc, char* argv[])
     
     
     // The knot vector we are going to decompose into Bezier elements
-    const DoubleVec kvec{0,0,0,1,2,2,3,3,4, 5, 5, 5};//{0.0, 0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 2.0};
+    const DoubleVec kvec{0,0,0,1,1, 2,3,4,4, 5, 5, 5};//{0.0, 0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 2.0};
     const uint p = 2;
     
+    // create unique knot vectors
     auto uniqueknotvec = kvec;
     auto last = std::unique(uniqueknotvec.begin(), uniqueknotvec.end());
     uniqueknotvec.erase(last, uniqueknotvec.end());
     
     const size_t uniqueknotn = uniqueknotvec.size();
-    
     const uint m = kvec.size();
+    
+    // now create a map of all the elements which are already in bezier
+    // form and the index to resume the extraction algorithm.
+    
+    std::map<unsigned, unsigned> beziermap;
+    
+    for(unsigned i = 0; i < uniqueknotvec.size() - 1; ++i)
+    {
+        const auto lowerkval = uniqueknotvec[i];
+        const auto upperkval = uniqueknotvec[i+1];
+        const auto lowercount = std::count_if(kvec.begin(), kvec.end(), [&](double k) {return essentiallyEqual(k, lowerkval, 1.0e-5);});
+        const auto upperount = std::count_if(kvec.begin(), kvec.end(), [&](double k) {return essentiallyEqual(k, upperkval, 1.0e-5);});
+        
+        if(lowercount >=p && upperount >= p)
+        {
+            if(i == uniqueknotvec.size() - 2)
+                beziermap[i] = nurbshelper::getKnotSpan(uniqueknotvec[i+1], kvec, p) + p + 1 - upperount + 1;
+            else
+                beziermap[i] = nurbshelper::getKnotSpan(uniqueknotvec[i+1], kvec, p) - upperount + 1;
+        }
+    }
+    
     
     uint a = p;
     uint b = a + 1;
@@ -38,26 +63,27 @@ int main(int argc, char* argv[])
     }
     
     // and do a check that the knot vector isn't already in bezier form
-    unsigned minrepeats = std::numeric_limits<unsigned>::max();
-    unsigned currentcount = 1;
-    for(size_t i = 0; i < kvec.size() - 1; ++i)
-    {
-        if(essentiallyEqual(kvec[i], kvec[i+1], 1.e-4))
-            ++currentcount;
-        else
-        {
-            if(currentcount < minrepeats)
-                minrepeats = currentcount;
-            currentcount = 1;
-        }
-    }
-    // if already in bezier form, set the identity matrix for each extraction operator.
-    if(minrepeats >= p)
-    {
-        for(uint iel = 0; iel < uniqueknotn-1; ++iel)
-            std::cout << "element: " << iel << "\t" <<  I << "\n";
-        return EXIT_SUCCESS;
-    }
+//    unsigned minrepeats = std::numeric_limits<unsigned>::max();
+//    unsigned currentcount = 1;
+//    for(size_t i = 0; i < kvec.size() - 1; ++i)
+//    {
+//        if(essentiallyEqual(kvec[i], kvec[i+1], 1.e-4))
+//            ++currentcount;
+//        else
+//        {
+//            if(currentcount < minrepeats)
+//                minrepeats = currentcount;
+    
+//            currentcount = 1;
+//        }
+//    }
+//    // if already in bezier form, set the identity matrix for each extraction operator.
+//    if(minrepeats >= p)
+//    {
+//        for(uint iel = 0; iel < uniqueknotn-1; ++iel)
+//            std::cout << "element: " << iel << "\t" <<  I << "\n";
+//        return EXIT_SUCCESS;
+//    }
     
     // code for degree > 1
     
@@ -73,6 +99,18 @@ int main(int argc, char* argv[])
             std::cout << "element: " << nb << "\t" <<  Ccurrent << "\n";
             break;
         }
+        
+        // check if element is already in bezier form
+//        auto search = beziermap.find(nb);
+//        if(search != beziermap.end())
+//        {
+//            std::cout << "element: " << nb << "\t" <<  I << "\n";
+//            Ccurrent = I;
+//            Cnext = I;
+//            b = search->second;
+//            nb += 1;
+//            continue;
+//        }
         
         uint i = b;
         uint mult = 0;
@@ -108,7 +146,11 @@ int main(int argc, char* argv[])
                 if(b < m )
                 {
                     for(uint i = 0; i <= j; ++i)
-                        Cnext[save+i][save] = Ccurrent[p-j+i][p];
+                    {
+                        const double val = Ccurrent[p-j+i][p];
+                        //if(!essentiallyEqual(val, 0.0, 1.0-7))
+                            Cnext[save+i][save] = val;
+                    }
                 }
             }
             

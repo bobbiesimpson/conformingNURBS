@@ -146,6 +146,9 @@ namespace nurbs
             for(uint i = 0; i < p + 1; ++i)
                 I[i][i] = 1.0;
             
+            // create a map of elements which are already in bezier form
+            // and store the index 
+            
             // if linear, the extraction operator is simply the identity matrix
             // since linear Bsplines and linear Bernstein polynomials are equivalent
             if(1 == degree(dir)) {
@@ -184,11 +187,12 @@ namespace nurbs
             
             while(b < m) {
                 
-                // We're done.
+                
+                
+                // If on last element, we're done.
                 if(nb == uniqueKnotN(dir) - 2)
                 {
                     setExtractionOperator(nb, dir, Ccurrent);
-//                    std::cout << Ccurrent << "\n";
                     break;
                 }
                 
