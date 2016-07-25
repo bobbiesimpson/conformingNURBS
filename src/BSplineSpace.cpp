@@ -130,16 +130,11 @@ namespace nurbs
         //
         for(uint iparam = 0; iparam < paramDimN(); ++iparam)
         {
-            
             const ParamDir dir = ParamDirType(iparam);
             const uint p = degree(dir);
             auto kvec = knotVec(dir);
             
             const uint m = knotVec(dir).size();
-            
-            uint a = p;
-            uint b = a + 1;
-            uint nb = 0;                // # bezier elements in this direction
             
             /// Identity matrix
             std::vector<std::vector<double>> I(p + 1, std::vector<double>(p+1, 0.0));
@@ -158,37 +153,39 @@ namespace nurbs
             }
             
             // and do a check that the knot vector isn't already in bezier form
-            unsigned minrepeats = std::numeric_limits<unsigned>::max();
-            unsigned currentcount = 1;
-            for(size_t i = 0; i < kvec.size() - 1; ++i)
-            {
-                if(essentiallyEqual(kvec[i], kvec[i+1], 1.e-4))
-                    ++currentcount;
-                else
-                {
-                    if(currentcount < minrepeats)
-                        minrepeats = currentcount;
-                    currentcount = 1;
-                }
-            }
-            // if already in bezier form, set the identity matrix for each extraction operator.
-            if(minrepeats >= p)
-            {
-                for(uint iel = 0; iel < uniqueKnotN(dir)-1; ++iel)
-                    setExtractionOperator(iel, dir, I);
-                continue;
-            }
-            
+//            unsigned minrepeats = std::numeric_limits<unsigned>::max();
+//            unsigned currentcount = 1;
+//            for(size_t i = 0; i < kvec.size() - 1; ++i)
+//            {
+//                if(essentiallyEqual(kvec[i], kvec[i+1], 1.e-4))
+//                    ++currentcount;
+//                else
+//                {
+//                    if(currentcount < minrepeats)
+//                        minrepeats = currentcount;
+//                    currentcount = 1;
+//                }
+//            }
+//            // if already in bezier form, set the identity matrix for each extraction operator.
+//            if(minrepeats >= p)
+//            {
+//                for(uint iel = 0; iel < uniqueKnotN(dir)-1; ++iel)
+//                    setExtractionOperator(iel, dir, I);
+//                continue;
+//            }
+//            
             // code for degree > 1
+            uint a = p;
+            uint b = a + 1;
+            uint nb = 0;                // # bezier elements in this direction
+            uint prevmult = 0;          // multiplicity of previous knot during loop
             
             /// Initialise extraction matrices
             auto Ccurrent = I;
             auto Cnext = I;
             
-            while(b < m) {
-                
-                
-                
+            while(b < m)
+            {
                 // If on last element, we're done.
                 if(nb == uniqueKnotN(dir) - 2)
                 {
@@ -242,11 +239,13 @@ namespace nurbs
                     nb += 1;
                     
                     // update indices for next operator
-                    if(b < m) {
+                    if(b < m)
+                    {
                         a = b;
                         b += 1;
                     }
                 }
+                prevmult = mult;
             }
         }
         

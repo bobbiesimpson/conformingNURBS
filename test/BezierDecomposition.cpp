@@ -1,6 +1,7 @@
 #include <iostream>
 #include "base.h"
 #include "NURBSCommon.h"
+#include <set>
 
 #include <map>
 
@@ -11,8 +12,8 @@ int main(int argc, char* argv[])
     
     
     // The knot vector we are going to decompose into Bezier elements
-    const DoubleVec kvec{0,0,0,1,1, 2,3,4,4, 5, 5, 5};//{0.0, 0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 2.0};
-    const uint p = 2;
+    const DoubleVec kvec{0,0,0,0,1, 2, 3, 4,5, 5, 5, 5};//{0.0, 0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 2.0};
+    const uint p = 3;
     
     // create unique knot vectors
     auto uniqueknotvec = kvec;
@@ -44,7 +45,7 @@ int main(int argc, char* argv[])
     }
     
     
-    uint a = p;
+    uint a = p + 1;
     uint b = a + 1;
     uint nb = 0;                // # bezier elements in this direction
     
@@ -93,13 +94,15 @@ int main(int argc, char* argv[])
     
     while(b < m) {
         
+        Cnext = I;
+        
         // We're done.
         if(nb == uniqueknotn - 2)
         {
             std::cout << "element: " << nb << "\t" <<  Ccurrent << "\n";
             break;
         }
-        
+
         // check if element is already in bezier form
 //        auto search = beziermap.find(nb);
 //        if(search != beziermap.end())
@@ -116,7 +119,7 @@ int main(int argc, char* argv[])
         uint mult = 0;
         
         // count multiplitiy of knot at location b
-        while(b < m && essentiallyEqual(kvec[b+1], kvec[b], 1.e-4))
+        while(b < m && essentiallyEqual(kvec[b], kvec[b-1], 1.e-4))
             b += 1;
         
         mult = b - i + 1;
@@ -126,9 +129,9 @@ int main(int argc, char* argv[])
         
         if(mult < p)
         {
-            const double numer = kvec[b] - kvec[a];
+            const double numer = kvec[b-1] - kvec[a-1];
             for(uint j = p; j > mult; j--)
-                alphas[j-mult-1] = numer / (kvec[a+j] - kvec[a]);
+                alphas[j-mult-1] = numer / (kvec[a+j-1] - kvec[a-1]);
             
             const uint r = p - mult;
             
@@ -136,16 +139,17 @@ int main(int argc, char* argv[])
             for(uint j = 1; j <= r; ++j) {
                 const uint save = r - j;
                 const uint s = mult + j;
-                for(uint k = p; k >= s; k--) {
-                    const double alpha = alphas[k-s];
-                    for(uint irow = 0; irow < Ccurrent.size(); ++irow) {
-                        Ccurrent[irow][k] = alpha * Ccurrent[irow][k]
-                        + (1.0 - alpha) * Ccurrent[irow][k-1];
+                for(uint k = p+1; k > s; k--) {
+                    const double alpha = alphas[k-s-1];
+                    for(uint irow = 0; irow < Ccurrent.size(); ++irow)
+                    {
+                        Ccurrent[irow][k-1] = alpha * Ccurrent[irow][k-1]
+                        + (1.0 - alpha) * Ccurrent[irow][k-2];
                     }
                 }
-                if(b < m )
+                if(b < m)
                 {
-                    for(uint i = 0; i <= j; ++i)
+                    for(uint i = 0; i < j+1; ++i)
                     {
                         const double val = Ccurrent[p-j+i][p];
                         //if(!essentiallyEqual(val, 0.0, 1.0-7))
@@ -159,17 +163,114 @@ int main(int argc, char* argv[])
             
             // Set next operator equal to current and increment element counter
             Ccurrent = Cnext;
-            Cnext = I;
             nb += 1;
             
             // update indices for next operator
             if(b < m) {
                 a = b;
                 b += 1;
+
             }
         }
     }
 
+    
+    // let's compute the global matrix explicitly.
+    
+    // first figure out what knots need to be inserted to obtain the requried
+    // bezier form
+    
+    typedef std::vector<std::vector<double>> Matrix;
+    typedef std::set<Matrix> MatrixSet;
+    
+
+    
+
+    size_t currentindex = 0;
+    size_t insertedknot_n = 0;
+    
+    Matrix global_cmatrix;
+    auto kvec_copy = kvec;
+    
+    const auto n = kvec_copy.size() - p - 1;
+    
+    // keep going until we have C^0 continuity
+    while(currentindex < uniqueknotvec.size())
+    {
+        const auto kval = uniqueknotvec[currentindex];
+        const auto count = std::count_if(kvec_copy.begin(), kvec_copy.end(), [&](double k) {return essentiallyEqual(k, kval, 1.0e-5);});
+        auto requiredknots = p - count;
+        
+        // perform required knot insertion
+        while(requiredknots > 0)
+        {
+
+            const unsigned k = nurbshelper::getKnotSpan(kval, kvec_copy, p);
+            std::cout << requiredknots << " knots required at " << kval << " at knot span " <<  k << "\n";
+            
+            // initialise Cmatrix
+            Matrix Cmatrix;
+            for(size_t i = 0; i < n + insertedknot_n; ++i)
+                Cmatrix.push_back(std::vector<double>(n + insertedknot_n + 1, 0.0));
+            
+            for(unsigned a = 0; a < n + insertedknot_n + 1; ++a)
+            {
+                // First compute alpha
+                double alpha;
+                if(a <= k - p - 1)
+                    alpha = 1.0;
+                else if(a >= k - p && a <= k - 1)
+                {
+                    double numer = kval - kvec_copy[a];
+                    alpha = numer / (kvec_copy[a + p] - kvec_copy[a]);
+                }
+                else
+                    alpha = 0.0;
+                
+                // now populate the matrix for the current knot insertion
+                if(a == 0)
+                    Cmatrix[a][a] = alpha;
+                else if(a == n + insertedknot_n)
+                    Cmatrix[a-1][a] = 1 - alpha;
+                else
+                {
+                    Cmatrix[a][a] = alpha;
+                    Cmatrix[a-1][a] = 1- alpha;
+                }
+            }
+            
+            if(insertedknot_n == 0)
+                global_cmatrix = Cmatrix;
+            else
+            {
+                // now update the global matrix
+                auto global_cmatrix_copy = global_cmatrix;
+                
+                global_cmatrix.clear();
+                // resize global matrix
+                for(size_t i = 0; i < n; ++i)
+                    global_cmatrix.push_back(std::vector<double>(n + insertedknot_n + 1, 0.0));
+                
+                for(size_t i = 0; i < n; ++i)
+                    for(size_t j = 0; j < n + insertedknot_n; ++j)
+                        global_cmatrix[i][j] = global_cmatrix_copy[i][j] * Cmatrix[j][i];
+            }
+            // insert the new knot into the knot vector
+            kvec_copy.insert(kvec_copy.begin() + k , kval);
+            requiredknots--;
+            ++insertedknot_n;
+        }
+        ++currentindex;
+    }
+    
+    // print out cmatrix
+    for(size_t i = 0; i < global_cmatrix.size(); ++i)
+    {
+        for(const auto& v : global_cmatrix[i])
+            std::cout << v << "\t";
+        std::cout << "\n";
+    }
+    
     return EXIT_SUCCESS;
 }
 
