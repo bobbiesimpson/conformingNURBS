@@ -117,13 +117,20 @@ namespace nurbs
     {
         if(0 == nrefine)
             return;
-        for(auto& s_space : mSpaceS) {
-            s_space.degreeElevate(ParamDir::S);
-            s_space.degreeElevate(ParamDir::T);
-        }
-        for(auto& t_space : mSpaceT) {
-            t_space.degreeElevate(ParamDir::S);
-            t_space.degreeElevate(ParamDir::T);
+        
+        uint count = 0;
+        while(count < nrefine)
+        {
+            for(auto& s_space : mSpaceS)
+            {
+                s_space.degreeElevate(ParamDir::S);
+                s_space.degreeElevate(ParamDir::T);
+            }
+            for(auto& t_space : mSpaceT) {
+                t_space.degreeElevate(ParamDir::S);
+                t_space.degreeElevate(ParamDir::T);
+            }
+            ++count;
         }
         initConnectivity();
     }

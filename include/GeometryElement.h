@@ -59,24 +59,33 @@ namespace nurbs
         double jacDet(const GPt2D& gp) const {return jacDet(gp.s, gp.t); }
         
         /// Get jacobian determinant from parent to physical space
-        double jacDet(const double u,
-                      const double v,
-                      const Point3D& t1,
-                      const Point3D& t2) const
+        virtual double jacDet(const double u,
+                              const double v,
+                              const Point3D& t1,
+                              const Point3D& t2) const
         {
             return cross(t1,t2).length() * jacDetParam(u,v);
         }
         
         /// Get jacobian determinant from parent to physical space
-        double jacDet(const GPt2D& gp,
-                      const Point3D& t1,
-                      const Point3D& t2) const
+        virtual double jacDet(const GPt2D& gp,
+                              const Point3D& t1,
+                              const Point3D& t2) const
         {
             return cross(t1,t2).length() * jacDetParam(gp.s, gp.t);
         }
         
         /// Get jacobian
         virtual DoubleVecVec jacob(const double u, const double v) const;
+        
+        /// Evaluate jacobian with given tangent vectors
+        virtual DoubleVecVec jacob(const double u,
+                                   const double v,
+                                   const Point3D& t1,
+                                   const Point3D& t2) const
+        {
+            throw std::runtime_error("Jacob function not implemented.");
+        }
         
         /// Same as above but passing a 2d guass point
         DoubleVecVec jacob(const GPt2D& gp) const {return jacob(gp.s, gp.t); }

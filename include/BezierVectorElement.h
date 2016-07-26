@@ -62,10 +62,10 @@ namespace nurbs {
         }
         
         /// Jacobian determinant with given tangent vectors
-        double jacDet(const double u,
-                      const double v,
-                      const Point3D& t1,
-                      const Point3D& t2) const
+        virtual double jacDet(const double u,
+                              const double v,
+                              const Point3D& t1,
+                              const Point3D& t2) const override
         { return cross(t1,t2).length() * jacDetParam(u,v); }
         
         /// Override jacobian evaluation
@@ -87,7 +87,7 @@ namespace nurbs {
         DoubleVecVec jacob(const double u,
                            const double v,
                            const Point3D& t1,
-                           const Point3D& t2) const
+                           const Point3D& t2) const override
         {
             DoubleVecVec jacob_param;
             jacob_param.push_back(t1.asVec());
@@ -147,7 +147,7 @@ namespace nurbs {
         DoubleVecVec basis(const double u,
                            const double v,
                            const Point3D& t1,
-                           const Point3D& t2) const
+                           const Point3D& t2) const override
         {
             return multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
         }

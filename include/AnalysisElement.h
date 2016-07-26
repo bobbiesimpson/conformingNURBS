@@ -60,6 +60,15 @@ namespace nurbs {
         /// coordinate
         virtual std::vector<T> basis(const double u, const double v) const = 0;
         
+        /// Evauate basis with given tangent vectors
+        virtual std::vector<T> basis(const double u,
+                                     const double v,
+                                     const Point3D& t1,
+                                     const Point3D& t2) const
+        {
+            throw std::runtime_error("Basis function not implemented.");
+        }
+        
         /// Return basis without Piola tranform.
         /// Default behaviour is to return the above basis() function
         virtual std::vector<T> localBasis(const double u, const double v) const
@@ -157,6 +166,7 @@ namespace nurbs {
             ParamCoord c = paramCoord(gp);
             return parent()->parentCoord(c.s, c.t);
         }
+
         
     protected:
         
@@ -164,8 +174,11 @@ namespace nurbs {
         AnalysisElement(const Geometry& g,
                         const uint sp,
                         const DoublePairVec& knots)
-        : GeometryElement(g, sp, knots),
-          mpParent(nullptr) {}
+        :
+        GeometryElement(g, sp, knots),
+        mpParent(nullptr) {}
+        
+
         
     private:
         
