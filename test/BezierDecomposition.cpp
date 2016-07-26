@@ -181,10 +181,6 @@ int main(int argc, char* argv[])
     // bezier form
     
     typedef std::vector<std::vector<double>> Matrix;
-    typedef std::set<Matrix> MatrixSet;
-    
-
-    
 
     size_t currentindex = 0;
     size_t insertedknot_n = 0;
@@ -194,7 +190,7 @@ int main(int argc, char* argv[])
     
     const auto n = kvec_copy.size() - p - 1;
     
-    // keep going until we have C^0 continuity
+    // keep going until we have C^0 continuity at all knots
     while(currentindex < uniqueknotvec.size())
     {
         const auto kval = uniqueknotvec[currentindex];
@@ -204,7 +200,6 @@ int main(int argc, char* argv[])
         // perform required knot insertion
         while(requiredknots > 0)
         {
-
             const unsigned k = nurbshelper::getKnotSpan(kval, kvec_copy, p);
             std::cout << requiredknots << " knots required at " << kval << " at knot span " <<  k << "\n";
             
@@ -252,8 +247,9 @@ int main(int argc, char* argv[])
                     global_cmatrix.push_back(std::vector<double>(n + insertedknot_n + 1, 0.0));
                 
                 for(size_t i = 0; i < n; ++i)
-                    for(size_t j = 0; j < n + insertedknot_n; ++j)
-                        global_cmatrix[i][j] = global_cmatrix_copy[i][j] * Cmatrix[j][i];
+                    for(size_t j = 0; j < n + insertedknot_n + 1; ++j)
+                        for(size_t k = 0; k < n + insertedknot_n; ++k)
+                            global_cmatrix[i][j] += global_cmatrix_copy[i][k] * Cmatrix[k][j];
             }
             // insert the new knot into the knot vector
             kvec_copy.insert(kvec_copy.begin() + k , kval);
