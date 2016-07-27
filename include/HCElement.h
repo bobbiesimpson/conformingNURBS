@@ -88,6 +88,9 @@ namespace nurbs {
         /// Local element index getter
         uint elemI() const { return mElemI; }
         
+        /// Get the global element index (in the multiforest) of this element
+        uint globalElemI() const { return multiForest()->globalElI(spaceI(), elemI()); }
+        
         /// Get the number of connected collocation points on this element
         uint collocPtN() const override
         {

@@ -4,6 +4,7 @@
 #include "AnalysisElement.h"
 #include "BezierNodalElement.h"
 #include "MultiForest.h"
+#include "NURBSCache.h"
 
 namespace nurbs {
     
@@ -58,7 +59,16 @@ namespace nurbs {
         /// Override jacobian determinant evaluation
         virtual double jacDet(const double u, const double v) const override
         {
-            return cross(tangent(u,v,S), tangent(u,v,T)).length() * jacDetParam(u,v);
+            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+            auto find = cache.jacobDet(globalElemI(), u, v);
+            if(!find.first)
+            {
+                const auto jdet = cross(tangent(u,v,S), tangent(u,v,T)).length() * jacDetParam(u,v);
+                cache.cacheJacobDet(globalElemI(), u, v, jdet);
+                return jdet;
+            }
+            else
+                return find.second;
         }
         
         /// Jacobian determinant with given tangent vectors
@@ -66,21 +76,41 @@ namespace nurbs {
                               const double v,
                               const Point3D& t1,
                               const Point3D& t2) const override
-        { return cross(t1,t2).length() * jacDetParam(u,v); }
+        {
+            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+            auto find = cache.jacobDet(globalElemI(), u, v);
+            if(!find.first)
+            {
+                const auto jdet = cross(t1,t2).length() * jacDetParam(u,v);
+                cache.cacheJacobDet(globalElemI(), u,v,jdet);
+                return jdet;
+            }
+            else
+                return find.second;
+        }
         
         /// Override jacobian evaluation
         virtual DoubleVecVec jacob(const double u, const double v) const override
         {
-            DoubleVecVec jacob_param;
-            jacob_param.push_back(tangent(u,v,S).asVec());
-            jacob_param.push_back(tangent(u,v,T).asVec());
-            const auto jacob_parent = jacobParam(u, v);
-            DoubleVecVec r{ { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }};
-            for(uint i = 0; i < 2; ++i)
-                for(uint j = 0; j < 3; ++j)
-                    for(uint k = 0; k < 2; ++k)
-                        r[i][j] += jacob_parent[i][k] * jacob_param[k][j];
-            return r;
+            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+            auto find = cache.jacob(globalElemI(), u, v);
+            if(!find.first)
+            {
+                
+                DoubleVecVec jacob_param;
+                jacob_param.push_back(tangent(u,v,S).asVec());
+                jacob_param.push_back(tangent(u,v,T).asVec());
+                const auto jacob_parent = jacobParam(u, v);
+                DoubleVecVec r{ { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }};
+                for(uint i = 0; i < 2; ++i)
+                    for(uint j = 0; j < 3; ++j)
+                        for(uint k = 0; k < 2; ++k)
+                            r[i][j] += jacob_parent[i][k] * jacob_param[k][j];
+                cache.cacheJacob(globalElemI(), u, v, r);
+                return r;
+            }
+            else
+                return find.second;
         }
         
         /// Jacobian with given tangent vectors (for efficiency)
@@ -89,16 +119,24 @@ namespace nurbs {
                            const Point3D& t1,
                            const Point3D& t2) const override
         {
-            DoubleVecVec jacob_param;
-            jacob_param.push_back(t1.asVec());
-            jacob_param.push_back(t2.asVec());
-            const auto jacob_parent = jacobParam(u, v);
-            DoubleVecVec r{ { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }};
-            for(uint i = 0; i < 2; ++i)
-                for(uint j = 0; j < 3; ++j)
-                    for(uint k = 0; k < 2; ++k)
-                        r[i][j] += jacob_parent[i][k] * jacob_param[k][j];
-            return r;
+            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+            auto find = cache.jacob(globalElemI(), u, v);
+            if(!find.first)
+            {
+                DoubleVecVec jacob_param;
+                jacob_param.push_back(t1.asVec());
+                jacob_param.push_back(t2.asVec());
+                const auto jacob_parent = jacobParam(u, v);
+                DoubleVecVec r{ { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }};
+                for(uint i = 0; i < 2; ++i)
+                    for(uint j = 0; j < 3; ++j)
+                        for(uint k = 0; k < 2; ++k)
+                            r[i][j] += jacob_parent[i][k] * jacob_param[k][j];
+                cache.cacheJacob(globalElemI(), u, v, r);
+                return r;
+            }
+            else
+                return find.second;
         }
         
         /// Return local basis function indices that are non-zero over the
@@ -140,7 +178,16 @@ namespace nurbs {
         /// which takes tangent vectors as inputs.
         virtual DoubleVecVec basis(const double u, const double v) const override
         {
-            return multiForest()->transformBasis(localBasis(u,v), jacob(u, v), jacDet(u, v));
+            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+            auto find = cache.vectorBasis(globalElemI(), u, v);
+            if(!find.first)
+            {
+                const auto basis = multiForest()->transformBasis(localBasis(u,v), jacob(u, v), jacDet(u, v));
+                cache.cacheVectorBasis(globalElemI(), u, v, basis);
+                return basis;
+            }
+            else
+                return find.second;
         }
         
         /// More efficient basis function evaluation with given tangent vectors
@@ -149,63 +196,81 @@ namespace nurbs {
                            const Point3D& t1,
                            const Point3D& t2) const override
         {
-            return multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
+            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+            auto find = cache.vectorBasis(globalElemI(), u, v);
+            if(!find.first)
+            {
+                const auto basis = multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
+                cache.cacheVectorBasis(globalElemI(), u, v, basis);
+                return basis;
+            }
+            else
+                return find.second;
         }
         
         /// Get the untransformed (i.e. without Piola) vector basis functions
         /// using Bezier extraction
         virtual DoubleVecVec localBasis(const double u,
-                                const double v) const override
+                                        const double v) const override
         {
-            // The return vector of (vector-valued) basis functions
-            DoubleVecVec rvec;
-            
-            for(uint icomp = 0; icomp < componentN(); ++icomp)
+            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+            auto find = cache.localVectorBasis(globalElemI(), u, v);
+            if(!find.first)
             {
-                const ParamDir compdir = ParamDirType(icomp);
-                auto indices = space(compdir).localIndices(localElementI());
                 
-                // Using a reference makes a huge difference to speed
-                const auto& op_u = space(compdir).extractionOperator(indices.first, S);
-                const auto& op_v = space(compdir).extractionOperator(indices.second, T);
-                //
-//                
-//                std::cout << op_u << "\n";
-//                std::cout << op_v << "\n";
-//                
-                const auto b_u = nurbshelper::bernsteinPolynomial(u, degree(S, icomp));
-                const auto b_v = nurbshelper::bernsteinPolynomial(v, degree(T, icomp));
+                // The return vector of (vector-valued) basis functions
+                DoubleVecVec rvec;
                 
-                // now apply extraction operators to bernstein basis
-                const uint n_u = op_u.size();
-                std::vector<double> basis_u(n_u, 0.0);
-                for(uint i = 0; i < n_u; ++i)
-                    for(uint j = 0; j < op_u[0].size(); ++j)
-                        basis_u[i] += op_u[i][j] * b_u[j];
+                for(uint icomp = 0; icomp < componentN(); ++icomp)
+                {
+                    const ParamDir compdir = ParamDirType(icomp);
+                    auto indices = space(compdir).localIndices(localElementI());
+                    
+                    // Using a reference makes a huge difference to speed
+                    const auto& op_u = space(compdir).extractionOperator(indices.first, S);
+                    const auto& op_v = space(compdir).extractionOperator(indices.second, T);
+                    //
+                    //
+                    //                std::cout << op_u << "\n";
+                    //                std::cout << op_v << "\n";
+                    //
+                    const auto b_u = nurbshelper::bernsteinPolynomial(u, degree(S, icomp));
+                    const auto b_v = nurbshelper::bernsteinPolynomial(v, degree(T, icomp));
+                    
+                    // now apply extraction operators to bernstein basis
+                    const uint n_u = op_u.size();
+                    std::vector<double> basis_u(n_u, 0.0);
+                    for(uint i = 0; i < n_u; ++i)
+                        for(uint j = 0; j < op_u[0].size(); ++j)
+                            basis_u[i] += op_u[i][j] * b_u[j];
+                    
+                    const uint n_v = op_v.size();
+                    std::vector<double> basis_v(n_v, 0.0);
+                    for(uint i = 0; i < n_v; ++i)
+                        for(uint j = 0; j < op_v[0].size(); ++j)
+                            basis_v[i] += op_v[i][j] * b_v[j];
+                    
+                    for(uint j = 0; j < basis_v.size(); ++j)
+                        for(uint i = 0; i < basis_u.size(); ++i)
+                        {
+                            const double b = basis_u[i] * basis_v[j];
+                            rvec.emplace_back(compdir == ParamDir::S ? DoubleVec{b, 0.0} : DoubleVec{0.0, b});
+                        }
+                }
                 
-                const uint n_v = op_v.size();
-                std::vector<double> basis_v(n_v, 0.0);
-                for(uint i = 0; i < n_v; ++i)
-                    for(uint j = 0; j < op_v[0].size(); ++j)
-                        basis_v[i] += op_v[i][j] * b_v[j];
-                
-                for(uint j = 0; j < basis_v.size(); ++j)
-                    for(uint i = 0; i < basis_u.size(); ++i)
-                    {
-                        const double b = basis_u[i] * basis_v[j];
-                        rvec.emplace_back(compdir == ParamDir::S ? DoubleVec{b, 0.0} : DoubleVec{0.0, b});
-                    }
+                // now apply sign
+                const auto& sign_vec = multiForest()->globalDirVec(spaceI());
+                const auto l_ivec = localBasisFuncI();
+                assert(l_ivec.size() == rvec.size());
+                for(uint i = 0; i < basisFuncN(); ++i) {
+                    for(auto& b : rvec[i])
+                        b *= asDouble(sign_vec[l_ivec[i]]);
+                        }
+                cache.cacheLocalVectorBasis(globalElemI(), u, v, rvec);
+                return rvec;
             }
-            
-            // now apply sign
-            const auto& sign_vec = multiForest()->globalDirVec(spaceI());
-            const auto l_ivec = localBasisFuncI();
-            assert(l_ivec.size() == rvec.size());
-            for(uint i = 0; i < basisFuncN(); ++i) {
-                for(auto& b : rvec[i])
-                    b *= asDouble(sign_vec[l_ivec[i]]);
-            }
-            return rvec;
+            else
+                return find.second;
         }
         
         /// Get the local basis derivatives either in S or T direction
@@ -213,65 +278,74 @@ namespace nurbs {
                                             const double v,
                                             const DerivType dtype) const override
         {
-            DoubleVecVec rvec;
-            
-            for(uint icomp = 0; icomp < componentN(); ++icomp)
+            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+            auto find = cache.vectorBasisDer(globalElemI(), u, v, dtype);
+            if(!find.first)
             {
-                const ParamDir compdir = ParamDirType(icomp);
-                auto indices = space(compdir).localIndices(localElementI());
+                DoubleVecVec rvec;
                 
-                // Using a reference makes a huge difference to speed
-                const auto& op_u = space(compdir).extractionOperator(indices.first, S);
-                const auto& op_v = space(compdir).extractionOperator(indices.second, T);
-                
-                // Get Bertnein basis in each parametric direction taking account
-                // of derivatives.
-                DoubleVec bu;
-                DoubleVec bv;
-                if(DerivType::DS == dtype)
+                for(uint icomp = 0; icomp < componentN(); ++icomp)
                 {
-                    bu = nurbshelper::bernsteinPolynomialDeriv(u, degree(S, icomp));
-                    bv = nurbshelper::bernsteinPolynomial(v, degree(T, icomp));
-                }
-                else
-                {
-                    bu = nurbshelper::bernsteinPolynomial(u, degree(S, icomp));
-                    bv = nurbshelper::bernsteinPolynomialDeriv(v, degree(T, icomp));
-                }
-                
-                const uint n_u = op_u.size();
-                std::vector<double> basis_u(n_u, 0.0);
-                for(uint i = 0; i < n_u; ++i)
-                    for(uint j = 0; j < op_u[0].size(); ++j)
-                        basis_u[i] += op_u[i][j] * bu[j];
-                
-                const uint n_v = op_v.size();
-                std::vector<double> basis_v(n_v, 0.0);
-                for(uint i = 0; i < n_v; ++i)
-                    for(uint j = 0; j < op_v[0].size(); ++j)
-                        basis_v[i] += op_v[i][j] * bv[j];
-                
-                const auto param_j = jacobParam(u, v);
-//                const double jterm =
-//                (DerivType::DS == dtype) ? 1.0/param_j[0][0] : 1.0 / param_j[1][1];
-                
-                for(uint j = 0; j < basis_v.size(); ++j)
-                    for(uint i = 0; i < basis_u.size(); ++i)
+                    const ParamDir compdir = ParamDirType(icomp);
+                    auto indices = space(compdir).localIndices(localElementI());
+                    
+                    // Using a reference makes a huge difference to speed
+                    const auto& op_u = space(compdir).extractionOperator(indices.first, S);
+                    const auto& op_v = space(compdir).extractionOperator(indices.second, T);
+                    
+                    // Get Bertnein basis in each parametric direction taking account
+                    // of derivatives.
+                    DoubleVec bu;
+                    DoubleVec bv;
+                    if(DerivType::DS == dtype)
                     {
-                        rvec.push_back(ParamDir::S == compdir ? DoubleVec{basis_u[i] * basis_v[j], 0.0} : DoubleVec{0.0, basis_u[i] * basis_v[j]});
+                        bu = nurbshelper::bernsteinPolynomialDeriv(u, degree(S, icomp));
+                        bv = nurbshelper::bernsteinPolynomial(v, degree(T, icomp));
                     }
+                    else
+                    {
+                        bu = nurbshelper::bernsteinPolynomial(u, degree(S, icomp));
+                        bv = nurbshelper::bernsteinPolynomialDeriv(v, degree(T, icomp));
+                    }
+                    
+                    const uint n_u = op_u.size();
+                    std::vector<double> basis_u(n_u, 0.0);
+                    for(uint i = 0; i < n_u; ++i)
+                        for(uint j = 0; j < op_u[0].size(); ++j)
+                            basis_u[i] += op_u[i][j] * bu[j];
+                    
+                    const uint n_v = op_v.size();
+                    std::vector<double> basis_v(n_v, 0.0);
+                    for(uint i = 0; i < n_v; ++i)
+                        for(uint j = 0; j < op_v[0].size(); ++j)
+                            basis_v[i] += op_v[i][j] * bv[j];
+                    
+                    const auto param_j = jacobParam(u, v);
+                    //                const double jterm =
+                    //                (DerivType::DS == dtype) ? 1.0/param_j[0][0] : 1.0 / param_j[1][1];
+                    
+                    for(uint j = 0; j < basis_v.size(); ++j)
+                        for(uint i = 0; i < basis_u.size(); ++i)
+                        {
+                            rvec.push_back(ParamDir::S == compdir ? DoubleVec{basis_u[i] * basis_v[j], 0.0} : DoubleVec{0.0, basis_u[i] * basis_v[j]});
+                        }
+                }
+                
+                // now apply sign
+                const auto& sign_vec = multiForest()->globalDirVec(spaceI());
+                const auto& l_ivec = localBasisFuncI();
+                assert(l_ivec.size() == rvec.size());
+                for(uint i = 0; i < basisFuncN(); ++i)
+                {
+                    for(auto& b : rvec[i])
+                        b *= asDouble(sign_vec[l_ivec[i]]);
+                        }
+                
+                cache.cacheVectorBasisDer(globalElemI(), u, v, dtype, rvec);
+                return rvec;
             }
-            
-            // now apply sign
-            const auto& sign_vec = multiForest()->globalDirVec(spaceI());
-            const auto& l_ivec = localBasisFuncI();
-            assert(l_ivec.size() == rvec.size());
-            for(uint i = 0; i < basisFuncN(); ++i)
-            {
-                for(auto& b : rvec[i])
-                    b *= asDouble(sign_vec[l_ivec[i]]);
-            }
-            return rvec;
+            else
+                return find.second;
         }
         
         /// Basis function degrees
@@ -323,7 +397,10 @@ namespace nurbs {
         
         /// Multiforest getter
         const MultiForest* multiForest() const { return mMultiForest; }
-        
+
+        /// Get the global element index (in the multiforest) of this element
+        uint globalElemI() const { return multiForest()->globalElI(spaceI(), localElementI()); }
+            
         
     private:
         

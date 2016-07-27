@@ -11,14 +11,24 @@ namespace nurbs {
         // We get a reference to the parent element, convert to its local
         // parent coordinates and evaluate using the basis that belongs to the
         // geometry (often much coarse then the analysis basis)
-        const auto pel = parent();
-        const auto p_gpt = transformToParentElParentCoord(GPt2D(u,v));
-        const auto& b = pel->basis(p_gpt.s, p_gpt.t);
-        const auto gvec = pel->globalBasisFuncI();
-        Point4D x;
-        for(uint i = 0; i < gvec.size(); ++i)
-            x += geometry().controlPt(gvec[i]) * b[i];
-        return x.asCartesian();
+        
+        auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+        auto find = cache.physicalCoord(globalElemI(), u, v);
+        if(!find.first)
+        {
+            const auto pel = parent();
+            const auto p_gpt = transformToParentElParentCoord(GPt2D(u,v));
+            const auto& b = pel->basis(p_gpt.s, p_gpt.t);
+            const auto gvec = pel->globalBasisFuncI();
+            Point4D x;
+            for(uint i = 0; i < gvec.size(); ++i)
+                x += geometry().controlPt(gvec[i]) * b[i];
+            Point3D p = x.asCartesian();
+            cache.cachePhysicalCoord(globalElemI(), u, v, p);
+            return p;
+        }
+        else
+            return find.second;
     }
     
     Point3D BezierVectorElement::tangent(const double u,

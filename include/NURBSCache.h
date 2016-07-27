@@ -2,6 +2,7 @@
 #define NURBS_CACHE_H
 
 #include "base.h"
+#include "Point3D.h"
 
 #include <map>
 #include <tuple>
@@ -142,27 +143,6 @@ namespace nurbs {
 //                return insert.second;
                 return true;
             }
-
-            bool cacheTangentVectors(const uint ielem,
-                                     const double u,
-                                     const double v,
-                                     const Point3D& t1,
-                                     const Point3D& t2)
-            {
-                std::lock_guard<std::mutex> lock(mMutex);
-                auto insert = mTangentVectorMap.insert(std::make_pair(std::make_tuple(ielem, u, v), std::make_tuple(t1, t2)));
-                return insert.second;
-            }
-            
-            std::pair<bool, std::tuple<Point3D, Point3D>> tangentVectors(const uint ielem,
-                                                                         const double u,
-                                                                         const double v)
-            {
-                auto it = mTangentVectorMap.find(std::make_tuple(ielem, u, v));
-                if(it != mTangentVectorMap.end())
-                    return std::make_pair(true, it->second);
-                return std::make_pair(false, std::make_tuple(Point3D(), Point3D()));
-            }
             
             bool cacheJacobDet(const uint ielem,
                                      const double u,
@@ -183,6 +163,110 @@ namespace nurbs {
                     return std::make_pair(true, it->second);
                 return std::make_pair(false, 0.0);
             }
+            
+            bool cacheJacob(const uint ielem,
+                            const double u,
+                            const double v,
+                            const DoubleVecVec& jacob)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mJacobMap.insert(std::make_pair(std::make_tuple(ielem, u, v), jacob));
+                return insert.second;
+            }
+            
+            std::pair<bool, DoubleVecVec> jacob(const uint ielem,
+                                                const double u,
+                                                const double v)
+            {
+                auto it = mJacobMap.find(std::make_tuple(ielem, u, v));
+                if(it != mJacobMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, DoubleVecVec{});
+            }
+            
+            bool cachePhysicalCoord(const uint ielem,
+                                    const double u,
+                                    const double v,
+                                    const Point3D& p)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mPhysicalCoordMap.insert(std::make_pair(std::make_tuple(ielem, u, v), p));
+                return insert.second;
+            }
+            
+            std::pair<bool, Point3D> physicalCoord(const uint ielem,
+                                                   const double u,
+                                                   const double v)
+            {
+                auto it = mPhysicalCoordMap.find(std::make_tuple(ielem, u, v));
+                if(it != mPhysicalCoordMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, Point3D());
+            }
+            
+            
+            bool cacheVectorBasis(const uint ielem,
+                                    const double u,
+                                    const double v,
+                                    const DoubleVecVec& basis)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mVectorBasisMap.insert(std::make_pair(std::make_tuple(ielem, u, v), basis));
+                return insert.second;
+            }
+            
+            std::pair<bool, DoubleVecVec> vectorBasis(const uint ielem,
+                                                      const double u,
+                                                      const double v)
+            {
+                auto it = mVectorBasisMap.find(std::make_tuple(ielem, u, v));
+                if(it != mVectorBasisMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, DoubleVecVec{});
+            }
+            
+            bool cacheLocalVectorBasis(const uint ielem,
+                                       const double u,
+                                       const double v,
+                                       const DoubleVecVec& basis)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mLocalVectorBasisMap.insert(std::make_pair(std::make_tuple(ielem, u, v), basis));
+                return insert.second;
+            }
+            
+            std::pair<bool, DoubleVecVec> localVectorBasis(const uint ielem,
+                                                           const double u,
+                                                           const double v)
+            {
+                auto it = mLocalVectorBasisMap.find(std::make_tuple(ielem, u, v));
+                if(it != mLocalVectorBasisMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, DoubleVecVec{});
+            }
+            
+            bool cacheVectorBasisDer(const uint ielem,
+                                     const double u,
+                                     const double v,
+                                     const DerivType deriv,
+                                     const DoubleVecVec& basisder)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mVectorBasisDerMap.insert(std::make_pair(std::make_tuple(ielem, u, v, deriv), basisder));
+                return insert.second;
+            }
+            
+            std::pair<bool, DoubleVecVec> vectorBasisDer(const uint ielem,
+                                                         const double u,
+                                                         const double v,
+                                                         const DerivType deriv)
+            {
+                auto it = mVectorBasisDerMap.find(std::make_tuple(ielem, u, v, deriv));
+                if(it != mVectorBasisDerMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, DoubleVecVec{});
+            }
+            
             
         private:
             
@@ -225,6 +309,17 @@ namespace nurbs {
             std::map<std::tuple<uint, double, double>, std::tuple<Point3D, Point3D>> mTangentVectorMap;
             
             std::map<std::tuple<uint, double, double>, double> mJacobDetMap;
+            
+            std::map<std::tuple<uint, double, double>, Point3D> mPhysicalCoordMap;
+            
+            std::map<std::tuple<uint, double, double>, DoubleVecVec> mVectorBasisMap;
+            
+            std::map<std::tuple<uint, double, double>, DoubleVecVec> mLocalVectorBasisMap;
+            
+            std::map<std::tuple<uint, double, double>, DoubleVecVec> mJacobMap;
+            
+            std::map<std::tuple<uint, double, double, DerivType>, DoubleVecVec> mVectorBasisDerMap;
+            
         };
         
     }
