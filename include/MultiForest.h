@@ -163,6 +163,16 @@ namespace nurbs {
             return globalI(ispace,i, d);
         }
         
+        /// Get global element index given space and local element index
+        uint globalElI(const uint ispace,
+                       const uint iel) const;
+        
+        /// Get the global element index given a space index
+        /// and local indices in the s- and t- directions
+        uint globalElI(const uint ispace,
+                       const uint i,
+                       const uint j) const;
+        
         /// Get the global collocation point for the given space and local
         /// collocation index
         Point3D collocPt(const uint ispace,
@@ -277,15 +287,7 @@ namespace nurbs {
                           const Vertex v,
                           const ParamDir d) const;
         
-        /// Get global element index given space and local element index
-        uint globalElI(const uint ispace,
-                       const uint iel) const;
-        
-        /// Get the global element index given a space index
-        /// and local indices in the s- and t- directions
-        uint globalElI(const uint ispace,
-                       const uint i,
-                       const uint j) const;
+
         
         /// Implementation of element getter (caches elements)
         void initEl(const uint ielem) const;

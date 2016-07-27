@@ -1,6 +1,7 @@
 #include "BezierVectorElement.h"
 #include "Point4D.h"
 #include "Geometry.h"
+#include "NURBSCache.h"
 
 namespace nurbs {
     

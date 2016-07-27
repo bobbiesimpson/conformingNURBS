@@ -143,6 +143,46 @@ namespace nurbs {
                 return true;
             }
 
+            bool cacheTangentVectors(const uint ielem,
+                                     const double u,
+                                     const double v,
+                                     const Point3D& t1,
+                                     const Point3D& t2)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mTangentVectorMap.insert(std::make_pair(std::make_tuple(ielem, u, v), std::make_tuple(t1, t2)));
+                return insert.second;
+            }
+            
+            std::pair<bool, std::tuple<Point3D, Point3D>> tangentVectors(const uint ielem,
+                                                                         const double u,
+                                                                         const double v)
+            {
+                auto it = mTangentVectorMap.find(std::make_tuple(ielem, u, v));
+                if(it != mTangentVectorMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, std::make_tuple(Point3D(), Point3D()));
+            }
+            
+            bool cacheJacobDet(const uint ielem,
+                                     const double u,
+                                     const double v,
+                                     const double jdet)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mJacobDetMap.insert(std::make_pair(std::make_tuple(ielem, u, v), jdet));
+                return insert.second;
+            }
+            
+            std::pair<bool, double> jacobDet(const uint ielem,
+                                             const double u,
+                                             const double v)
+            {
+                auto it = mJacobDetMap.find(std::make_tuple(ielem, u, v));
+                if(it != mJacobDetMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, 0.0);
+            }
             
         private:
             
@@ -182,6 +222,9 @@ namespace nurbs {
             /// Bernstein derivative basis cache
             std::map<std::tuple<double, uint>, DoubleVec> mBernsteinBasisDerivMap;
             
+            std::map<std::tuple<uint, double, double>, std::tuple<Point3D, Point3D>> mTangentVectorMap;
+            
+            std::map<std::tuple<uint, double, double>, double> mJacobDetMap;
         };
         
     }
