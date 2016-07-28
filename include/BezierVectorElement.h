@@ -59,16 +59,16 @@ namespace nurbs {
         /// Override jacobian determinant evaluation
         virtual double jacDet(const double u, const double v) const override
         {
-            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-            auto find = cache.jacobDet(globalElemI(), u, v);
-            if(!find.first)
-            {
-                const auto jdet = cross(tangent(u,v,S), tangent(u,v,T)).length() * jacDetParam(u,v);
-                cache.cacheJacobDet(globalElemI(), u, v, jdet);
-                return jdet;
-            }
-            else
-                return find.second;
+//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+//            auto find = cache.jacobDet(globalElemI(), u, v);
+//            if(!find.first)
+//            {
+                return cross(tangent(u,v,S), tangent(u,v,T)).length() * jacDetParam(u,v);
+//                cache.cacheJacobDet(globalElemI(), u, v, jdet);
+                //return jdet;
+//            }
+//            else
+//                return find.second;
         }
         
         /// Jacobian determinant with given tangent vectors
@@ -77,26 +77,26 @@ namespace nurbs {
                               const Point3D& t1,
                               const Point3D& t2) const override
         {
-            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-            auto find = cache.jacobDet(globalElemI(), u, v);
-            if(!find.first)
-            {
-                const auto jdet = cross(t1,t2).length() * jacDetParam(u,v);
-                cache.cacheJacobDet(globalElemI(), u,v,jdet);
-                return jdet;
-            }
-            else
-                return find.second;
+//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+//            auto find = cache.jacobDet(globalElemI(), u, v);
+//            if(!find.first)
+//            {
+                return cross(t1,t2).length() * jacDetParam(u,v);
+//                cache.cacheJacobDet(globalElemI(), u,v,jdet);
+//                return jdet;
+//            }
+//            else
+//                return find.second;
         }
         
         /// Override jacobian evaluation
         virtual DoubleVecVec jacob(const double u, const double v) const override
         {
-            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-            auto find = cache.jacob(globalElemI(), u, v);
-            if(!find.first)
-            {
-                
+//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+//            auto find = cache.jacob(globalElemI(), u, v);
+//            if(!find.first)
+//            {
+            
                 DoubleVecVec jacob_param;
                 jacob_param.push_back(tangent(u,v,S).asVec());
                 jacob_param.push_back(tangent(u,v,T).asVec());
@@ -106,11 +106,11 @@ namespace nurbs {
                     for(uint j = 0; j < 3; ++j)
                         for(uint k = 0; k < 2; ++k)
                             r[i][j] += jacob_parent[i][k] * jacob_param[k][j];
-                cache.cacheJacob(globalElemI(), u, v, r);
+//                cache.cacheJacob(globalElemI(), u, v, r);
                 return r;
-            }
-            else
-                return find.second;
+//            }
+//            else
+//                return find.second;
         }
         
         /// Jacobian with given tangent vectors (for efficiency)
@@ -119,10 +119,10 @@ namespace nurbs {
                            const Point3D& t1,
                            const Point3D& t2) const override
         {
-            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-            auto find = cache.jacob(globalElemI(), u, v);
-            if(!find.first)
-            {
+//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+//            auto find = cache.jacob(globalElemI(), u, v);
+//            if(!find.first)
+//            {
                 DoubleVecVec jacob_param;
                 jacob_param.push_back(t1.asVec());
                 jacob_param.push_back(t2.asVec());
@@ -132,11 +132,11 @@ namespace nurbs {
                     for(uint j = 0; j < 3; ++j)
                         for(uint k = 0; k < 2; ++k)
                             r[i][j] += jacob_parent[i][k] * jacob_param[k][j];
-                cache.cacheJacob(globalElemI(), u, v, r);
+//                cache.cacheJacob(globalElemI(), u, v, r);
                 return r;
-            }
-            else
-                return find.second;
+//            }
+//            else
+//                return find.second;
         }
         
         /// Return local basis function indices that are non-zero over the
@@ -178,16 +178,16 @@ namespace nurbs {
         /// which takes tangent vectors as inputs.
         virtual DoubleVecVec basis(const double u, const double v) const override
         {
-            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-            auto find = cache.vectorBasis(globalElemI(), u, v);
-            if(!find.first)
-            {
-                const auto basis = multiForest()->transformBasis(localBasis(u,v), jacob(u, v), jacDet(u, v));
-                cache.cacheVectorBasis(globalElemI(), u, v, basis);
-                return basis;
-            }
-            else
-                return find.second;
+//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+//            auto find = cache.vectorBasis(globalElemI(), u, v);
+//            if(!find.first)
+//            {
+                return multiForest()->transformBasis(localBasis(u,v), jacob(u, v), jacDet(u, v));
+//                cache.cacheVectorBasis(globalElemI(), u, v, basis);
+                //return basis;
+//            }
+//            else
+//                return find.second;
         }
         
         /// More efficient basis function evaluation with given tangent vectors
@@ -196,16 +196,16 @@ namespace nurbs {
                            const Point3D& t1,
                            const Point3D& t2) const override
         {
-            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-            auto find = cache.vectorBasis(globalElemI(), u, v);
-            if(!find.first)
-            {
-                const auto basis = multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
-                cache.cacheVectorBasis(globalElemI(), u, v, basis);
-                return basis;
-            }
-            else
-                return find.second;
+//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+//            auto find = cache.vectorBasis(globalElemI(), u, v);
+//            if(!find.first)
+//            {
+                return multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
+//                cache.cacheVectorBasis(globalElemI(), u, v, basis);
+                //return basis;
+//            }
+//            else
+//                return find.second;
         }
         
         /// Get the untransformed (i.e. without Piola) vector basis functions
@@ -213,11 +213,11 @@ namespace nurbs {
         virtual DoubleVecVec localBasis(const double u,
                                         const double v) const override
         {
-            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-            auto find = cache.localVectorBasis(globalElemI(), u, v);
-            if(!find.first)
-            {
-                
+//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+//            auto find = cache.localVectorBasis(globalElemI(), u, v);
+//            if(!find.first)
+//            {
+            
                 // The return vector of (vector-valued) basis functions
                 DoubleVecVec rvec;
                 
@@ -266,11 +266,11 @@ namespace nurbs {
                     for(auto& b : rvec[i])
                         b *= asDouble(sign_vec[l_ivec[i]]);
                         }
-                cache.cacheLocalVectorBasis(globalElemI(), u, v, rvec);
+//                cache.cacheLocalVectorBasis(globalElemI(), u, v, rvec);
                 return rvec;
-            }
-            else
-                return find.second;
+//            }
+//            else
+//                return find.second;
         }
         
         /// Get the local basis derivatives either in S or T direction
@@ -278,10 +278,10 @@ namespace nurbs {
                                             const double v,
                                             const DerivType dtype) const override
         {
-            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-            auto find = cache.vectorBasisDer(globalElemI(), u, v, dtype);
-            if(!find.first)
-            {
+//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+//            auto find = cache.vectorBasisDer(globalElemI(), u, v, dtype);
+//            if(!find.first)
+//            {
                 DoubleVecVec rvec;
                 
                 for(uint icomp = 0; icomp < componentN(); ++icomp)
@@ -339,13 +339,13 @@ namespace nurbs {
                 {
                     for(auto& b : rvec[i])
                         b *= asDouble(sign_vec[l_ivec[i]]);
-                        }
+                }
                 
-                cache.cacheVectorBasisDer(globalElemI(), u, v, dtype, rvec);
+//                cache.cacheVectorBasisDer(globalElemI(), u, v, dtype, rvec);
                 return rvec;
-            }
-            else
-                return find.second;
+//            }
+//            else
+//                return find.second;
         }
         
         /// Basis function degrees

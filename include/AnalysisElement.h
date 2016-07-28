@@ -87,7 +87,7 @@ namespace nurbs {
         
         /// Get the integration order for a specified component with an
         /// offset applied to the usual p + 1 rule.
-        UIntVec integrationOrder(const uint offset = 0,
+        UIntVec integrationOrder(const int offset = 0,
                                  const uint comp = 0) const
         {
             assert(comp < componentN());
@@ -98,7 +98,7 @@ namespace nurbs {
         
         /// Return the integration order (equal in both parameteric directions)
         /// and equal to the maximum degree + 1
-        UIntVec equalIntegrationOrder(const uint offset = 0) const
+        UIntVec equalIntegrationOrder(const int offset = 0) const
         {
             uint max = 0;
             for(uint icomp = 0; icomp < componentN(); ++icomp) {

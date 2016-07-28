@@ -8,6 +8,7 @@
 #include <tuple>
 #include <utility>
 #include <mutex>
+#include <unordered_map>
 
 
 namespace nurbs {
@@ -204,6 +205,46 @@ namespace nurbs {
                 return std::make_pair(false, Point3D());
             }
             
+            bool cacheTangentDS(const uint ielem,
+                                    const double u,
+                                    const double v,
+                                    const Point3D& p)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mTangentDSMap.insert(std::make_pair(std::make_tuple(ielem, u, v), p));
+                return insert.second;
+            }
+            
+            std::pair<bool, Point3D> tangentDS(const uint ielem,
+                                                   const double u,
+                                                   const double v)
+            {
+                auto it = mTangentDSMap.find(std::make_tuple(ielem, u, v));
+                if(it != mTangentDSMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, Point3D());
+            }
+            
+            bool cacheTangentDT(const uint ielem,
+                                const double u,
+                                const double v,
+                                const Point3D& p)
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                auto insert = mTangentDTMap.insert(std::make_pair(std::make_tuple(ielem, u, v), p));
+                return insert.second;
+            }
+            
+            std::pair<bool, Point3D> tangentDT(const uint ielem,
+                                               const double u,
+                                               const double v)
+            {
+                auto it = mTangentDTMap.find(std::make_tuple(ielem, u, v));
+                if(it != mTangentDTMap.end())
+                    return std::make_pair(true, it->second);
+                return std::make_pair(false, Point3D());
+            }
+            
             
             bool cacheVectorBasis(const uint ielem,
                                     const double u,
@@ -318,7 +359,11 @@ namespace nurbs {
             
             std::map<std::tuple<uint, double, double>, DoubleVecVec> mJacobMap;
             
-            std::map<std::tuple<uint, double, double, DerivType>, DoubleVecVec> mVectorBasisDerMap;
+            std::map<std::tuple<uint, double, double, uint>, DoubleVecVec> mVectorBasisDerMap;
+            
+            std::map<std::tuple<uint, double, double>, Point3D> mTangentDSMap;
+            
+            std::map<std::tuple<uint, double, double>, Point3D> mTangentDTMap;
             
         };
         
