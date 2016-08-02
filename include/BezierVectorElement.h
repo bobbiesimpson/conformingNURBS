@@ -5,6 +5,7 @@
 #include "BezierNodalElement.h"
 #include "MultiForest.h"
 #include "NURBSCache.h"
+#include "algebra.h"
 
 namespace nurbs {
     
@@ -119,25 +120,51 @@ namespace nurbs {
                            const Point3D& t1,
                            const Point3D& t2) const override
         {
-//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-//            auto find = cache.jacob(globalElemI(), u, v);
-//            if(!find.first)
-//            {
-                DoubleVecVec jacob_param;
-                jacob_param.push_back(t1.asVec());
-                jacob_param.push_back(t2.asVec());
-                const auto jacob_parent = jacobParam(u, v);
-                DoubleVecVec r{ { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }};
-                for(uint i = 0; i < 2; ++i)
-                    for(uint j = 0; j < 3; ++j)
-                        for(uint k = 0; k < 2; ++k)
-                            r[i][j] += jacob_parent[i][k] * jacob_param[k][j];
-//                cache.cacheJacob(globalElemI(), u, v, r);
-                return r;
-//            }
-//            else
-//                return find.second;
+            
+            DoubleVecVec jacob_param;
+            jacob_param.push_back(t1.asVec());
+            jacob_param.push_back(t2.asVec());
+            const auto jacob_parent = jacobParam(u, v);
+            DoubleVecVec r{ { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }};
+            for(uint i = 0; i < 2; ++i)
+                for(uint j = 0; j < 3; ++j)
+                    for(uint k = 0; k < 2; ++k)
+                        r[i][j] += jacob_parent[i][k] * jacob_param[k][j];
+            
+            return r;
+            }
+        
+        /// Jacobian with given tangent vectors (for efficiency)
+        DoubleVecVec jacobInv(const double u,
+                              const double v,
+                              const Point3D& t1,
+                              const Point3D& t2) const override
+        {
+            // First get the jacobian
+            auto j = jacob(u,v,t1,t2);
+            const auto jdet = jacDet(u, v, t1, t2);
+            
+            j.push_back(
+            {
+                1.0/jdet * (j[0][1] * j[1][2] - j[0][2] * j[1][1]),
+                1.0/jdet * (j[0][2] * j[1][0] - j[0][0] * j[1][2]),
+                1.0/jdet * (j[0][0] * j[1][1] - j[0][1] * j[1][0])
+            });
+            auto jinv = inv3x3Mat(j);
+            
+            
+//            DoubleVecVec I(3, std::vector<double>(3, 0.0));
+//            for(unsigned a = 0; a < 3; ++a)
+//                for(unsigned b = 0; b < 3; ++b)
+//                    for(unsigned k = 0; k < 3; ++k)
+//                        I[a][b] += j[a][k] * jinv[k][b];
+            
+            for(auto& row : jinv)
+                row.erase(row.begin() + 2);
+                
+            return jinv;
         }
+        
         
         /// Return local basis function indices that are non-zero over the
         /// relevant Bspline space
@@ -196,16 +223,16 @@ namespace nurbs {
                            const Point3D& t1,
                            const Point3D& t2) const override
         {
-//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-//            auto find = cache.vectorBasis(globalElemI(), u, v);
-//            if(!find.first)
-//            {
-                return multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
-//                cache.cacheVectorBasis(globalElemI(), u, v, basis);
-                //return basis;
-//            }
-//            else
-//                return find.second;
+            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+            auto find = cache.vectorBasis(globalElemI(), u, v);
+            if(!find.first)
+            {
+                const auto& basis = multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
+                cache.cacheVectorBasis(globalElemI(), u, v, basis);
+                return basis;
+            }
+            else
+                return find.second;
         }
         
         /// Get the untransformed (i.e. without Piola) vector basis functions

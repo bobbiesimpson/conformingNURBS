@@ -65,7 +65,8 @@ namespace nurbs {
         uint counter = 0;
         
         // Now loop over all the bounding boxes and add the vertices to the grid
-        for(const auto& box : bdata) {
+        for(size_t i = 0; i < bdata.size(); ++i) {
+            const auto& box = bdata[i];
             const auto& v0 = box.first;
             const auto& v6 = box.second;
             const Point3D v1(v6[0],v0[1],v0[2]);
@@ -83,7 +84,6 @@ namespace nurbs {
                 hex->GetPointIds()->SetId(i, counter++);
             }
             grid->InsertNextCell(hex->GetCellType(), hex->GetPointIds());
-            
         }
         grid->SetPoints(points);
         vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer = vtkXMLUnstructuredGridWriter::New();
@@ -259,5 +259,7 @@ namespace nurbs {
         if(!writer->Write())
             error( "Cannot write vtk file" );
     }
+    
+    
 
 }

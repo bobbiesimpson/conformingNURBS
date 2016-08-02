@@ -90,6 +90,15 @@ namespace nurbs
         /// Same as above but passing a 2d guass point
         DoubleVecVec jacob(const GPt2D& gp) const {return jacob(gp.s, gp.t); }
         
+        /// Evaluate jacobian inverse
+        virtual DoubleVecVec jacobInv(const double u,
+                                      const double v,
+                                      const Point3D& t1,
+                                      const Point3D& t2) const
+        {
+            throw std::runtime_error("Jacob inverse function not implemented.");
+        }
+        
         /// Get the normal
         virtual Point3D normal(const double u, const double v) const;
         

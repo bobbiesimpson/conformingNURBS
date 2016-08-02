@@ -71,6 +71,7 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/quadrature/IVertexQuadrature.h
         ${LIB_INCLUDE_DIR}/MultiForest.h
         ${LIB_INCLUDE_DIR}/NodalElement.h
+        ${LIB_INCLUDE_DIR}/Norm.h
         ${LIB_INCLUDE_DIR}/NURBSCommon.h
         ${LIB_INCLUDE_DIR}/NURBSCurve.h
         ${LIB_INCLUDE_DIR}/NURBSSurface.h
@@ -100,6 +101,7 @@ set(libsrcs
 	    ${LIB_SOURCE_DIR}/Point4D.cpp
 	    ${LIB_SOURCE_DIR}/Point.cpp
 	    ${LIB_SOURCE_DIR}/MultiForest.cpp
+	    ${LIB_SOURCE_DIR}/Norm.cpp
 	    ${LIB_SOURCE_DIR}/NURBSCurve.cpp
 	    ${LIB_SOURCE_DIR}/NURBSCommon.cpp
 	    ${LIB_SOURCE_DIR}/BSplineSpace.cpp
