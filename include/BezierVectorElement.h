@@ -211,7 +211,7 @@ namespace nurbs {
 //            {
                 return multiForest()->transformBasis(localBasis(u,v), jacob(u, v), jacDet(u, v));
 //                cache.cacheVectorBasis(globalElemI(), u, v, basis);
-                //return basis;
+//                return basis;
 //            }
 //            else
 //                return find.second;
@@ -223,16 +223,18 @@ namespace nurbs {
                            const Point3D& t1,
                            const Point3D& t2) const override
         {
-            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
-            auto find = cache.vectorBasis(globalElemI(), u, v);
-            if(!find.first)
-            {
-                const auto& basis = multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
-                cache.cacheVectorBasis(globalElemI(), u, v, basis);
-                return basis;
-            }
-            else
-                return find.second;
+//            auto& cache = nurbs::nurbshelper::NURBSCache::Instance();
+//            auto find = cache.vectorBasis(globalElemI(), u, v);
+//            if(!find.first)
+//            {
+                return multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
+//                cache.cacheVectorBasis(globalElemI(), u, v, basis);
+//                return basis;
+//            }
+//            else
+//            {
+//                return find.second;
+//            }
         }
         
         /// Get the untransformed (i.e. without Piola) vector basis functions
@@ -256,13 +258,9 @@ namespace nurbs {
                     // Using a reference makes a huge difference to speed
                     const auto& op_u = space(compdir).extractionOperator(indices.first, S);
                     const auto& op_v = space(compdir).extractionOperator(indices.second, T);
-                    //
-                    //
-                    //                std::cout << op_u << "\n";
-                    //                std::cout << op_v << "\n";
-                    //
-                    const auto b_u = nurbshelper::bernsteinPolynomial(u, degree(S, icomp));
-                    const auto b_v = nurbshelper::bernsteinPolynomial(v, degree(T, icomp));
+
+                    const auto& b_u = nurbshelper::bernsteinPolynomial(u, degree(S, icomp));
+                    const auto& b_v = nurbshelper::bernsteinPolynomial(v, degree(T, icomp));
                     
                     // now apply extraction operators to bernstein basis
                     const uint n_u = op_u.size();
@@ -289,10 +287,9 @@ namespace nurbs {
                 const auto& sign_vec = multiForest()->globalDirVec(spaceI());
                 const auto l_ivec = localBasisFuncI();
                 assert(l_ivec.size() == rvec.size());
-                for(uint i = 0; i < basisFuncN(); ++i) {
+                for(uint i = 0; i < basisFuncN(); ++i)
                     for(auto& b : rvec[i])
                         b *= asDouble(sign_vec[l_ivec[i]]);
-                        }
 //                cache.cacheLocalVectorBasis(globalElemI(), u, v, rvec);
                 return rvec;
 //            }
