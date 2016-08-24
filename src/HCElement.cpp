@@ -34,10 +34,30 @@ namespace nurbs {
         return mGlobalBasisIVec;
     }
     
+    IntVec HCElement::signedGlobalBasisFuncI() const
+    {
+        if(!mSignedGlobalBasisIVec.empty())
+            return mSignedGlobalBasisIVec;
+        IntVec temp;
+        for(const auto& i : localBasisFuncI())
+            temp.push_back(multiForest()->signedGlobalI(spaceI(), i));
+            mSignedGlobalBasisIVec = temp;
+            return mSignedGlobalBasisIVec;
+    }
+    
     DoubleVecVec HCElement::basis(const double u, const double v) const
     {
         // Apply relevant Piola transform.
-        return multiForest()->transformBasis(localBasis(u,v), jacob(u, v), jacDet(u, v));
+        DoubleVecVec jacob_param;
+        const auto& t1 = tangent(u,v,S);
+        const auto& t2 = tangent(u,v,T);
+        jacob_param.push_back(t1.asVec());
+        jacob_param.push_back(t2.asVec());
+        const auto jdet = cross(t1, t2).length();
+        
+        return multiForest()->transformBasis(localBasis(u,v), jacob_param, jdet);
+        
+        //return multiForest()->transformBasis(localBasis(u,v), jacob(u, v), jacDet(u, v));
     }
     
     DoubleVecVec HCElement::localBasis(const double u, const double v) const

@@ -7,6 +7,7 @@
 #include "BezierNodalElement.h"
 #include "NodalElement.h"
 #include "IElemIntegrate.h"
+#include "OutputVTK.h"
 
 using namespace nurbs;
 
@@ -34,6 +35,10 @@ int main(int argc, char* argv[]) {
             error("Failed to load geometry from hbs data");
         
         Forest forest(g);
+//        OutputVTK output("almond");
+//        output.outputGeometry(forest);
+        
+        
         forest.hrefine(8);
         
         std::cout   << "Running Bezier test on forest with " << forest.elemN()

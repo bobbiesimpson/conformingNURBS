@@ -258,6 +258,30 @@ namespace nurbs
             return mKnotIntervals[dir];
         }
         
+        /// Does this element contain any degenerate edges?
+        bool degenerate() const
+        {
+            const double tol = 1.e-9;
+            std::vector<Point3D> vcoords
+            {
+                evalVertex(Vertex::VERTEX0),
+                evalVertex(Vertex::VERTEX1),
+                evalVertex(Vertex::VERTEX2),
+                evalVertex(Vertex::VERTEX3)
+            };
+            for(size_t ivertex = 0; ivertex < vcoords.size(); ++ivertex)
+            {
+                for(size_t iinner = 0; iinner < vcoords.size(); ++iinner)
+                {
+                    if(ivertex == iinner)
+                        continue;
+                    if(dist(vcoords[ivertex], vcoords[iinner]) < tol)
+                        return true;
+                }
+            }
+            return false;
+        }
+        
     protected:
         
     private:

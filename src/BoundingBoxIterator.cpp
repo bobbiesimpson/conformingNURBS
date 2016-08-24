@@ -24,11 +24,17 @@ namespace nurbs {
                 const ParamDir pdir = ParamDirType(dir);
                 for(uint icpt = 0; icpt < f.collocPtN(ispace, pdir); ++icpt)
                 {
-                    const uint gindex = f.globalCollocI(ispace, pdir, icpt);
+                    const int gindex = f.globalCollocI(ispace, pdir, icpt);
+                    
+                    if(-1 == gindex) // degenerate point
+                        continue;
+                    
                     if(gindex > pdata.size())
                         error("Bad collocation data in BoundingBoxIterator");
+                    
                     if(cached[gindex])
                         continue;
+                    
                     pdata[gindex] = f.collocPt(ispace, pdir, icpt);
                     cached[gindex] = true;
                 }
@@ -53,10 +59,15 @@ namespace nurbs {
                 const auto elem = f.bezierElement(ispace, ielem);
                 const Point3D upper = elem->approxUpperBound();
                 const Point3D lower = elem->approxLowerBound();
-                const auto globalBasisVec = elem->globalBasisFuncI();
-                for(const auto& gindex : globalBasisVec) {
+                const auto globalBasisVec = elem->signedGlobalBasisFuncI();
+                for(const auto& gindex : globalBasisVec)
+                {
+                    if(-1 == gindex) // degenerate point
+                        continue;
+                    
                     if(gindex > f.globalDofN())
                         error("Bad basis function index in bounding box iterator");
+                    
                     auto& currentmin = bbdata[gindex].first;
                     auto& currentmax = bbdata[gindex].second;
                     currentmin = min(currentmin, lower);

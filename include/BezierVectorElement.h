@@ -64,7 +64,7 @@ namespace nurbs {
 //            auto find = cache.jacobDet(globalElemI(), u, v);
 //            if(!find.first)
 //            {
-                return cross(tangent(u,v,S), tangent(u,v,T)).length() * jacDetParam(u,v);
+            return cross(tangent(u,v,S), tangent(u,v,T)).length() * jacDetParam(u,v);
 //                cache.cacheJacobDet(globalElemI(), u, v, jdet);
                 //return jdet;
 //            }
@@ -199,6 +199,19 @@ namespace nurbs {
             return mGlobalBasisIVec;
         }
         
+        /// Return the signed globla basis function indicies for
+        /// this element
+        virtual IntVec signedGlobalBasisFuncI() const override
+        {
+            if(!mSignedGlobalBasisIVec.empty())
+                return mSignedGlobalBasisIVec;
+            IntVec temp;
+            for(const auto& i : localBasisFuncI())
+                temp.push_back(multiForest()->signedGlobalI(spaceI(), i));
+                mSignedGlobalBasisIVec = temp;
+            return mSignedGlobalBasisIVec;
+        }
+        
         /// Return the basis function values with appropriate piola.
         /// Since this computes the jacobian from scratch, this is not
         /// as efficient as the alternative version of this function
@@ -209,7 +222,16 @@ namespace nurbs {
 //            auto find = cache.vectorBasis(globalElemI(), u, v);
 //            if(!find.first)
 //            {
-                return multiForest()->transformBasis(localBasis(u,v), jacob(u, v), jacDet(u, v));
+            
+            DoubleVecVec jacob_param;
+            const auto& t1 = tangent(u,v,S);
+            const auto& t2 = tangent(u,v,T);
+            jacob_param.push_back(t1.asVec());
+            jacob_param.push_back(t2.asVec());
+            const auto jdet = cross(t1, t2).length();
+            return multiForest()->transformBasis(localBasis(u,v), jacob_param, jdet);
+            
+//                return multiForest()->transformBasis(localBasis(u,v), jacob(u, v), jacDet(u, v));
 //                cache.cacheVectorBasis(globalElemI(), u, v, basis);
 //                return basis;
 //            }
@@ -227,7 +249,15 @@ namespace nurbs {
 //            auto find = cache.vectorBasis(globalElemI(), u, v);
 //            if(!find.first)
 //            {
-                return multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
+            
+            DoubleVecVec jacob_param;
+            jacob_param.push_back(t1.asVec());
+            jacob_param.push_back(t2.asVec());
+            const auto jdet = cross(t1, t2).length();
+            return multiForest()->transformBasis(localBasis(u,v), jacob_param, jdet);
+            
+//                return multiForest()->transformBasis(localBasis(u,v), jacob(u,v,t1,t2), jacDet(u,v,t1,t2));
+            
 //                cache.cacheVectorBasis(globalElemI(), u, v, basis);
 //                return basis;
 //            }
@@ -345,13 +375,12 @@ namespace nurbs {
                             basis_v[i] += op_v[i][j] * bv[j];
                     
                     const auto param_j = jacobParam(u, v);
-                    //                const double jterm =
-                    //                (DerivType::DS == dtype) ? 1.0/param_j[0][0] : 1.0 / param_j[1][1];
+                    const double jterm = (DerivType::DS == dtype) ? 1.0/param_j[0][0] : 1.0 / param_j[1][1];
                     
                     for(uint j = 0; j < basis_v.size(); ++j)
                         for(uint i = 0; i < basis_u.size(); ++i)
                         {
-                            rvec.push_back(ParamDir::S == compdir ? DoubleVec{basis_u[i] * basis_v[j], 0.0} : DoubleVec{0.0, basis_u[i] * basis_v[j]});
+                            rvec.push_back(ParamDir::S == compdir ? DoubleVec{basis_u[i] * basis_v[j] * jterm, 0.0} : DoubleVec{0.0, basis_u[i] * basis_v[j] * jterm});
                         }
                 }
                 
@@ -457,6 +486,9 @@ namespace nurbs {
         
         /// Cached global basis function indices which are non-zero over this element
         mutable UIntVec mGlobalBasisIVec;
+            
+        /// Cached non-degenerate global basis function indices which are non-zero over this element
+        mutable IntVec mSignedGlobalBasisIVec;
         
         /// Cached of global basis function directions over this element
         mutable std::vector<Sign> mGlobalSignVec;

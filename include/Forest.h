@@ -178,6 +178,10 @@ namespace nurbs
 			assert(sp < spaceN() && i < space(sp).basisFuncN());
 			return mNodalConn.at(sp)[i];
 		}
+        
+        /// Is the given edge degenerate (i.e. equal connectivity along edge)
+        bool degenerateEdge(const uint ispace,
+                            const uint iedge) const;
 
 		/// Get a global index given indices for each parametric direction
 		uint globalI(const uint sp, const uint i, const uint j) const

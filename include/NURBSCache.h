@@ -308,6 +308,23 @@ namespace nurbs {
                 return std::make_pair(false, DoubleVecVec{});
             }
             
+            void clear()
+            {
+                mSpanMap.clear();
+                mBasisMap.clear();
+                mBasisDerMap.clear();
+                mBernsteinBasisMap.clear();
+                mBernsteinBasisDerivMap.clear();
+                mTangentVectorMap.clear();
+                mJacobDetMap.clear();
+                mPhysicalCoordMap.clear();
+                mVectorBasisMap.clear();
+                mLocalVectorBasisMap.clear();
+                mJacobMap.clear();
+                mVectorBasisDerMap.clear();
+                mTangentDSMap.clear();
+                mTangentDTMap.clear();
+            }
             
         private:
             

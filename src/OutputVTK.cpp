@@ -25,7 +25,8 @@ namespace nurbs {
         
         for(uint i = 0; i < f.elemN(); ++i) {
             const auto e = f.bezierElement(i);
-            
+//            if(e->spaceI() != 2)
+//                continue;
             uint count = 0;
             for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept)
             {
@@ -189,28 +190,41 @@ namespace nurbs {
         
         // now loop over elements and sample solution
         uint sample_offset = 0;
+        const double degenerate_shift = 1.0e-9; // tolerance to shift sample points away from degenerate edges
         
         for(uint i = 0; i < f.elemN(); ++i)
         {
             const auto el = f.bezierElement(i);
-            const auto gbasisivec = el->globalBasisFuncI();
+//            const auto parent_el = el->parent();
+            const auto gbasisivec = el->signedGlobalBasisFuncI();
+            if(el->degenerate())
+                continue;
             
             uint count = 0;
             
             for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept)
             {
-                const ParamPt samplept = isamplept.getCurrentPt();
+                ParamPt samplept = isamplept.getCurrentPt();
+//                if(el->degenerate())
+//                {
+//                    samplept.s *= (1.0 - degenerate_shift);
+//                    samplept.t *= (1.0 - degenerate_shift);
+//                }
             
                 const Point3D phys_coord = el->eval(samplept.s, samplept.t);
                 
                 points->InsertPoint(sample_offset + count, phys_coord.data());
                 const auto basis = el->basis(samplept.s, samplept.t);
                 
-                std::vector<std::complex<double>> val(3);
+                std::vector<std::complex<double>> val(3, 0.0);
                 for(size_t ibasis = 0; ibasis < basis.size(); ++ibasis)
+                {
+                    if(-1 == gbasisivec[ibasis]) // degenerate point
+                        continue;
+                    
                     for(unsigned i = 0; i < 3; ++i)
                         val[i] += soln[gbasisivec[ibasis]] * basis[ibasis][i];
-                
+                }
                 // now put this complex vector into the vtk arrays
                 double absval = 0.0;
                 for(unsigned i = 0; i < 3; ++i)

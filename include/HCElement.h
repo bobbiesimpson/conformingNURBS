@@ -59,6 +59,9 @@ namespace nurbs {
         /// Get the global basis function indices that are non-zero over this element
         UIntVec globalBasisFuncI() const override;
         
+        /// Get the signed global basis function indices (where -1 signifies a degenerate dof).
+        IntVec signedGlobalBasisFuncI() const override;
+        
         /// Get the vector basis given parent coordinates
         DoubleVecVec basis(const double u, const double v) const override;
         
@@ -155,6 +158,9 @@ namespace nurbs {
         
         /// Vector of global basis function indices that are non-zero over this element
         mutable UIntVec mGlobalBasisIVec;
+            
+        /// Vector of signed global basis function indices that are non-zero over this element
+        mutable IntVec mSignedGlobalBasisIVec;
         
         /// Vector
         mutable std::vector<Sign> mGlobalSignVec;

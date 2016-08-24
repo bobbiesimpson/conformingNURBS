@@ -381,6 +381,22 @@ namespace nurbs
 		
 		/// Load from an input stream
 		void load(std::istream& ist);
+        
+        void removeInternalKnots()
+        {
+            mKnotVecs[S].clear();
+            for(size_t i = 0; i < mDegrees[S] + 1; ++i)
+                mKnotVecs[S].push_back(0.0);
+            for(size_t i = 0; i < mDegrees[S] + 1; ++i)
+                mKnotVecs[S].push_back(1.0);
+            
+            mKnotVecs[T].clear();
+            for(size_t i = 0; i < mDegrees[T] + 1; ++i)
+                mKnotVecs[T].push_back(0.0);
+            for(size_t i = 0; i < mDegrees[T] + 1; ++i)
+                mKnotVecs[T].push_back(1.0);
+            init();
+        }
 		
 		private:
 

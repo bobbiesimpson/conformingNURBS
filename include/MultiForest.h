@@ -100,16 +100,37 @@ namespace nurbs {
             else return mConn.at(ispace)[ibasis];
         }
         
+        /// Get global non-degenerate global dof index for given space, basis and parameteric direction
+        int signedGlobalI(const uint ispace,
+                                 const uint ibasis,
+                                 const ParamDir dir) const
+        {
+            if(ParamDir::T == dir)
+                return mSignedConn.at(ispace)[space(ispace, S).basisFuncN() + ibasis];
+            else return mSignedConn.at(ispace)[ibasis];
+        }
+        
         /// Get the global basis as above without specifing parametric
         /// direction. Assumed ordering of connectivity is S-direction indices
         /// the T-direction indices.
-        uint globalI(const uint ispace, const uint ibasis) const
+        uint globalI(const uint ispace,
+                     const uint ibasis) const
         { return mConn.at(ispace)[ibasis]; }
+        
+        /// Get non-dengereate global index for given space and local basis index
+        int signedGlobalI(const uint ispace,
+                          const uint ibasis) const
+        { return mSignedConn.at(ispace)[ibasis]; }
+        
         
         /// Return the connectivity vector for this space
         const UIntVec& globalIVec(const uint ispace) const
         { return mConn.at(ispace); }
         
+        /// Get the non-degenerate connectivity vector for this space
+        const IntVec& signedGlobalIVec(const uint ispace) const
+        { return mSignedConn.at(ispace); }
+
         /// Get the direction of the basis function in the given space and
         /// local basis function index
         Sign globalDir(const uint ispace, const uint ibasis) const
@@ -124,6 +145,16 @@ namespace nurbs {
         {
             const uint index = j * space(ispace, dir).basisFuncN(S) + i;
             return globalI(ispace, index, dir);
+        }
+        
+        /// Get global basis index given local indices in each parametric direction
+        int signedGlobalI(const uint ispace,
+                          const uint i,
+                          const uint j,
+                          const ParamDir dir) const
+        {
+            const uint index = j * space(ispace, dir).basisFuncN(S) + i;
+            return signedGlobalI(ispace, index, dir);
         }
         
         /// No. of basis functions for this space and parametric
@@ -142,7 +173,8 @@ namespace nurbs {
         /// Get the number of collocation points
         uint collocPtN() const
         {
-            return globalDofN(); // same as the number of global dof
+            //return globalDofN(); // same as the number of global dof
+            return nonDegenerateGlobalDofN();
         }
         
         /// Get the number of collocation point for this space index
@@ -155,12 +187,12 @@ namespace nurbs {
         
         /// Get the global collocation point indes for a given space
         /// and local index
-        uint globalCollocI(const uint ispace,
+        int globalCollocI(const uint ispace,
                            const ParamDir d,
                            const uint i) const
         {
             // for now, use the global basis function connectivity
-            return globalI(ispace,i, d);
+            return signedGlobalI(ispace,i, d);
         }
         
         /// Get global element index given space and local element index
@@ -184,7 +216,13 @@ namespace nurbs {
         DoublePairVec knotIntervals(const uint ispace, const uint iel) const;
         
         /// Number of global dof.
-        uint globalDofN() const { return mGlobalDofN; }
+        uint globalDofN() const
+        {
+            return nonDegenerateGlobalDofN();
+//            return mGlobalDofN;
+        }
+        
+        uint nonDegenerateGlobalDofN() const { return mGlobalNonDegenerateDofN; }
         
         /// Perform the appropriate Piola transform
         virtual DoubleVecVec transformBasis(const DoubleVecVec& basis,
@@ -252,6 +290,19 @@ namespace nurbs {
         void insertConn(const uint isp,
                         const std::vector<uint>& c_vec)
         { mConn[isp] = c_vec;}
+        
+        /// Insert vector of degenerate dof
+        void insertSignedConn(const uint isp,
+                              const std::vector<int>& c_vec)
+        { mSignedConn[isp] = c_vec; }
+        
+        void setSignedConn(const uint isp,
+                           const uint lindex,
+                           const double val)
+        {
+            assert(lindex < mSignedConn[isp].size());
+            mSignedConn[isp].at(lindex) = val;
+        }
         
         /// Insert global sign connectivity vector
         /// comprising both s- and t- sign connectivities
@@ -323,11 +374,17 @@ namespace nurbs {
         /// Connectivity of spaces
         std::map<uint, std::vector<uint>> mConn;
         
+        /// Non-degenerate connectivity
+        std::map<uint, std::vector<int>> mSignedConn;
+        
         /// Orientation of vector basis in each bspline space
         std::map<uint, std::vector<Sign>> mSignConn;
         
         /// Global dof number. Calculated during connectivity construction.
         uint mGlobalDofN;
+        
+        /// Global dof number of non-dengerate dof.
+        uint mGlobalNonDegenerateDofN;
         
         /// Mapping from space index and local element index to global element index
         mutable std::map<std::pair<uint, uint>, uint> mLocalElemIMap;
@@ -380,12 +437,12 @@ namespace nurbs {
     /// parametric direction and s-space.
     UIntVec localBasisIVec(const Edge e,
                            const ParamDir d,
-                           const BSplineSpace& s_space);
+                           const std::pair<BSplineSpace, BSplineSpace>& spacepair);
     
     /// Get the local basis function for a given vertex and parametric direction
     uint localBasisI(const Vertex v,
                      const ParamDir d,
-                     const BSplineSpace& s_space);
+                     const std::pair<BSplineSpace, BSplineSpace>& spacepair);
     
     /// Is the given local index an interior index? I.e. does not lie on the space boundary.
     bool interiorLocalI(const BSplineSpace& space,

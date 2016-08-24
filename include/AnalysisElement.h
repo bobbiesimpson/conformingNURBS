@@ -56,6 +56,13 @@ namespace nurbs {
         /// in the sense they relate to dofs in the forest.
         virtual UIntVec globalBasisFuncI() const = 0;
         
+        /// Get the signed global basis function index vector. Any degenerate
+        /// indices will be signified by -1
+        virtual IntVec signedGlobalBasisFuncI() const
+        {
+            throw std::runtime_error("signed basis function index generator not implemented yet");
+        }
+        
         /// Return non-zero basis function set for the given parent
         /// coordinate
         virtual std::vector<T> basis(const double u, const double v) const = 0;

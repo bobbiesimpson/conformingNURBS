@@ -200,6 +200,26 @@ namespace nurbs
         error("Failed to create Bezier element"); return nullptr;
     }
     
+    bool Forest::degenerateEdge(const uint ispace,
+                                const uint iedge) const
+    {
+        // first get the set of nodal indices along the given edge
+        const auto localvec  = localBasisIVec(edgeType(iedge), space(ispace));
+        auto gvec = globalIVec(ispace, localvec);
+        std::sort(gvec.begin(), gvec.end());
+        auto last = std::unique(gvec.begin(), gvec.end());
+        gvec.erase(last, gvec.end());
+        
+        // if there is only one unique nodal dof, it must be a degenerate edge
+        if(gvec.size() == 1)
+        {
+//            std::cout << "Degenerate node: " << gvec[0] << "\n";
+            return true;
+        }
+        else
+            return false;
+    }
+    
     uint Forest::globalVertexI(const uint ispace, const Vertex v) const
     {
         const BSplineSpace& s = space(ispace);
