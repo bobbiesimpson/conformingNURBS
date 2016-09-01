@@ -197,19 +197,19 @@ namespace nurbs {
             const auto el = f.bezierElement(i);
 //            const auto parent_el = el->parent();
             const auto gbasisivec = el->signedGlobalBasisFuncI();
-            if(el->degenerate())
-                continue;
+//            if(el->degenerate())
+//                continue;
             
             uint count = 0;
             
             for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept)
             {
                 ParamPt samplept = isamplept.getCurrentPt();
-//                if(el->degenerate())
-//                {
-//                    samplept.s *= (1.0 - degenerate_shift);
-//                    samplept.t *= (1.0 - degenerate_shift);
-//                }
+                if(el->degenerate())
+                {
+                    samplept.s *= (1.0 - degenerate_shift);
+                    samplept.t *= (1.0 - degenerate_shift);
+                }
             
                 const Point3D phys_coord = el->eval(samplept.s, samplept.t);
                 
