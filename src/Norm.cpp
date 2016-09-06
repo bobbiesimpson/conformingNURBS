@@ -1,5 +1,6 @@
 #include "Norm.h"
 #include "BezierVectorElement.h"
+#include "IElemIntegrate.h"
 #include "base.h"
 
 namespace nurbs {
@@ -95,5 +96,141 @@ namespace nurbs {
 //        }
         
         return 0.0;
+    }
+    
+    double L2graphNorm(const MultiForest& f,
+                       const std::vector<double>& soln)
+    {
+        // compute the L2 grapm norm = L2 norm + L2 norm of surface divergence
+        
+        assert(soln.size() == f.globalDofN());
+        
+        // hardcoded analytical solution
+        struct Function
+        {
+            /// override function operator
+            std::vector<double> operator()(const nurbs::Point3D& p) const
+            {
+                const double x = p[0];
+                const double y = p[1];
+                const double z = p[2];
+                
+                return
+                {
+                    x*z / std::sqrt(x*x + y*y),
+                    y*z / std::sqrt(x*x + y*y),
+                    -std::sqrt(x * x + y * y)
+                };
+                //return { std::cos(x[0]), std::cos(x[1]), std::cos(x[2])};
+            }
+            
+            std::vector<double> curl(const nurbs::Point3D& p) const
+            {
+                const double x = p[0];
+                const double y = p[1];
+                const double z = p[2];
+                const double const1 = x * x + y * y;
+                const double dfzdy = -y /std::sqrt(const1);
+                const double dfydz = -y /std::sqrt(const1);
+                const double dfxdz = -x /std::sqrt(const1);
+                const double dfzdx = -x /std::sqrt(const1);
+                const double dfydx = -x * y * z / (std::pow(const1, 3.0/2.0));
+                const double dfxdy = -x * y * z / (std::pow(const1, 3.0/2.0));
+                return {dfzdy - dfydz, dfxdz - dfzdx, dfydx - dfxdy};
+            }
+            
+            std::vector<double> div(const nurbs::Point3D& p) const
+            {
+                const double x = p[0];
+                const double y = p[1];
+                const double z = p[2];
+                const double const1 = x * x + y * y;
+                
+                return
+                {
+                    y * y * z / (std::pow(const1, 3.0/2.0)),
+                    x * x * z / (std::pow(const1, 3.0/2.0)),
+                    0.0
+                };
+            }
+            
+        } function;
+        
+        double norm = 0.0;
+        
+        for(uint ielem = 0; ielem < f.elemN(); ++ielem)
+        {
+            const auto el = f.bezierElement(ielem);
+            
+            for(IElemIntegrate igpt(el->integrationOrder()); !igpt.isDone(); ++igpt)
+            {
+                const auto gpt = igpt.get();
+                const auto w = igpt.getWeight();
+                
+                const auto basis = el->basis(gpt.s, gpt.t);
+                const auto jdet = el->jacDet(gpt);
+                const auto x = el->eval(gpt);
+                
+                const auto& t1 = el->tangent(gpt.s, gpt.t, nurbs::ParamDir::S);
+                const auto& t2 = el->tangent(gpt.s, gpt.t,nurbs::ParamDir::T);
+                const double jpiola = nurbs::cross(t1, t2).length();
+                const auto& ds = el->localBasisDers(gpt.s, gpt.t, nurbs::DerivType::DS);
+                const auto& dt = el->localBasisDers(gpt.s, gpt.t, nurbs::DerivType::DT);
+                const auto jacob_param = el->jacobParam(gpt.s, gpt.t);
+                const auto econn = el->globalBasisFuncI();
+                
+                // Genereate 'exact' function in parametric space
+                std::vector<double> exact_val = function(x);
+                
+//                std::vector<double> exact_val = function.div(x);
+//                std::vector<double> div_param_s(2, 0.0);
+//                for(uint i = 0; i < 2; ++i)
+//                    for(uint j = 0; j < 3; ++j)
+//                        div_param_s[i] += jpiola * jacob_param[i][j] * exact_val[j];
+                
+                // interpolate numerical value
+                std::vector<double> val(3,0.0); // interpolated surface current
+                double surface_div = 0.0;
+                for(uint ibasis = 0; ibasis < econn.size(); ++ibasis)
+                {
+                    if(econn[ibasis] == -1)
+                        continue;
+                    
+                    for(uint i = 0; i < 3; ++i)
+                        val[i] += basis[ibasis][i] * soln[econn[ibasis]];
+                    
+                    surface_div += 1./jpiola * (ds[ibasis][0] + dt[ibasis][1]) * soln[econn[ibasis]];
+                    
+                    
+                }
+                
+                // generate 'exact' solution
+                const Point3D exact_pt(exact_val);
+                
+                // now restrict to the surface
+                const auto n = el->normal(gpt);
+                const auto exact_surface = cross(n, cross(exact_pt, n)).asVec();
+                std::cout << val << "\t" << exact_surface << "\n";
+                
+                // now compute analytical surface divergence
+//                Point3D div_pt(function.div(x));
+//                const double exact_div_val = dot(div_pt, t1) + dot(div_pt, t2);
+//                
+//                
+//                div_pt -= dot(n, div_pt) * n;
+//                const double div = div_pt[0] + div_pt[1] + div_pt[2];
+//                std::cout << "Divergence (numerical/analytical): " << surface_div << "\t" << div << "\n";
+//                std::cout << div/ surface_div << "\n";
+            }
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
     }
 }

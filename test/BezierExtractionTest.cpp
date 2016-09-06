@@ -8,6 +8,7 @@
 #include "NodalElement.h"
 #include "IElemIntegrate.h"
 #include "OutputVTK.h"
+#include "ISubElemIntegrate.h"
 
 using namespace nurbs;
 
@@ -39,7 +40,7 @@ int main(int argc, char* argv[]) {
 //        output.outputGeometry(forest);
         
         
-        forest.hrefine(8);
+//        forest.hrefine(8);
         
         std::cout   << "Running Bezier test on forest with " << forest.elemN()
                     << " elements and " << forest.globalDofN() << " dof\n";
@@ -50,9 +51,9 @@ int main(int argc, char* argv[]) {
             //std::cout << "Element: " << ielem << "\n";
             //const auto el = forest.element(ielem);
             const auto b_el = forest.bezierElement(ielem);
-            for(IElemIntegrate igpt(b_el->integrationOrder()); !igpt.isDone(); ++igpt) {
+            for(ISubElemIntegrate igpt(b_el->integrationOrder(), {10,10}); !igpt.isDone(); ++igpt) {
                 const auto gp = igpt.get();
-          
+                std::cout << gp << "\n";
                 const Point3D t1 = b_el->tangent(gp, S);
                 const Point3D t2 = b_el->tangent(gp, T);
                 const Point3D m = cross(t1,t2);

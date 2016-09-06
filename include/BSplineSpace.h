@@ -398,6 +398,32 @@ namespace nurbs
             init();
         }
 		
+        /// Insert knots such that the patch becomes a Bezier patch
+        void convertToBezier()
+        {
+            for(uint iparam = 0; iparam < 2; ++iparam)
+            {
+                auto& kvec = mKnotVecs[iparam];
+                const auto& unique_kvec = mUniqueKnotVecs[iparam];
+                
+                kvec.clear();
+                for(size_t i = 0; i < unique_kvec.size(); ++i)
+                {
+                    const double kval = unique_kvec[i];
+                    if(i == 0 || i == unique_kvec.size() - 1)
+                    {
+                        for(size_t j = 0; j < mDegrees[iparam] + 1; ++j)
+                            kvec.push_back(kval);
+                    }
+                    else
+                        for(size_t j = 0; j < mDegrees[iparam]; ++j)
+                            kvec.push_back(kval);
+                }
+            }
+            init();
+        }
+        
+        
 		private:
 
 		/// recalculate unique knots and intervals

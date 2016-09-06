@@ -78,6 +78,11 @@ namespace nurbs {
             return bezierElement(globalElI(ispace, ielem));
         }
         
+        const VAnalysisElement* nedelecElement(const uint i) const
+        {
+            return mNedelecElems[i].get();
+        }
+        
         /// Get the number of elements on the given space
         /// The number of elements in each space is equal,
         /// therefore use S parametric space as default.
@@ -215,14 +220,18 @@ namespace nurbs {
         /// for both basis directions.
         DoublePairVec knotIntervals(const uint ispace, const uint iel) const;
         
-        /// Number of global dof.
+        /// Number of global dof. Takes account of degenerate dof.
         uint globalDofN() const
         {
             return nonDegenerateGlobalDofN();
 //            return mGlobalDofN;
         }
-        
+          
         uint nonDegenerateGlobalDofN() const { return mGlobalNonDegenerateDofN; }
+        
+        
+        /// Number of global dofs for nedelec discretisation
+        uint globalNedelecDofN() const { return mGlobalNedelecDofN; }
         
         /// Perform the appropriate Piola transform
         virtual DoubleVecVec transformBasis(const DoubleVecVec& basis,
@@ -315,6 +324,9 @@ namespace nurbs {
         /// Assign element edge and vertex adjacencies
         void initConnectivity();
         
+        /// Generate connectivity of nedelec elements
+        void initNedelecConnectivity();
+        
         /// Continuity type getter (must be implemented)
         virtual ContinuityType continuityType() const = 0;
         
@@ -386,6 +398,9 @@ namespace nurbs {
         /// Global dof number of non-dengerate dof.
         uint mGlobalNonDegenerateDofN;
         
+        /// Global dof number for nedelec discretisation. Degenerate discretisation not yet implemented.
+        uint mGlobalNedelecDofN;
+        
         /// Mapping from space index and local element index to global element index
         mutable std::map<std::pair<uint, uint>, uint> mLocalElemIMap;
         
@@ -394,6 +409,9 @@ namespace nurbs {
         
         /// Map containing bezier vector element instances.
         mutable std::map<uint, std::unique_ptr<VAnalysisElement>> mBezierElems;
+        
+        /// Vector of nedelec elements. Connectivity information is stored within the element data structure.
+        mutable std::vector<std::unique_ptr<VAnalysisElement>> mNedelecElems;
         
         /// Number of elements. Cached for efficiency.
         mutable std::pair<bool, uint> mElemN;

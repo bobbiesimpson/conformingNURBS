@@ -61,6 +61,7 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/quadrature/IEdgePolarIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/IEdgeQuadrature.h
         ${LIB_INCLUDE_DIR}/quadrature/IElemIntegrate.h
+        ${LIB_INCLUDE_DIR}/quadrature/ISubElemIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/IEqualQuadrature.h
         ${LIB_INCLUDE_DIR}/quadrature/IGalerkinIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/IGaussQuadrature1D.h
@@ -70,6 +71,7 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/quadrature/ISubElem.h
         ${LIB_INCLUDE_DIR}/quadrature/IVertexQuadrature.h
         ${LIB_INCLUDE_DIR}/MultiForest.h
+        ${LIB_INCLUDE_DIR}/NedelecVectorElement.h
         ${LIB_INCLUDE_DIR}/NodalElement.h
         ${LIB_INCLUDE_DIR}/Norm.h
         ${LIB_INCLUDE_DIR}/NURBSCommon.h
@@ -100,6 +102,7 @@ set(libsrcs
 	    ${LIB_SOURCE_DIR}/Point3D.cpp
 	    ${LIB_SOURCE_DIR}/Point4D.cpp
 	    ${LIB_SOURCE_DIR}/Point.cpp
+        ${LIB_SOURCE_DIR}/NedelecVectorElement.cpp
 	    ${LIB_SOURCE_DIR}/MultiForest.cpp
 	    ${LIB_SOURCE_DIR}/Norm.cpp
 	    ${LIB_SOURCE_DIR}/NURBSCurve.cpp

@@ -10,6 +10,10 @@ namespace nurbs {
     /// Compute the H_{-1/2}(div) norm
     double hdivNorm(const MultiForest& f,
                     const std::vector<std::complex<double>>& phi);
+    
+    /// Comptue the L2 graph norm
+    double L2graphNorm(const MultiForest& f,
+                       const std::vector<double>& soln);
 }
 
 #endif

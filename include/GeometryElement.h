@@ -130,8 +130,17 @@ namespace nurbs
         /// Get approximate element size
         double size() const
         {
-            return std::max(dist(eval(-1.0, -1.0), eval(1.0, 1.0)),
-                            dist(eval(1.0, -1.0), eval(-1.0, 1.0)));
+            if(!mSize.first)
+            {
+                std::lock_guard<std::mutex> lock(*mMutex);
+                const double size = std::max(dist(eval(-1.0, -1.0), eval(1.0, 1.0)),
+                                             dist(eval(1.0, -1.0), eval(-1.0, 1.0)));
+                mSize = std::make_pair(true, size);
+                return size;
+            }
+            else
+                return mSize.second;
+
         }
         
         /// Get the approximate min coordinate of this element
@@ -324,6 +333,9 @@ namespace nurbs
         
         /// Cache jacobian matrix
         mutable std::map<std::pair<double, double>, DoubleVecVec> mJacobCache;
+        
+        /// Size cache
+        mutable std::pair<bool, double> mSize;
         
         /// Overload output operator
         friend std::ostream& operator<<(std::ostream& ost, const GeometryElement& e)

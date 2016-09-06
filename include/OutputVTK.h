@@ -46,6 +46,11 @@ namespace nurbs {
                                      const std::string& fieldname,
                                      const std::vector<std::complex<double>>& soln) const;
         
+        /// Output a complex vector field with nedelec elements
+        void outputComplexVectorFieldNedelec(const MultiForest& f,
+                                                        const std::string& fieldname,
+                                             const std::vector<std::complex<double>>& soln) const;
+        
         /// Write a complex vector field to a vtu file
         void outputComplexVectorField(const MultiForest& f,
                                       const std::string& fieldname,

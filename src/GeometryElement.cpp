@@ -8,11 +8,13 @@ namespace nurbs {
     /// Definitino of static mutex
 //    std::mutex GeometryElement::sMutex;
     
-    GeometryElement::GeometryElement(const Geometry& g, const uint sp,
-                             const DoublePairVec& knots)
+    GeometryElement::GeometryElement(const Geometry& g,
+                                     const uint sp,
+                                     const DoublePairVec& knots)
     : mGeom(g),
       mSpaceI(sp),
-      mMutex(std::make_shared<std::mutex>())
+      mMutex(std::make_shared<std::mutex>()),
+      mSize(std::make_pair(false, 0.0))
     {
         assert(knots.size() >= 2);
         for(const auto& kp : knots)

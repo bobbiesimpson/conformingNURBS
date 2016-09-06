@@ -1,5 +1,5 @@
-#ifndef NURBS_BEZIER_ELEMENT_H
-#define NURBS_BEZIER_ELEMENT_H
+#ifndef NURBS_BEZIER_VECTOR_ELEMENT_H
+#define NURBS_BEZIER_VECTOR_ELEMENT_H
 
 #include "AnalysisElement.h"
 #include "BezierNodalElement.h"
@@ -37,7 +37,7 @@ namespace nurbs {
             return make_unique<BezierVectorElement>(*this);
         }
         
-        /// Scalar basis. Only one component.
+        /// Scalar basis. Two components for vector basis in parametric domain.
         uint componentN() const override { return 2; }
         
         /// Number of non-zero basis functions over this element.
