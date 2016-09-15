@@ -250,6 +250,8 @@ namespace nurbs
                         auto l_ivec = localBasisIVec(e_in, s_pair.second, space_pair);
                         assert(l_ivec.size() == g_ivec.size());
                         
+                        // Comment out loop below to remove continuity between patches
+                        // (i.e. both tangential and normal vector components are discontinuous)
                         for(uint i = 0; i < l_ivec.size(); ++i)
                         {
                             const uint l_i = l_ivec[i];

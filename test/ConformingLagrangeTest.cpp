@@ -10,6 +10,7 @@
 #include "OutputVTK.h"
 #include "HConformingForest.h"
 #include "NedelecVectorElement.h"
+#include "Norm.h"
 
 #include <Eigen/Sparse>
 #include <Eigen/SVD>
@@ -49,6 +50,7 @@ int main(int argc, char* argv[]) {
         if(!g.loadHBSFile(ifs))
             error("Failed to load geometry from hbs data");
         
+//        g.rescale(2.0/64.0);
         Forest forest(g);
         HDivForest divforest(g);
         
@@ -72,7 +74,7 @@ int main(int argc, char* argv[]) {
         
         // assembly
         const unsigned ndof = divforest.globalNedelecDofN();
-        std::cout << "performing projection test with " << ndof << " degrees of freedom\n";
+        std::cout << "performing projection test with " << ndof << " degrees of freedom and " << divforest.elemN() << " elements\n";
         
         Eigen::VectorXd freal(ndof);
         Eigen::VectorXd fimag(ndof);
@@ -159,19 +161,22 @@ int main(int argc, char* argv[]) {
         std::vector<std::complex<double>> solnvec;
         std::vector<double> real_solnvec;
         
-        std::cout << "solution\n\n";
+//        std::cout << "solution\n\n";
         for(size_t i = 0; i < ndof; ++i)
         {
             std::complex<double> centry(xreal(i), ximag(i));
-            std::cout << centry << "\n";
+//            std::cout << centry << "\n";
             solnvec.push_back(std::complex<double>(centry));
             real_solnvec.push_back(xreal(i));
         }
         
         // Output solution
-        nurbs::OutputVTK output("nedelecprojectiontest");
+        std::string filename("sphere_lagrange_p4x3_h");
+        filename.append(std::to_string(refine));
+        nurbs::OutputVTK output(filename);
         output.outputComplexVectorFieldNedelec(divforest, "no_name", solnvec);
         
+        std::cout << "L2 graph norm: " << nurbs::L2graphNorm(divforest, solnvec) << "\n";
         return EXIT_SUCCESS;
     }
     catch(const std::exception& e) {

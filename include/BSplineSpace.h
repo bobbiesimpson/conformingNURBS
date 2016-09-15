@@ -410,14 +410,18 @@ namespace nurbs
                 for(size_t i = 0; i < unique_kvec.size(); ++i)
                 {
                     const double kval = unique_kvec[i];
+                    
                     if(i == 0 || i == unique_kvec.size() - 1)
                     {
                         for(size_t j = 0; j < mDegrees[iparam] + 1; ++j)
                             kvec.push_back(kval);
                     }
                     else
-                        for(size_t j = 0; j < mDegrees[iparam]; ++j)
+                    {
+                        const uint mult = mDegrees[iparam] > 0 ? mDegrees[iparam]: 1;
+                        for(size_t j = 0; j < mult; ++j)
                             kvec.push_back(kval);
+                    }
                 }
             }
             init();
