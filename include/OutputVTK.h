@@ -57,7 +57,13 @@ namespace nurbs {
                                       const std::vector<std::complex<double>>& soln) const;
                                       
         
-        
+        /// Write the Mie series solution of the surface current given a wavenumber k
+        /// It is assumed the wave is travelling in the x-direction and polarised in the
+        /// z-direction (i.e solution in Harrington book)
+        void outputAnalyticalMieComplexVectorField(const MultiForest& f,
+                                                   const std::string& fieldname,
+                                                   const double k) const;
+    
         /// Sample point number setter
         void setSamplePtN(const uint n)
         {
@@ -72,20 +78,28 @@ namespace nurbs {
             return mFilename;
         }
         
+        /// Filename setter
+        void setFilename(const std::string& newfile)
+        {
+            mFilename = newfile;
+        }
+        
         /// Sample point number getter
         uint samplePtN() const { return mSamplePtN; }
-        
+
     private:
         
         /// Filename we write to
-        const std::string mFilename;
+        std::string mFilename;
         
         /// Number of sample points
         uint mSamplePtN;
     };
     
-
-    
+    /// analytical mie surface current expression
+    std::vector<std::complex<double> > mieSurfaceCurrent(const double k,
+                                                         const double theta,
+                                                         const double phi);
     
 }
 #endif

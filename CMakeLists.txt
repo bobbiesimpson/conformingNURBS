@@ -25,6 +25,13 @@ if( Boost_FOUND )
   add_definitions( "-DHAS_BOOST" )
 endif()
 
+# find the gsl library
+FIND_PACKAGE(GSL REQUIRED)
+if(GSL_FOUND)
+include_directories(${GSL_INCLUDE_DIRS})
+set(THIS_LINK_LIBS ${THIS_LINK_LIBS} ${GSL_LIBRARIES})
+endif()
+
 # look for VTK package
 find_package( VTK REQUIRED )
 include( ${VTK_USE_FILE} )

@@ -13,6 +13,9 @@
 #include "IElem.h"
 #include "algebra.h"
 
+#include <boost/math/special_functions.hpp>
+#include <gsl/gsl_sf_legendre.h>
+
 namespace nurbs {
     
     void OutputVTK::outputGeometry(const Forest& f) const
@@ -437,6 +440,184 @@ namespace nurbs {
             error( "Cannot write vtk file" );
     }
     
+    void OutputVTK::outputAnalyticalMieComplexVectorField(const MultiForest& f,
+                                                          const std::string& fieldname,
+                                                          const double k) const
+    {
+        // number of sample points and cells in each parametric direction
+        const uint nsample = samplePtN();
+        const uint ncell = nsample - 1;
+        
+        // create the vtk grid, points array and solution array
+        vtkSmartPointer<vtkUnstructuredGrid> grid = vtkUnstructuredGrid::New();
+        vtkSmartPointer<vtkPoints> points = vtkPoints::New();
+        vtkSmartPointer<vtkDoubleArray> vtk_realsoln = vtkDoubleArray::New();
+        vtkSmartPointer<vtkDoubleArray> vtk_imagsoln = vtkDoubleArray::New();
+        vtkSmartPointer<vtkDoubleArray> vtk_abssoln = vtkDoubleArray::New();
+        
+        vtk_realsoln->SetNumberOfComponents(3);
+        std::string name = fieldname + "_real";
+        vtk_realsoln->SetName(name.c_str());
+        
+        vtk_imagsoln->SetNumberOfComponents(3);
+        name = fieldname + "_imag";
+        vtk_imagsoln->SetName(name.c_str());
+        
+        vtk_abssoln->SetNumberOfComponents(1);
+        name = fieldname + "_abs";
+        vtk_abssoln->SetName(name.c_str());
+        
+        // now loop over elements and sample solution
+        uint sample_offset = 0;
+        const double degenerate_shift = 1.0e-6; // tolerance to shift sample points away from degenerate edges
+        
+        for(uint i = 0; i < f.elemN(); ++i)
+        {
+            const auto el = f.bezierElement(i);
+            //            const auto parent_el = el->parent();
+            const auto gbasisivec = el->signedGlobalBasisFuncI();
+            //            if(el->degenerate())
+            //                continue;
+            
+            uint count = 0;
+            
+            for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept)
+            {
+                ParamPt samplept = isamplept.getCurrentPt();
+                if(el->degenerate())
+                {
+                    samplept.s *= (1.0 - degenerate_shift);
+                    samplept.t *= (1.0 - degenerate_shift);
+                }
+                
+                const Point3D phys_coord = el->eval(samplept.s, samplept.t);
+                
+                // BEWARE: HARDCODED ANALYTICAL SOLUTION!!
+                const auto& p = phys_coord;
+                double r = sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
+                double theta = acos(p[0] / r);
+                double phi = atan2(p[2], p[1]);
+                
+                const auto j_vec = mieSurfaceCurrent(k, theta, phi);
+                
+                points->InsertPoint(sample_offset + count, phys_coord.data());
+                
+                // now put this complex vector into the vtk arrays
+                double absval = 0.0;
+                for(unsigned i = 0; i < 3; ++i)
+                {
+                    const double re = j_vec[i].real();
+                    const double im = j_vec[i].imag();
+                    vtk_realsoln->InsertComponent(sample_offset + count, i, re);
+                    vtk_imagsoln->InsertComponent(sample_offset + count, i, im);
+                    absval += re * re + im * im;
+                }
+                
+                // and finally insert absolute value
+                vtk_abssoln->vtkDataArray::InsertComponent(sample_offset + count, 0, std::sqrt(absval));
+                
+                ++count;
+            }
+            
+            // create the cell connectivity
+            for( uint t = 0; t < ncell; ++t )
+            {
+                for( uint s = 0; s < ncell; ++s )
+                {
+                    vtkSmartPointer< vtkCell > cell = vtkQuad::New();
+                    cell->GetPointIds()->SetId(0, sample_offset + t * nsample + s );
+                    cell->GetPointIds()->SetId(1, sample_offset + t * nsample + s + 1 );
+                    cell->GetPointIds()->SetId(2, sample_offset + ( t + 1 ) * nsample + s + 1 );
+                    cell->GetPointIds()->SetId(3, sample_offset + ( t + 1 ) * nsample + s );
+                    grid->InsertNextCell(cell->GetCellType(), cell->GetPointIds() );
+                }
+            }
+            
+            sample_offset += nsample * nsample;
+        }
+        
+        // and finally add the points and solutions to the grid and write!
+        grid->SetPoints(points);
+        grid->GetPointData()->AddArray(vtk_realsoln);
+        grid->GetPointData()->AddArray(vtk_imagsoln);
+        grid->GetPointData()->AddArray(vtk_abssoln);
+        
+        vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer = vtkXMLUnstructuredGridWriter::New();
+        const std::string fname = filename() + "_complexvector.vtu";
+        writer->SetFileName(fname.c_str());
+        writer->SetInputData(grid);
+        
+        if(!writer->Write())
+            error( "Cannot write vtk file" );
+    }
     
-
+    std::vector<std::complex<double> > mieSurfaceCurrent( const double k,
+                                                         const double theta,
+                                                         const double phi)
+    {
+        const double PI = atan( 1.0 ) * 4.0;
+        
+        double error = 100.0;
+        const double tol = 1.0e-10;
+        std::complex<double> jtheta, jphi;
+        double curr_mag = 0.0;
+        double prev_mag;
+        unsigned n = 1;
+        const double ct = std::cos(theta);
+        const double st = std::sin(theta);
+        
+        while(error > tol) {
+            const auto i = std::complex<double>(0.0, 1.0);
+            const auto an = 1.0 / k * std::pow(i, -n) * (2.0 * n + 1.0) / (n * (n + 1.0));
+            const auto h = boost::math::sph_hankel_2(n, k);
+            const auto Hbar = k * h;
+            const auto h_d = n / k * boost::math::sph_hankel_2(n,k) - boost::math::sph_hankel_2(n + 1, k);
+            const auto Hbar_d = k * h_d + h;
+            
+            
+            if(std::abs(theta) < 1.0e-7) {
+                const double tri_n = 0.5 * (n * n + n);
+                jtheta += std::cos(phi) * an * ( tri_n / Hbar_d
+                                                + (i * -tri_n) / Hbar );
+                jphi += std::sin(phi) * an * (-tri_n /  Hbar_d
+                                              - tri_n / (i * Hbar) );
+            }
+            else if(std::abs(theta - PI) < 1.0e-7) {
+                const double tri_n = 0.5 * (n * n + n) * std::pow(-1.0, n);
+                jtheta += std::cos(phi) * an * ( tri_n / Hbar_d
+                                                + (i * tri_n) / Hbar );
+                jphi += std::sin(phi) * an * (tri_n /  Hbar_d
+                                              - tri_n / (i * Hbar) );
+            }
+            else {
+                double l_d[n+1];
+                double l[n+1];
+                gsl_sf_legendre_Plm_deriv_array(n, 1, ct, l, l_d);
+                const auto P = l[n-1];
+                const auto Pd = l_d[n-1];
+                
+                
+                jtheta += std::cos(phi) * an * ( (st * Pd) / Hbar_d
+                                                + (i * P) / (st * Hbar) );
+                jphi += std::sin(phi) * an * (P / (st * Hbar_d)
+                                              - (st * Pd) / (i * Hbar) );
+            }
+            prev_mag = curr_mag;
+            curr_mag = std::sqrt( std::abs(jtheta) * std::abs(jtheta)
+                                 + std::abs(jphi) * std::abs(jphi) );
+            error = std::abs(prev_mag - curr_mag);
+            ++n;
+        }
+        const double cp = std::cos(phi);
+        const double sp = std::sin(phi);
+        
+        //    return {ct * cp * jtheta - sp * jphi,
+        //        ct * sp * jtheta + cp * jphi,
+        //        -st * jtheta};
+        
+        return {-st * jtheta,
+            ct * cp * jtheta - sp * jphi,
+            ct * sp * jtheta + cp * jphi
+        };
+    }
 }
