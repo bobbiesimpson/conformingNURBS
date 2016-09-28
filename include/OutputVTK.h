@@ -63,7 +63,17 @@ namespace nurbs {
         void outputAnalyticalMieComplexVectorField(const MultiForest& f,
                                                    const std::string& fieldname,
                                                    const double k) const;
-    
+        
+        
+        /// Output radar cross section
+        double computeRCS(const MultiForest& f,
+                          const nurbs::Point3D& sample,
+                          const double k,
+                          const nurbs::Point3D& rhat,
+                          const double mu,
+                          const double omega,
+                          const std::vector<std::complex<double>>& soln) const;
+        
         /// Sample point number setter
         void setSamplePtN(const uint n)
         {

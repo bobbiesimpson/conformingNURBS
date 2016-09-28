@@ -551,6 +551,66 @@ namespace nurbs {
             error( "Cannot write vtk file" );
     }
     
+    double OutputVTK::computeRCS(const MultiForest& f,
+                                 const nurbs::Point3D& sample,
+                                 const double k,
+                                 const nurbs::Point3D& rhat,
+                                 const double mu,
+                                 const double omega,
+                                 const std::vector<std::complex<double>>& soln) const
+    {
+        double rcs = 0.0;
+        double r = sample.length();
+        ComplexDouble j(0.0,1.0);
+        ComplexDouble coeff1 = - (j * omega * mu) / (4.0 * PI);
+        ComplexDouble coeff2 = std::exp(-j*k*r)/r;
+        std::vector<ComplexDouble> integral(3,0);
+
+        for(uint ielem = 0; ielem < f.elemN(); ++ielem)
+        {
+            const auto el = f.bezierElement(ielem);
+            const auto gbasisivec = el->signedGlobalBasisFuncI();
+            //Loop over gauss points
+            for(nurbs::IElemIntegrate igpt(el->integrationOrder()); !igpt.isDone(); ++igpt)
+            {
+                const auto gpt = igpt.get();
+                const auto w = igpt.getWeight();
+                const auto jdet = el->jacDet(gpt);
+                const auto basis = el->basis(gpt.s, gpt.t);
+                const auto gpphys_coord = el->eval(gpt.s, gpt.t);
+
+                std::vector<ComplexDouble> Jgpt(3,0);
+                
+                for(size_t ibasis = 0; ibasis < basis.size(); ++ibasis)
+                {
+                    if(-1 == gbasisivec[ibasis]) // degenerate point
+                        continue;
+                    
+                    for(unsigned i = 0; i < 3; ++i)
+                        Jgpt[i] += soln[gbasisivec[ibasis]] * basis[ibasis][i];
+                }
+                
+                double rgprhat = 0.0;
+                for(size_t i = 0; i < 3; ++i)
+                    rgprhat += gpphys_coord[i]*rhat[i];
+
+                ComplexDouble ejkrr = std::exp(j*k*rgprhat);
+                
+                for(size_t i = 0; i < 3; ++i)
+                    integral[i] += Jgpt[i] * ejkrr *w*jdet ;
+            }
+        }
+        std::vector<ComplexDouble> Er(3,0);
+        for(unsigned i = 0; i < 3; ++i)
+        {
+            Er[i] = coeff1 * coeff2 * integral[i];
+            rcs +=(real(Er[i])*real(Er[i])+imag(Er[i])*imag(Er[i]));
+        }
+        rcs = 4.0*PI*r*r*rcs;
+        return rcs;
+    }
+    
+    
     std::vector<std::complex<double> > mieSurfaceCurrent( const double k,
                                                          const double theta,
                                                          const double phi)
