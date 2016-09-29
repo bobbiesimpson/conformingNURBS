@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-
+#include <mutex>
 
 #include "base.h"
 
@@ -104,6 +104,27 @@ namespace nurbs {
         
         /// Number of sample points
         uint mSamplePtN;
+        
+        /// Get the mutex
+        std::mutex& mutex() const
+        {
+            return mMutex;
+        }
+        
+        // worker function for multithread computation
+        void rcsThreadWorkerFunction(const MultiForest& f,
+                                     const nurbs::Point3D& sample,
+                                     const double k,
+                                     const nurbs::Point3D& rhat,
+                                     const double mu,
+                                     const double omega,
+                                     const std::vector<std::complex<double>>& soln,
+                                     const uint start,
+                                     const uint end,
+                                     std::vector<std::complex<double>>& result) const;
+        
+        /// Mutex for this class
+        mutable std::mutex mMutex;
     };
     
     /// analytical mie surface current expression

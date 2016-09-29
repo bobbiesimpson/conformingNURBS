@@ -1,4 +1,9 @@
 #include "OutputVTK.h"
+#include "Forest.h"
+#include "MultiForest.h"
+#include "IElem.h"
+#include "algebra.h"
+
 #include "vtkSmartPointer.h"
 #include "vtkUnstructuredGrid.h"
 #include "vtkDoubleArray.h"
@@ -6,12 +11,12 @@
 #include "vtkXMLUnstructuredGridWriter.h"
 #include "vtkQuad.h"
 #include "vtkPointData.h"
-#include <vtkHexahedron.h>
+#include "vtkHexahedron.h"
+
 #include <complex>
-#include "Forest.h"
-#include "MultiForest.h"
-#include "IElem.h"
-#include "algebra.h"
+#include <thread>
+#include <atomic>
+#include <vector>
 
 #include <boost/math/special_functions.hpp>
 #include <gsl/gsl_sf_legendre.h>
@@ -559,26 +564,79 @@ namespace nurbs {
                                  const double omega,
                                  const std::vector<std::complex<double>>& soln) const
     {
-        double rcs = 0.0;
-        double r = sample.length();
+
+        std::vector<std::complex<double>> result(3);
+        
+        const int nthreads = std::thread::hardware_concurrency();
+        std::vector<std::thread> threads;
+        auto boundsvec = bounds(nthreads, f.elemN());
+        
+        for(int i = 0; i < nthreads; ++i)
+        {
+            threads.push_back(std::thread(&OutputVTK::rcsThreadWorkerFunction,
+                                          this,
+                                          std::ref(f),
+                                          sample,
+                                          k,
+                                          rhat,
+                                          mu,
+                                          omega,
+                                          soln,
+                                          boundsvec[i],
+                                          boundsvec[i+1],
+                                          std::ref(result)));
+            
+        }
+        for(auto &t : threads)
+            t.join();
+        
+        const double r = sample.length();
         ComplexDouble j(0.0,1.0);
         ComplexDouble coeff1 = - (j * omega * mu) / (4.0 * PI);
-        ComplexDouble coeff2 = std::exp(-j*k*r)/r;
-        std::vector<ComplexDouble> integral(3,0);
+        ComplexDouble coeff2 = std::exp(-j*k*r) / r;
+        
+        std::vector<ComplexDouble> Er(3,0);
+        double rcs = 0.0;
+        for(unsigned i = 0; i < 3; ++i)
+        {
+            Er[i] = coeff1 * coeff2 * result[i];
+            rcs += real(Er[i] *real(Er[i]) + imag(Er[i]) * imag(Er[i]));
+        }
+        rcs = 4.0 * PI * r * r * rcs;
+        return rcs;
+        
 
-        for(uint ielem = 0; ielem < f.elemN(); ++ielem)
+    }
+    
+    void OutputVTK::rcsThreadWorkerFunction(const MultiForest& f,
+                                            const nurbs::Point3D& sample,
+                                            const double k,
+                                            const nurbs::Point3D& rhat,
+                                            const double mu,
+                                            const double omega,
+                                            const std::vector<std::complex<double>>& soln,
+                                            const uint start,
+                                            const uint end,
+                                            std::vector<std::complex<double>>& result) const
+    {
+
+        const ComplexDouble j(0.0,1.0);
+
+        std::vector<ComplexDouble> integral(3,0);
+        for(uint ielem = start; ielem < end; ++ielem)
         {
             const auto el = f.bezierElement(ielem);
             const auto gbasisivec = el->signedGlobalBasisFuncI();
-            //Loop over gauss points
-            for(nurbs::IElemIntegrate igpt(el->integrationOrder()); !igpt.isDone(); ++igpt)
+            
+            // Loop over gauss points
+            for(nurbs::IElemIntegrate igpt(el->equalIntegrationOrder()); !igpt.isDone(); ++igpt)
             {
                 const auto gpt = igpt.get();
                 const auto w = igpt.getWeight();
                 const auto jdet = el->jacDet(gpt);
                 const auto basis = el->basis(gpt.s, gpt.t);
                 const auto gpphys_coord = el->eval(gpt.s, gpt.t);
-
+                
                 std::vector<ComplexDouble> Jgpt(3,0);
                 
                 for(size_t ibasis = 0; ibasis < basis.size(); ++ibasis)
@@ -593,23 +651,27 @@ namespace nurbs {
                 double rgprhat = 0.0;
                 for(size_t i = 0; i < 3; ++i)
                     rgprhat += gpphys_coord[i]*rhat[i];
-
+                
                 ComplexDouble ejkrr = std::exp(j*k*rgprhat);
                 
+                nurbs::Point3D jreal(Jgpt[0].real(), Jgpt[1].real(), Jgpt[2].real());
+                nurbs::Point3D jimag(Jgpt[0].imag(), Jgpt[1].imag(), Jgpt[2].imag());
+                
+                const auto cross_real = nurbs::cross(rhat, nurbs::cross(jreal, rhat));
+                const auto cross_imag = nurbs::cross(rhat, nurbs::cross(jimag, rhat));
+                
                 for(size_t i = 0; i < 3; ++i)
-                    integral[i] += Jgpt[i] * ejkrr *w*jdet ;
+                    Jgpt[i] = std::complex<double>(cross_real[i], cross_imag[i]);
+                
+                for(size_t i = 0; i < 3; ++i)
+                    integral[i] += Jgpt[i] * ejkrr * w * jdet;
             }
         }
-        std::vector<ComplexDouble> Er(3,0);
-        for(unsigned i = 0; i < 3; ++i)
-        {
-            Er[i] = coeff1 * coeff2 * integral[i];
-            rcs +=(real(Er[i])*real(Er[i])+imag(Er[i])*imag(Er[i]));
-        }
-        rcs = 4.0*PI*r*r*rcs;
-        return rcs;
+
+        std::lock_guard<std::mutex> block(mutex());
+        for(int i = 0; i < 3; ++i)
+            result[i] += integral[i];
     }
-    
     
     std::vector<std::complex<double> > mieSurfaceCurrent( const double k,
                                                          const double theta,
