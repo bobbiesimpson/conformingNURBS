@@ -32,10 +32,12 @@ namespace nurbs {
         
         uint sample_offset = 0;
         
-        for(uint i = 0; i < f.elemN(); ++i) {
+//        std::vector<uint> evec{8,53};
+        
+        for(uint i = 0; i < f.elemN(); ++i)
+//        for(const auto& i : evec)
+        {
             const auto e = f.bezierElement(i);
-//            if(e->spaceI() != 2)
-//                continue;
             uint count = 0;
             for(ISamplePt isamplept(nsample); !isamplept.isDone(); ++isamplept)
             {
