@@ -307,7 +307,7 @@ namespace nurbs
             for(std::size_t i = 0; i < unique.size() - 1; ++i){
                 if (i == 0) {
                     // graded_refine
-                    int nelem = 2*(knot_n + 1);
+                    int nelem = knot_n + 1;
                     double base = 0.0;
                     for (int ielem = 0; ielem < nelem; ++ielem) {
                         base += pow(coeff, ielem);
@@ -322,7 +322,7 @@ namespace nurbs
                 }
                 else if (i == unique.size()-2){
                     // graded_refine
-                    int nelem = 2*(knot_n + 1);
+                    int nelem = knot_n + 1;
                     double base = 0.0;
                     for (int ielem = 0; ielem < nelem; ++ielem) {
                         base += pow(coeff, ielem);
