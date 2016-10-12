@@ -77,6 +77,16 @@ namespace nurbs
         init();
     }
 
+    void BSplineSpace::graded_hrefine(const uint n, const double coeff)
+    {
+        auto& kv1 = mKnotVecs[0];
+        auto& kv2 = mKnotVecs[1];
+        kv1 = nurbshelper::gradedKnotInsertion(kv1, n, coeff);
+//        kv2 = nurbshelper::gradedKnotVector(nelem, coeff);
+        kv2 = nurbshelper::uniformKnotInsertion(kv2,n);
+        init();
+    }
+    
 	void BSplineSpace::load(std::istream& ist)
 	{
 		clear();

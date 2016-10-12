@@ -281,6 +281,81 @@ namespace nurbs
             return refined_kv;
         }
         
+        DoubleVec gradedKnotInsertion(const DoubleVec& knotvec,const uint refine, const double coeff)
+        {
+//            DoubleVec knotvec = {0,1};
+//            DoubleVec unique = {0,1};
+//            int knot_n = nelem - 1;
+//            double base = 0.0;
+//            for (int ielem = 0; ielem < nelem; ++ielem) {
+//                base += pow(coeff, ielem);
+//            }
+//            double knot_v = 0.0;
+//            double first_element = 1.0 / base;
+            DoubleVec unique = knotvec; // first make a copy of knot vector
+            auto l = std::unique(unique.begin(), unique.end());
+            unique.erase(l, unique.end());
+            int knot_n = 0;
+            for(int i = 0; i < refine; ++i)
+                knot_n += std::pow( 2.0, i);  // number of knots to insert per interval
+
+            std::vector<double> insertknots;
+//            for (int iknot = 0; iknot < knot_n; ++iknot) {
+//                knot_v += pow(coeff,iknot) * first_element;
+//                insertknots[iknot] = knot_v;
+//            }
+            for(std::size_t i = 0; i < unique.size() - 1; ++i){
+                if (i == 0) {
+                    // graded_refine
+                    int nelem = 2*(knot_n + 1);
+                    double base = 0.0;
+                    for (int ielem = 0; ielem < nelem; ++ielem) {
+                        base += pow(coeff, ielem);
+                    }
+                    double initial_element = (unique[i+1]-unique[i])/base;
+                    double knot_v =0.0;
+                    for (int j = 0; j < knot_n; ++j) {
+                        knot_v += pow(coeff,j) * initial_element;
+                        insertknots.push_back(unique[i+1]-knot_v);
+                    
+                    }
+                }
+                else if (i == unique.size()-2){
+                    // graded_refine
+                    int nelem = 2*(knot_n + 1);
+                    double base = 0.0;
+                    for (int ielem = 0; ielem < nelem; ++ielem) {
+                        base += pow(coeff, ielem);
+                    }
+                    double initial_element = (unique[i+1]-unique[i])/base;
+                    double knot_v =0.0;
+                    for (int j = 0; j < knot_n; ++j) {
+                        knot_v += pow(coeff,j) * initial_element;
+                        insertknots.push_back( unique[i] + knot_v);
+                    }
+                }
+                else{
+                    // uniform_refine
+                    for( int j = 0; j < knot_n; ++j ){
+                        insertknots.push_back( ( unique[ i + 1 ] - unique[ i ] ) / ( knot_n + 1 ) * ( j + 1 )
+                                              + unique[ i ] ); // insert new knots
+                    }
+                }
+            }
+            DoubleVec kv;
+            auto i_new = insertknots.begin();
+            std::sort(insertknots.begin(),insertknots.end());
+            for (const auto& k : knotvec) {
+                while(k > *i_new && i_new != insertknots.end()) {
+                    kv.push_back(*i_new);
+                    ++i_new;
+                }
+                kv.push_back(k);
+            }
+            return kv;
+        }
+
+        
         DoubleVec bernsteinPolynomial(const double xi, const uint p)
         {
             // First search cache

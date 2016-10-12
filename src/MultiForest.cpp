@@ -159,6 +159,19 @@ namespace nurbs
         
     }
     
+    void MultiForest::graded_hrefine(const uint n, const double coeff)
+    {
+        if(0 == n)
+            return;
+        for(auto& s_space : mSpaceS)
+            s_space.graded_hrefine(n, coeff);
+        for(auto& t_space : mSpaceT)
+            t_space.graded_hrefine(n, coeff);
+        initConnectivity();
+        initNedelecConnectivity();
+        
+    }
+    
     Point3D MultiForest::collocPt(const uint ispace,
                                   const ParamDir d,
                                   const uint i) const
