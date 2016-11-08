@@ -159,23 +159,18 @@ namespace nurbs
         
     }
     
-//    /// Apply graded h-refinment to the multiforest
-//    void MultiForest::hrefineGraded(const uint nrefine,
-//                                    const double sratio,
-//                                    const double tratio)
-//    {
-//        if(0 == nrefine)
-//            return;
-//        for(auto& s_space : mSpaceS)
-//            s_space.hrefineGraded(nrefine, sratio, tratio);
-//        for(auto& t_space : mSpaceT)
-//            t_space.hrefineGraded(nrefine, sratio, tratio);
-//        initConnectivity();
-//        initNedelecConnectivity();
-//        
-//    }
-    
-    
+    void MultiForest::graded_hrefine(const uint n, const double coeff)
+    {
+        if(0 == n)
+            return;
+        for(auto& s_space : mSpaceS)
+            s_space.graded_hrefine(n, coeff);
+        for(auto& t_space : mSpaceT)
+            t_space.graded_hrefine(n, coeff);
+        initConnectivity();
+        initNedelecConnectivity();
+        
+    }
     
     Point3D MultiForest::collocPt(const uint ispace,
                                   const ParamDir d,

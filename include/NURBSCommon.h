@@ -61,6 +61,11 @@ namespace nurbs
         DoubleVec uniformKnotInsertion(const DoubleVec& knotvec,
                                        const uint refine = 1);
         
+        /// Create a new knot vector by applying graded knot insertion
+        DoubleVec gradedKnotInsertion(const DoubleVec& knotvec,
+                                      const uint refine,
+                                      const double coeff);
+        
         /// Return the set of Bernstein polynomails evaluate at xi \in [-1,1]
         /// for degree p
         DoubleVec bernsteinPolynomial(const double xi, const uint p);

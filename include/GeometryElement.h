@@ -291,6 +291,35 @@ namespace nurbs
             return false;
         }
         
+        std::pair<bool, Edge> degenerateEdge() const
+        {
+            if(!degenerate())
+                return std::make_pair(false, Edge::EDGE0);
+            
+            const double tol = 1.e-9;
+            std::vector<Point3D> vcoords
+            {
+                evalVertex(Vertex::VERTEX0),
+                evalVertex(Vertex::VERTEX1),
+                evalVertex(Vertex::VERTEX2),
+                evalVertex(Vertex::VERTEX3)
+            };
+            
+            if(approximatelyEqual(vcoords[0], vcoords[1], tol))
+                return std::make_pair(true, Edge::EDGE0);
+            else if(approximatelyEqual(vcoords[2], vcoords[3], tol))
+                return std::make_pair(true, Edge::EDGE1);
+            else if(approximatelyEqual(vcoords[1], vcoords[2], tol))
+                return std::make_pair(true, Edge::EDGE3);
+            else if(approximatelyEqual(vcoords[3], vcoords[0], tol))
+                return std::make_pair(true, Edge::EDGE2);
+            else
+            {
+                throw std::runtime_error("Bad degenerate edge call.");
+                return std::make_pair(false, Edge::EDGE0);
+            }
+        }
+        
     protected:
         
     private:

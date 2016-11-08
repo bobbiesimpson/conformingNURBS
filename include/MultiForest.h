@@ -97,10 +97,8 @@ namespace nurbs {
         /// Apply uniform h-refinment to the multiforest
         void hrefine(const uint nrefine = 1);
         
-        /// Apply graded h-refinement
-//        void hrefineGraded(const uint nrefine,
-//                           const double sratio,
-//                           const double tratio);
+        /// Apply uniform h-refinment to the multiforest
+        void graded_hrefine(const uint n, const double coeff);
         
         /// Get global basis function index
         uint globalI(const uint ispace, const uint ibasis, const ParamDir dir) const

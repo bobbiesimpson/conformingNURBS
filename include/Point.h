@@ -122,6 +122,17 @@ namespace nurbs
 		friend std::ostream& operator<<( std::ostream& ost, const Point& p );
 		
 	};
+    
+    /// Helper function for determining equality of two points with specified tolerance
+    bool approximatelyEqual(const Point& p1, const Point& p2, const double tol)
+    {
+        assert(p1.getSize() == p2.getSize());
+        
+        for(std::size_t i = 0; i < p1.getSize(); ++i)
+            if(!essentiallyEqual(p1.getCoord(i), p2.getCoord(i), tol))
+                return false;
+        return true;
+    }
 
 	/// Dot product
 	double dot( const Point& p1, const Point& p2 );
