@@ -305,13 +305,13 @@ namespace nurbs
                 evalVertex(Vertex::VERTEX3)
             };
             
-            if(approximatelyEqual(vcoords[0], vcoords[1], tol))
+            if(approximatelyEqualPoints(vcoords[0], vcoords[1], tol))
                 return std::make_pair(true, Edge::EDGE0);
-            else if(approximatelyEqual(vcoords[2], vcoords[3], tol))
+            else if(approximatelyEqualPoints(vcoords[2], vcoords[3], tol))
                 return std::make_pair(true, Edge::EDGE1);
-            else if(approximatelyEqual(vcoords[1], vcoords[2], tol))
+            else if(approximatelyEqualPoints(vcoords[1], vcoords[2], tol))
                 return std::make_pair(true, Edge::EDGE3);
-            else if(approximatelyEqual(vcoords[3], vcoords[0], tol))
+            else if(approximatelyEqualPoints(vcoords[3], vcoords[0], tol))
                 return std::make_pair(true, Edge::EDGE2);
             else
             {

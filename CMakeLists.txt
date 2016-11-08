@@ -70,6 +70,7 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/quadrature/IElemIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/ISubElemIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/IEqualQuadrature.h
+        ${LIB_INCLUDE_DIR}/quadrature/IEqualQuadratureTri.h
         ${LIB_INCLUDE_DIR}/quadrature/IGalerkinIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/IGaussQuadrature1D.h
         ${LIB_INCLUDE_DIR}/quadrature/IGaussQuadrature1D.h
@@ -122,6 +123,7 @@ set(libsrcs
         ${LIB_SOURCE_DIR}/quadrature/IEdgeQuadrature.cpp
         ${LIB_SOURCE_DIR}/quadrature/IElemIntegrate.cpp
         ${LIB_SOURCE_DIR}/quadrature/IEqualQuadrature.cpp
+        ${LIB_SOURCE_DIR}/quadrature/IEqualQuadratureTri.cpp
         ${LIB_SOURCE_DIR}/quadrature/IGalerkinIntegrate.cpp
         ${LIB_SOURCE_DIR}/quadrature/IGaussQuadrature1D.cpp
         ${LIB_SOURCE_DIR}/quadrature/IRegularQuadrature.cpp

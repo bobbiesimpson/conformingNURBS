@@ -268,6 +268,8 @@ namespace nurbs {
                            const Range& from_range,
                            const Range& to_range);
     
+    GPt4D convert_interval_Tri(const GPt4D& p);
+    
 }
 
 #endif
