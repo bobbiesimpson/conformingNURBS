@@ -378,6 +378,11 @@ namespace nurbs
         
         /// Apply h-refinement (knot insertion) n times
         void hrefine(const uint n = 1);
+        
+        /// Apply graded h-refinment
+        void hrefineGraded(const uint n,
+                           const double sratio,
+                           const double tratio);
 		
 		/// Load from an input stream
 		void load(std::istream& ist);

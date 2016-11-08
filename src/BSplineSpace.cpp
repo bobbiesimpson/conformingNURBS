@@ -76,6 +76,13 @@ namespace nurbs
             kv = nurbshelper::uniformKnotInsertion(kv,n);
         init();
     }
+    
+    void BSplineSpace::hrefineGraded(const uint n,
+                                     const double sratio,
+                                     const double tratio)
+    {
+        
+    }
 
 	void BSplineSpace::load(std::istream& ist)
 	{

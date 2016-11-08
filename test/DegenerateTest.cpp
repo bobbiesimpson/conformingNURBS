@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
         const auto& s_conn = p_sel->signedGlobalBasisFuncI();
         const auto& f_conn = p_fel->signedGlobalBasisFuncI();
         
-//        std::cout << p_sel->signedGlobalBasisFuncI() << "\n" << p_fel->signedGlobalBasisFuncI() << "\n";
+        std::cout << p_sel->signedGlobalBasisFuncI() << "\n" << p_fel->signedGlobalBasisFuncI() << "\n";
         
         std::cout << "Default quadrature order: " << p_sel->equalIntegrationOrder() << "\n";
         

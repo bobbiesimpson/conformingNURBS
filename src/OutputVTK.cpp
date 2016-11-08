@@ -365,10 +365,10 @@ namespace nurbs {
         uint sample_offset = 0;
         const double degenerate_shift = 1.0e-6; // tolerance to shift sample points away from degenerate edges
         
-        std::vector<uint> evec{1};
+//        std::vector<uint> evec{1};
         
-        for(const auto& i : evec)
-//        for(uint i = 0; i < f.elemN(); ++i)
+//        for(const auto& i : evec)
+        for(uint i = 0; i < f.elemN(); ++i)
         {
             const auto el = f.bezierElement(i);
 //            const auto parent_el = el->parent();
