@@ -13,7 +13,7 @@
 #include "HConformingForest.h"
 #include "IPolarIntegrate.h"
 #include "IEqualQuadrature.h"
-//#include "IEqualQuadratureTri.h"
+#include "IEqualQuadratureTri.h"
 #include "IEdgeQuadrature.h"
 #include "IEdgePolarIntegrate.h"
 #include "IVertexQuadrature.h"
@@ -239,11 +239,12 @@ int main(int argc, char* argv[]) {
         //
         
         // edge singularity
-        const auto p_sel = divforest.bezierElement(274);
-        const auto p_fel = divforest.bezierElement(274);
+        const auto p_sel = divforest.bezierElement(8);
+        const auto p_fel = divforest.bezierElement(8);
         const double k = 100.0;
         const std::complex<double> iconst(0.0, 1.0);
-        
+        Edge dedge = p_sel->degenerateEdge().second;
+        std::cout << "degenerated edge is " << dedge << std::endl;
         const auto& s_conn = p_sel->signedGlobalBasisFuncI();
         const auto& f_conn = p_fel->signedGlobalBasisFuncI();
         
@@ -271,7 +272,7 @@ int main(int argc, char* argv[]) {
             uint neval = 0;
             
             ////
-            for(nurbs::IEqualQuadrature igpt(sorder, forder); !igpt.isDone(); ++igpt)
+            for(nurbs::IEqualQuadratureTri igpt(sorder, forder,dedge); !igpt.isDone(); ++igpt)
             {
                 const auto gpt4d = igpt.get();
                 const auto spt = gpt4d.srcPt();
@@ -434,7 +435,7 @@ int main(int argc, char* argv[]) {
             ////            std::cout << "area = "<< area << std::endl;
             
             
-            std::cout << neval << "\t" << std::setprecision(12) << matrix[1][2].real() << "\n";
+            std::cout << neval << "\t" << std::setprecision(12) << matrix[0][0].real() << "\n";
             
         }
         

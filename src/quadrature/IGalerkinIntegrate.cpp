@@ -122,12 +122,25 @@ namespace nurbs {
         return GPt4D(v);
     }
     
-    GPt4D convert_interval_Tri(const GPt4D& p)
+    GPt4D convert_interval_Tri_Edge2(const GPt4D& p)
     {
         const double xsi = p[0];
         const double eta1 = p[1] / p[0];
         const double eta2 = p[2];
         const double eta3 = p[3] / p[2];
+        double s1 = 2 * xsi - 1;
+        double t1 = 2 * eta1 - 1;
+        double s2 = 2 * eta2 - 1;
+        double t2 = 2 * eta3 - 1;
+        
+        return GPt4D {s1,t1,s2,t2};
+    }
+    GPt4D convert_interval_Tri_Edge3(const GPt4D& p)
+    {
+        const double xsi = 1.0 - p[0];
+        const double eta1 = 1.0 - p[1] / p[0];
+        const double eta2 = 1.0 - p[2];
+        const double eta3 = 1.0 - p[3] / p[2];
         double s1 = 2 * xsi - 1;
         double t1 = 2 * eta1 - 1;
         double s2 = 2 * eta2 - 1;

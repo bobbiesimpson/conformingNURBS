@@ -1,13 +1,13 @@
 //
-//  IEqualQuadrature.h
+//  IEqualQuadratureTri.h
 //  nurbslib
 //
-//  Created by Robert Simpson on 18/07/2014.
+//  Created by Zhaowei Liu on 10/11/2016.
 //
 //
 
-#ifndef NURBS_IEQUAL_QUADRATURE_H
-#define NURBS_IEQUAL_QUADRATURE_H
+#ifndef NURBS_IEQUAL_TRI_QUADRATURE_H
+#define NURBS_IEQUAL_TRI_QUADRATURE_H
 
 #include <iostream>
 
@@ -21,8 +21,11 @@ namespace nurbs {
         
 		/// Constructor
 		IEqualQuadratureTri(const UIntVec& sourceorders,
-                         const UIntVec& fieldorders)
-        : IGalerkinIntegrate(sourceorders, fieldorders) {}
+                         const UIntVec& fieldorders,
+                            const Edge dedge)
+        :
+        mdedge(dedge),
+        IGalerkinIntegrate(sourceorders, fieldorders) {}
 		
     private:
         
@@ -40,6 +43,8 @@ namespace nurbs {
         
 		/// Print function implementation
 		void printImpl(std::ostream& ost) const {}
+        
+        Edge mdedge;
 	};
 }
 

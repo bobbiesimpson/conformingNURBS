@@ -294,7 +294,7 @@ namespace nurbs
         std::pair<bool, Edge> degenerateEdge() const
         {
             if(!degenerate())
-                return std::make_pair(false, Edge::EDGE0);
+                return std::make_pair(false, Edge::EDGE2);
             
             const double tol = 1.e-9;
             std::vector<Point3D> vcoords
@@ -305,13 +305,13 @@ namespace nurbs
                 evalVertex(Vertex::VERTEX3)
             };
             
-            if(approximatelyEqualPoints(vcoords[0], vcoords[1], tol))
+            if(dist(vcoords[0], vcoords[1])< tol)
                 return std::make_pair(true, Edge::EDGE0);
-            else if(approximatelyEqualPoints(vcoords[2], vcoords[3], tol))
+            else if(dist(vcoords[2], vcoords[3])< tol)
                 return std::make_pair(true, Edge::EDGE1);
-            else if(approximatelyEqualPoints(vcoords[1], vcoords[2], tol))
+            else if(dist(vcoords[1], vcoords[2])< tol)
                 return std::make_pair(true, Edge::EDGE3);
-            else if(approximatelyEqualPoints(vcoords[3], vcoords[0], tol))
+            else if(dist(vcoords[3], vcoords[0])< tol)
                 return std::make_pair(true, Edge::EDGE2);
             else
             {
