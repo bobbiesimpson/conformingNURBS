@@ -562,6 +562,68 @@ namespace nurbs {
             error( "Cannot write vtk file" );
     }
     
+    void OutputVTK::ouputQuadratureData(const std::string& fieldname,
+                             const std::vector<double>& rawdata,
+                             const uint ns,
+                             const uint nt) const
+    {
+        // assume that the raw data is stored as j * ns + i
+        const uint ncell_s = ns - 1;
+        const uint ncell_t = nt - 1;
+        const double delta_s = 2.0 / ns;
+        const double delta_t = 2.0 / ns;
+        
+        // create the vtk grid, points array and solution array
+        vtkSmartPointer<vtkUnstructuredGrid> grid = vtkUnstructuredGrid::New();
+        vtkSmartPointer<vtkPoints> points = vtkPoints::New();
+        vtkSmartPointer<vtkDoubleArray> vtk_soln = vtkDoubleArray::New();
+        
+        vtk_soln->SetNumberOfComponents(1);
+        vtk_soln->SetName(fieldname.c_str());
+
+        // now loop over elements and sample solution
+        uint currentpt_index = 0;
+        
+        for(uint i = 0; i < ns; ++i)
+        {
+            for(uint j = 0; j < nt; ++j)
+            {
+                nurbs::Point3D point(-1.0 + i * delta_s, -1.0 + j * delta_t, 0.0);
+                points->InsertPoint(currentpt_index, point.data());
+                vtk_soln->vtkDataArray::InsertComponent(currentpt_index, 0, rawdata[currentpt_index]);
+                ++currentpt_index;
+            }
+        }
+        
+        // and construct cells
+        // create the cell connectivity
+        for(uint t = 0; t < ncell_t; ++t)
+        {
+            for(uint s = 0; s < ncell_s; ++s)
+            {
+                vtkSmartPointer<vtkCell> cell = vtkQuad::New();
+                cell->GetPointIds()->SetId(0, t * ns + s);
+                cell->GetPointIds()->SetId(1, t * ns + s + 1 );
+                cell->GetPointIds()->SetId(2, ( t + 1 ) * ns + s + 1);
+                cell->GetPointIds()->SetId(3, ( t + 1 ) * ns + s );
+                grid->InsertNextCell(cell->GetCellType(), cell->GetPointIds());
+            }
+        }
+        
+        // and finally add the points and solutions to the grid and write!
+        grid->SetPoints(points);
+        grid->GetPointData()->AddArray(vtk_soln);
+        
+        vtkSmartPointer<vtkXMLUnstructuredGridWriter> writer = vtkXMLUnstructuredGridWriter::New();
+        const std::string fname = filename() + "_integrand.vtu";
+        writer->SetFileName(fname.c_str());
+        writer->SetInputData(grid);
+        
+        if(!writer->Write())
+            error( "Cannot write vtk file" );
+        
+    }
+    
     double OutputVTK::computeRCS(const MultiForest& f,
                                  const nurbs::Point3D& sample,
                                  const double k,

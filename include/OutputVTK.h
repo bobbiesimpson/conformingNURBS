@@ -64,6 +64,12 @@ namespace nurbs {
                                                    const std::string& fieldname,
                                                    const double k) const;
         
+        /// Output an integrand given the integrand data along with the number of sampling
+        /// points in the s- and t- directions.
+        void ouputQuadratureData(const std::string& fieldname,
+                                 const std::vector<double>& rawdata,
+                                 const uint ns,
+                                 const uint nt) const;
         
         /// Output radar cross section
         double computeRCS(const MultiForest& f,

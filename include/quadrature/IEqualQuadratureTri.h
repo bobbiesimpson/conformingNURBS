@@ -21,11 +21,11 @@ namespace nurbs {
         
 		/// Constructor
 		IEqualQuadratureTri(const UIntVec& sourceorders,
-                         const UIntVec& fieldorders,
+                            const UIntVec& fieldorders,
                             const Edge dedge)
         :
-        mdedge(dedge),
-        IGalerkinIntegrate(sourceorders, fieldorders) {}
+        IGalerkinIntegrate(sourceorders, fieldorders),
+        mdedge(dedge) {}
 		
     private:
         

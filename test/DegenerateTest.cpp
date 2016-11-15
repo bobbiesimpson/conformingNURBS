@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
         for(uint offset = 0; offset < 10; offset += 1)
         {
             double area = 0.0;
-            std::complex<double> total = 0.0;
+//            std::complex<double> total = 0.0;
             const auto& forder = p_fel->equalIntegrationOrder(offset);
             const auto& sorder = p_sel->equalIntegrationOrder(offset);
             
