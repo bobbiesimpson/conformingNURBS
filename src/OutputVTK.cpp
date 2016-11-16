@@ -563,15 +563,14 @@ namespace nurbs {
     }
     
     void OutputVTK::ouputQuadratureData(const std::string& fieldname,
-                             const std::vector<double>& rawdata,
-                             const uint ns,
-                             const uint nt) const
+                                        const std::vector<double>& rawdata,
+                                        const std::vector<nurbs::GPt2D>& pts,
+                                        const uint ns,
+                                        const uint nt) const
     {
         // assume that the raw data is stored as j * ns + i
         const uint ncell_s = ns - 1;
         const uint ncell_t = nt - 1;
-        const double delta_s = 2.0 / ns;
-        const double delta_t = 2.0 / ns;
         
         // create the vtk grid, points array and solution array
         vtkSmartPointer<vtkUnstructuredGrid> grid = vtkUnstructuredGrid::New();
@@ -584,11 +583,12 @@ namespace nurbs {
         // now loop over elements and sample solution
         uint currentpt_index = 0;
         
-        for(uint i = 0; i < ns; ++i)
+        for(uint j = 0; j < nt; ++j)
         {
-            for(uint j = 0; j < nt; ++j)
+            for(uint i = 0; i < ns; ++i)
             {
-                nurbs::Point3D point(-1.0 + i * delta_s, -1.0 + j * delta_t, 0.0);
+                const uint index = j * ns + i;
+                nurbs::Point3D point(pts[index].s, pts[index].t, 0.0);
                 points->InsertPoint(currentpt_index, point.data());
                 vtk_soln->vtkDataArray::InsertComponent(currentpt_index, 0, rawdata[currentpt_index]);
                 ++currentpt_index;

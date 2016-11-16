@@ -68,6 +68,7 @@ namespace nurbs {
         /// points in the s- and t- directions.
         void ouputQuadratureData(const std::string& fieldname,
                                  const std::vector<double>& rawdata,
+                                 const std::vector<nurbs::GPt2D>& pts,
                                  const uint ns,
                                  const uint nt) const;
         
