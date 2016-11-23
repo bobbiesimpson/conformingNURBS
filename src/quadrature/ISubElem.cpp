@@ -31,6 +31,47 @@ namespace nurbs
             }
         }
         
+        ISubElem::ISubElem(const nurbs::DoubleVec& sknots,
+                           const nurbs::DoubleVec& tknots)
+        :
+        mNSubEls((sknots.size() + 1) * (tknots.size() + 1)),
+        mCurrentIndex(0)
+        {
+            const uint ns = sknots.size() + 1;
+            const uint nt = tknots.size() + 1;
+            
+            // initialise sub element ranges
+            for(uint i = 0; i < ns; ++i)
+            {
+                const double s_l = (0 ==i) ? -1.0 : sknots.at(i-1);
+                const double s_r = (ns - 1 == i) ? 1.0 : sknots.at(i);
+                
+                if(s_r < s_l)
+                    throw std::runtime_error("Bad knot value given for subelement integration domains.");
+                if(std::abs(s_r) > 1.0 || std::abs(s_l) > 1.0)
+                    throw std::runtime_error("Bad knot value given for subelement integration domains: value outside interval [-1.0, 1.0].");
+                   
+                
+                for( uint j = 0; j < nt; ++j )
+                {
+                    const double t_l = (0 == j) ? -1.0 : tknots.at(j-1);
+                    const double t_r = (nt - 1 == j) ? 1.0 : tknots.at(j);
+                    
+                    if(t_r < t_l)
+                        throw std::runtime_error("Bad knot value given for subelement integration domains.");
+                    if(std::abs(t_r) > 1.0 || std::abs(t_l) > 1.0)
+                        throw std::runtime_error("Bad knot value given for subelement integration domains: value outside interval [-1.0, 1.0].");
+                    
+                    DoubleVec r;
+                    r.push_back( s_l );
+                    r.push_back( s_r );
+                    r.push_back( t_l );
+                    r.push_back( t_r );
+                    mRanges.push_back( r );
+                }
+            }
+        }
+        
         DoubleVec ISubElem::getRange() const
         {
             return mRanges[mCurrentIndex];

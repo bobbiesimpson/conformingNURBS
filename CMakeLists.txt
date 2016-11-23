@@ -18,6 +18,7 @@ else ()
     message(FATAL_ERROR "Your C++ compiler does not support C++11.")
 endif ()
 
+
 # look for the boost package
 find_package(Boost REQUIRED)
 if( Boost_FOUND )

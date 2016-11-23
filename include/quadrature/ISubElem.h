@@ -23,6 +23,12 @@ namespace nurbs
             :
             ISubElem(n[0], n[1]) {}
             
+            /// Construct subelements with specified knots to divide
+            /// the subelements
+            ISubElem(const nurbs::DoubleVec& sknots,
+                     const nurbs::DoubleVec& tknots);
+            
+            
             /// get current subelement range
             DoubleVec getRange() const;
             

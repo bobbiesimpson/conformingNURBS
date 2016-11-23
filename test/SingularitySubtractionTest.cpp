@@ -116,8 +116,7 @@ int main(int argc, char* argv[]) {
 //                    const auto jparam_s = p_sel->jacobParam(sparent.s, sparent.t);
             
                     // First integrate non singular term
-//            for(nurbs::ISubElem isubelem(2,2); !isubelem.isDone(); ++isubelem)
-//            {
+            
             for(nurbs::IPolarIntegrate igpt_f(sparent, forder, {2,1}); !igpt_f.isDone(); ++igpt_f)
                 {
                     
