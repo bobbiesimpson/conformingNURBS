@@ -80,6 +80,9 @@ namespace nurbs {
             /// Subcell index getter
             uint currentSubCellI() const { return mCurrentSubCellI; }
             
+            /// Sub cell index of subcells within current triangular domain
+            uint currentSubSubCellI() const { return mSubElIntegrator.currentIndex(); }
+            
             /// Source point getter
             const GPt2D& sourcePt() const { return mSPt; }
             
@@ -89,6 +92,12 @@ namespace nurbs {
                 mSPt = s;
                 restart();
             }
+            
+            /// Get current inner quadrature point
+            const GPt2D currentInnerPt() const { return mGLIntegrator.get(); }
+            
+            /// Get current inner weight
+            const double currentInnerWt() const { return mGLIntegrator.getWeight(); }
             
         private:
             
@@ -120,12 +129,6 @@ namespace nurbs {
                 mGLIntegrator.restart();
                 ++mCurrentSubCellI;
             }
-            
-            /// Get current inner quadrature point
-            const GPt2D currentInnerPt() const { return mGLIntegrator.get(); }
-            
-            /// Get current inner weight
-            const double currentInnerWt() const { return mGLIntegrator.getWeight(); }
             
             /// Subcell integrator
             const ISubElem& subElem() const { return mSubElIntegrator; }

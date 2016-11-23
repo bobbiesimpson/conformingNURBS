@@ -27,7 +27,42 @@ namespace nurbs {
                 return;
             double theta1, theta2, theta, rhohat;
             
-            const GPt2D qpt = subElem().get(currentInnerPt());
+            const GPt2D qpt_old = subElem().get(currentInnerPt());
+            GPt2D qpt = qpt_old;
+            double tweight = 1.0;
+            if(3 == currentSubCellI())
+            {
+                if(currentSubSubCellI() == 1)
+                {
+                    qpt = GPt2D((1.0 - qpt_old.s * qpt_old.s) * 0.5  + qpt_old.s,
+                                qpt_old.t);
+                    tweight = (1.0 - qpt_old.s);
+                }
+                else if(currentSubSubCellI() == 0)
+                {
+                    qpt = GPt2D((1.0 - qpt_old.s * qpt_old.s) * -0.5  + qpt_old.s,
+                                qpt_old.t);
+                    tweight = (1.0 + qpt_old.s);
+                }
+            }
+            
+            else if(1 == currentSubCellI())
+            {
+                if(currentSubSubCellI() == 1)
+                {
+                    qpt = GPt2D((1.0 - qpt_old.s * qpt_old.s) * 0.5  + qpt_old.s,
+                                qpt_old.t);
+                    tweight = (1.0 - qpt_old.s);
+                }
+                
+                else if(currentSubSubCellI() == 0)
+                {
+                    qpt = GPt2D((1.0 - qpt_old.s * qpt_old.s) * -0.5  + qpt_old.s,
+                                qpt_old.t);
+                    tweight = (1.0 + qpt_old.s);
+                }
+            }
+            
             
             switch(currentSubCellI())
             {
@@ -70,7 +105,7 @@ namespace nurbs {
             // get coordinates in parent coordinate system
             mCurrentQPt.s = sourcePt().get(0) + rho * std::cos(theta);
             mCurrentQPt.t = sourcePt().get(1) + rho * std::sin(theta);
-            mCurrentWeight = rho * polarjacob * currentInnerWt() * subElem().jacob();
+            mCurrentWeight = rho * polarjacob * currentInnerWt() * subElem().jacob() * tweight;
         }
         
     }

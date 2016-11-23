@@ -18,7 +18,7 @@ namespace nurbs {
         /// {p, p-1} x {p-1, p}
         HDivForest(const Geometry& g) : MultiForest(g)
         {
-            initSpaces({1,2},{2,1});
+            initSpaces({0,1},{1,0});
 //            std::cout << "Constructed HDivForest with " << elemN() << " elements\n";
         }
         

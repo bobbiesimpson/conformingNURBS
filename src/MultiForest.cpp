@@ -381,188 +381,188 @@ namespace nurbs
             }
             
             // now set vertex and element adjacency for all elements
-            const uint nel_s = space(ispace, S).uniqueKnotN(S) - 1;
-            const uint nel_t = space(ispace, S).uniqueKnotN(T) - 1;
-            for(int i = 0; i < nel_t; ++i)
-            {
-                for(int j = 0; j < nel_s; ++j)
-                {
-                    auto curr_el = element(ispace, i, j);
-                    auto curr_bel = bezierElement(ispace, i, j);
-                    
-                    curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(ispace, i-1, j-1));
-                    curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(ispace, i-1, j+1));
-                    curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(ispace, i+1, j-1));
-                    curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(ispace, i+1, j+1));
-                    curr_el->setEdgeConnectedEl(Edge::EDGE0, element(ispace, i-1, j));
-                    curr_el->setEdgeConnectedEl(Edge::EDGE1, element(ispace, i+1, j));
-                    curr_el->setEdgeConnectedEl(Edge::EDGE2, element(ispace, i, j-1));
-                    curr_el->setEdgeConnectedEl(Edge::EDGE3, element(ispace, i, j+1));
-                    
-                    curr_bel->setVertexConnectedEl(Vertex::VERTEX0, bezierElement(ispace, i-1, j-1));
-                    curr_bel->setVertexConnectedEl(Vertex::VERTEX1, bezierElement(ispace, i-1, j+1));
-                    curr_bel->setVertexConnectedEl(Vertex::VERTEX2, bezierElement(ispace, i+1, j-1));
-                    curr_bel->setVertexConnectedEl(Vertex::VERTEX3, bezierElement(ispace, i+1, j+1));
-                    curr_bel->setEdgeConnectedEl(Edge::EDGE0, bezierElement(ispace, i-1, j));
-                    curr_bel->setEdgeConnectedEl(Edge::EDGE1, bezierElement(ispace, i+1, j));
-                    curr_bel->setEdgeConnectedEl(Edge::EDGE2, bezierElement(ispace, i, j-1));
-                    curr_bel->setEdgeConnectedEl(Edge::EDGE3, bezierElement(ispace, i, j+1));
-                    
-                    // we're on Edge0
-                    if(0 == i)
-                    {
-                        curr_el->setEdgeConnectedEl(Edge::EDGE0, element(ge_map[Edge::EDGE0][j]));
-                        curr_bel->setEdgeConnectedEl(Edge::EDGE0, bezierElement(ge_map[Edge::EDGE0][j]));
-                        if(0 == j)
-                        {
-                            auto it = gv_map.find(Vertex::VERTEX0);
-                            if(it != gv_map.end())
-                            {
-                                curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(it->second));
-                                curr_bel->setVertexConnectedEl(Vertex::VERTEX0, bezierElement(it->second));
-                            }
-                        }
-                        else
-                        {
-                            curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(ge_map[Edge::EDGE0][j-1]));
-                            curr_bel->setVertexConnectedEl(Vertex::VERTEX0, bezierElement(ge_map[Edge::EDGE0][j-1]));
-                        }
-                        if(nel_s -1 == j)
-                        {
-                            auto it = gv_map.find(Vertex::VERTEX1);
-                            if(it != gv_map.end())
-                            {
-                                curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(it->second));
-                                curr_bel->setVertexConnectedEl(Vertex::VERTEX1, bezierElement(it->second));
-                            }
-                        }
-                        else
-                        {
-                            curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(ge_map[Edge::EDGE0][j+1]));
-                            curr_bel->setVertexConnectedEl(Vertex::VERTEX1, bezierElement(ge_map[Edge::EDGE0][j+1]));
-                        }
-                    }
-                    
-                    // we're on Edge1
-                    if(nel_t - 1 == i)
-                    {
-                        curr_el->setEdgeConnectedEl(Edge::EDGE1, element(ge_map[Edge::EDGE1][j]));
-                        curr_bel->setEdgeConnectedEl(Edge::EDGE1, bezierElement(ge_map[Edge::EDGE1][j]));
-                        if(0 == j)
-                        {
-                            auto it = gv_map.find(Vertex::VERTEX2);
-                            if(it != gv_map.end())
-                            {
-                                curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(it->second));
-                                curr_bel->setVertexConnectedEl(Vertex::VERTEX2, bezierElement(it->second));
-                            }
-                        }
-                        else
-                        {
-                            curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(ge_map[Edge::EDGE1][j-1]));
-                            curr_bel->setVertexConnectedEl(Vertex::VERTEX2, bezierElement(ge_map[Edge::EDGE1][j-1]));
-                            
-                        }
-                        if(nel_s - 1 == j)
-                        {
-                            auto it = gv_map.find(Vertex::VERTEX3);
-                            if(it != gv_map.end())
-                            {
-                                curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(it->second));
-                                curr_bel->setVertexConnectedEl(Vertex::VERTEX3, bezierElement(it->second));
-                            }
-                        }
-                        else
-                        {
-                            curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(ge_map[Edge::EDGE1][j+1]));
-                            curr_bel->setVertexConnectedEl(Vertex::VERTEX3, bezierElement(ge_map[Edge::EDGE1][j+1]));
-                        }
-                    }
-                    if(0 == j)
-                    {
-                        curr_el->setEdgeConnectedEl(Edge::EDGE2, element(ge_map[Edge::EDGE2][i]));
-                        curr_bel->setEdgeConnectedEl(Edge::EDGE2, bezierElement(ge_map[Edge::EDGE2][i]));
-                        if(0 == i)
-                        {
-                            auto it = gv_map.find(Vertex::VERTEX0);
-                            if(it != gv_map.end())
-                            {
-                                curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(it->second));
-                                curr_bel->setVertexConnectedEl(Vertex::VERTEX0, bezierElement(it->second));
-                            }
-                        }
-                        else
-                        {
-                            curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(ge_map[Edge::EDGE2][i-1]));
-                            curr_bel->setVertexConnectedEl(Vertex::VERTEX0, bezierElement(ge_map[Edge::EDGE2][i-1]));
-                        }
-                        if(nel_t - 1 == i)
-                        {
-                            auto it = gv_map.find(Vertex::VERTEX2);
-                            if(it != gv_map.end())
-                            {
-                                curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(it->second));
-                                curr_bel->setVertexConnectedEl(Vertex::VERTEX2, bezierElement(it->second));
-                            }
-                        }
-                        else
-                        {
-                            curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(ge_map[Edge::EDGE2][i+1]));
-                            curr_bel->setVertexConnectedEl(Vertex::VERTEX2, bezierElement(ge_map[Edge::EDGE2][i+1]));
-                        }
-                    }
-                    if(nel_s - 1 == j)
-                    {
-                        curr_el->setEdgeConnectedEl(Edge::EDGE3, element(ge_map[Edge::EDGE3][i]));
-                        curr_bel->setEdgeConnectedEl(Edge::EDGE3, bezierElement(ge_map[Edge::EDGE3][i]));
-                        if(0 == i)
-                        {
-                            auto it = gv_map.find(Vertex::VERTEX1);
-                            if(it != gv_map.end())
-                            {
-                                curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(it->second));
-                                curr_bel->setVertexConnectedEl(Vertex::VERTEX1, bezierElement(it->second));
-                            }
-                        }
-                        else
-                        {
-                            curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(ge_map[Edge::EDGE3][i-1]));
-                            curr_bel->setVertexConnectedEl(Vertex::VERTEX1, bezierElement(ge_map[Edge::EDGE3][i-1]));
-                        }
-                        if(nel_t - 1 == i)
-                        {
-                            auto it = gv_map.find(Vertex::VERTEX3);
-                            if(it != gv_map.end())
-                            {
-                                curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(it->second));
-                                curr_bel->setVertexConnectedEl(Vertex::VERTEX3, bezierElement(it->second));
-                            }
-                        }
-                        else
-                        {
-                            curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(ge_map[Edge::EDGE3][i+1]));
-                            curr_bel->setVertexConnectedEl(Vertex::VERTEX3, bezierElement(ge_map[Edge::EDGE3][i+1]));
-                        }
-                    }
-
-//                     now get the bezier element and assign the same
-//                     vertex and edge connectivities
-                    auto p_bel = bezierElement(ispace,i,j);
-                    
-                    // first assign vertex connected elements
-                    for(uint ivertex = 0; ivertex < NVERTICES; ++ivertex)
-                    {
-                        
-                        p_bel->setVertexConnectedEl(vertexType(ivertex), curr_el->getVertexConnectedEl(vertexType(ivertex)));
-                    }
-                    
-                    // and now assign edege connected elements
-                    for(uint iedge = 0; iedge < NEDGES; ++iedge)
-                    {
-                        p_bel->setEdgeConnectedEl(edgeType(iedge), curr_el->getEdgeConnectedEl(edgeType(iedge)));
-                    }
-                }
-            }
+//            const uint nel_s = space(ispace, S).uniqueKnotN(S) - 1;
+//            const uint nel_t = space(ispace, S).uniqueKnotN(T) - 1;
+//            for(int i = 0; i < nel_t; ++i)
+//            {
+//                for(int j = 0; j < nel_s; ++j)
+//                {
+//                    auto curr_el = element(ispace, i, j);
+//                    auto curr_bel = bezierElement(ispace, i, j);
+//                    
+//                    curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(ispace, i-1, j-1));
+//                    curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(ispace, i-1, j+1));
+//                    curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(ispace, i+1, j-1));
+//                    curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(ispace, i+1, j+1));
+//                    curr_el->setEdgeConnectedEl(Edge::EDGE0, element(ispace, i-1, j));
+//                    curr_el->setEdgeConnectedEl(Edge::EDGE1, element(ispace, i+1, j));
+//                    curr_el->setEdgeConnectedEl(Edge::EDGE2, element(ispace, i, j-1));
+//                    curr_el->setEdgeConnectedEl(Edge::EDGE3, element(ispace, i, j+1));
+//                    
+//                    curr_bel->setVertexConnectedEl(Vertex::VERTEX0, bezierElement(ispace, i-1, j-1));
+//                    curr_bel->setVertexConnectedEl(Vertex::VERTEX1, bezierElement(ispace, i-1, j+1));
+//                    curr_bel->setVertexConnectedEl(Vertex::VERTEX2, bezierElement(ispace, i+1, j-1));
+//                    curr_bel->setVertexConnectedEl(Vertex::VERTEX3, bezierElement(ispace, i+1, j+1));
+//                    curr_bel->setEdgeConnectedEl(Edge::EDGE0, bezierElement(ispace, i-1, j));
+//                    curr_bel->setEdgeConnectedEl(Edge::EDGE1, bezierElement(ispace, i+1, j));
+//                    curr_bel->setEdgeConnectedEl(Edge::EDGE2, bezierElement(ispace, i, j-1));
+//                    curr_bel->setEdgeConnectedEl(Edge::EDGE3, bezierElement(ispace, i, j+1));
+//                    
+//                    // we're on Edge0
+//                    if(0 == i)
+//                    {
+//                        curr_el->setEdgeConnectedEl(Edge::EDGE0, element(ge_map[Edge::EDGE0][j]));
+//                        curr_bel->setEdgeConnectedEl(Edge::EDGE0, bezierElement(ge_map[Edge::EDGE0][j]));
+//                        if(0 == j)
+//                        {
+//                            auto it = gv_map.find(Vertex::VERTEX0);
+//                            if(it != gv_map.end())
+//                            {
+//                                curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(it->second));
+//                                curr_bel->setVertexConnectedEl(Vertex::VERTEX0, bezierElement(it->second));
+//                            }
+//                        }
+//                        else
+//                        {
+//                            curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(ge_map[Edge::EDGE0][j-1]));
+//                            curr_bel->setVertexConnectedEl(Vertex::VERTEX0, bezierElement(ge_map[Edge::EDGE0][j-1]));
+//                        }
+//                        if(nel_s -1 == j)
+//                        {
+//                            auto it = gv_map.find(Vertex::VERTEX1);
+//                            if(it != gv_map.end())
+//                            {
+//                                curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(it->second));
+//                                curr_bel->setVertexConnectedEl(Vertex::VERTEX1, bezierElement(it->second));
+//                            }
+//                        }
+//                        else
+//                        {
+//                            curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(ge_map[Edge::EDGE0][j+1]));
+//                            curr_bel->setVertexConnectedEl(Vertex::VERTEX1, bezierElement(ge_map[Edge::EDGE0][j+1]));
+//                        }
+//                    }
+//                    
+//                    // we're on Edge1
+//                    if(nel_t - 1 == i)
+//                    {
+//                        curr_el->setEdgeConnectedEl(Edge::EDGE1, element(ge_map[Edge::EDGE1][j]));
+//                        curr_bel->setEdgeConnectedEl(Edge::EDGE1, bezierElement(ge_map[Edge::EDGE1][j]));
+//                        if(0 == j)
+//                        {
+//                            auto it = gv_map.find(Vertex::VERTEX2);
+//                            if(it != gv_map.end())
+//                            {
+//                                curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(it->second));
+//                                curr_bel->setVertexConnectedEl(Vertex::VERTEX2, bezierElement(it->second));
+//                            }
+//                        }
+//                        else
+//                        {
+//                            curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(ge_map[Edge::EDGE1][j-1]));
+//                            curr_bel->setVertexConnectedEl(Vertex::VERTEX2, bezierElement(ge_map[Edge::EDGE1][j-1]));
+//                            
+//                        }
+//                        if(nel_s - 1 == j)
+//                        {
+//                            auto it = gv_map.find(Vertex::VERTEX3);
+//                            if(it != gv_map.end())
+//                            {
+//                                curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(it->second));
+//                                curr_bel->setVertexConnectedEl(Vertex::VERTEX3, bezierElement(it->second));
+//                            }
+//                        }
+//                        else
+//                        {
+//                            curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(ge_map[Edge::EDGE1][j+1]));
+//                            curr_bel->setVertexConnectedEl(Vertex::VERTEX3, bezierElement(ge_map[Edge::EDGE1][j+1]));
+//                        }
+//                    }
+//                    if(0 == j)
+//                    {
+//                        curr_el->setEdgeConnectedEl(Edge::EDGE2, element(ge_map[Edge::EDGE2][i]));
+//                        curr_bel->setEdgeConnectedEl(Edge::EDGE2, bezierElement(ge_map[Edge::EDGE2][i]));
+//                        if(0 == i)
+//                        {
+//                            auto it = gv_map.find(Vertex::VERTEX0);
+//                            if(it != gv_map.end())
+//                            {
+//                                curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(it->second));
+//                                curr_bel->setVertexConnectedEl(Vertex::VERTEX0, bezierElement(it->second));
+//                            }
+//                        }
+//                        else
+//                        {
+//                            curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(ge_map[Edge::EDGE2][i-1]));
+//                            curr_bel->setVertexConnectedEl(Vertex::VERTEX0, bezierElement(ge_map[Edge::EDGE2][i-1]));
+//                        }
+//                        if(nel_t - 1 == i)
+//                        {
+//                            auto it = gv_map.find(Vertex::VERTEX2);
+//                            if(it != gv_map.end())
+//                            {
+//                                curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(it->second));
+//                                curr_bel->setVertexConnectedEl(Vertex::VERTEX2, bezierElement(it->second));
+//                            }
+//                        }
+//                        else
+//                        {
+//                            curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(ge_map[Edge::EDGE2][i+1]));
+//                            curr_bel->setVertexConnectedEl(Vertex::VERTEX2, bezierElement(ge_map[Edge::EDGE2][i+1]));
+//                        }
+//                    }
+//                    if(nel_s - 1 == j)
+//                    {
+//                        curr_el->setEdgeConnectedEl(Edge::EDGE3, element(ge_map[Edge::EDGE3][i]));
+//                        curr_bel->setEdgeConnectedEl(Edge::EDGE3, bezierElement(ge_map[Edge::EDGE3][i]));
+//                        if(0 == i)
+//                        {
+//                            auto it = gv_map.find(Vertex::VERTEX1);
+//                            if(it != gv_map.end())
+//                            {
+//                                curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(it->second));
+//                                curr_bel->setVertexConnectedEl(Vertex::VERTEX1, bezierElement(it->second));
+//                            }
+//                        }
+//                        else
+//                        {
+//                            curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(ge_map[Edge::EDGE3][i-1]));
+//                            curr_bel->setVertexConnectedEl(Vertex::VERTEX1, bezierElement(ge_map[Edge::EDGE3][i-1]));
+//                        }
+//                        if(nel_t - 1 == i)
+//                        {
+//                            auto it = gv_map.find(Vertex::VERTEX3);
+//                            if(it != gv_map.end())
+//                            {
+//                                curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(it->second));
+//                                curr_bel->setVertexConnectedEl(Vertex::VERTEX3, bezierElement(it->second));
+//                            }
+//                        }
+//                        else
+//                        {
+//                            curr_el->setVertexConnectedEl(Vertex::VERTEX3, element(ge_map[Edge::EDGE3][i+1]));
+//                            curr_bel->setVertexConnectedEl(Vertex::VERTEX3, bezierElement(ge_map[Edge::EDGE3][i+1]));
+//                        }
+//                    }
+//
+////                     now get the bezier element and assign the same
+////                     vertex and edge connectivities
+//                    auto p_bel = bezierElement(ispace,i,j);
+//                    
+//                    // first assign vertex connected elements
+//                    for(uint ivertex = 0; ivertex < NVERTICES; ++ivertex)
+//                    {
+//                        
+//                        p_bel->setVertexConnectedEl(vertexType(ivertex), curr_el->getVertexConnectedEl(vertexType(ivertex)));
+//                    }
+//                    
+//                    // and now assign edege connected elements
+//                    for(uint iedge = 0; iedge < NEDGES; ++iedge)
+//                    {
+//                        p_bel->setEdgeConnectedEl(edgeType(iedge), curr_el->getEdgeConnectedEl(edgeType(iedge)));
+//                    }
+//                }
+//            }
         }
     }
     

@@ -45,6 +45,11 @@ namespace nurbs
                 return *this;
             }
             
+            /// Current sub cell index getter
+            uint currentIndex() const { return mCurrentIndex;}
+            
+        private:
+            
             /// Number of subelements
             uint mNSubEls;
             
