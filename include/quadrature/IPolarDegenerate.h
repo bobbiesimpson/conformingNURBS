@@ -38,14 +38,6 @@ namespace nurbs {
             IPolarDegenerate(spt, edge, {n,n})
             {}
             
-            /// Construct with vector of integration orders
-            IPolarDegenerate(const GPt2D& spt,
-                             const nurbs::Edge edge,
-                             const UIntVec& orders)
-            :
-            IPolarIntegrate(spt, edge, orders)
-            {}
-            
             /// Constructor with specified orders and offset and location
             /// of singularity in the parametric interval [-1,1]^2
             IPolarDegenerate(const GPt2D& spt,
@@ -56,9 +48,9 @@ namespace nurbs {
             mSPt(spt),
             mDegenerateEdge(edge),
             mCurrentSubCellI(0),
-            mGLIntegrator(orders, offset),
+            mGLIntegrator(orders, offset)
             {
-                initSubCellRanges();
+                init();
                 initPolarTerms();
             }
             
@@ -83,7 +75,7 @@ namespace nurbs {
             }
             
             /// Prefix increment
-            IPolarIntegrate& operator++()
+            IPolarDegenerate& operator++()
             {
                 incrementImpl();
                 return *this;
@@ -93,7 +85,7 @@ namespace nurbs {
             uint currentSubCellI() const { return mCurrentSubCellI; }
             
             /// Sub cell index of subcells within current triangular domain
-            uint currentSubSubCellI() const { return mSubElIntegrator.currentIndex(); }
+            uint currentSubSubCellI() const { return subElem().currentIndex(); }
             
             /// Source point getter
             const GPt2D& sourcePt() const { return mSPt; }
@@ -118,9 +110,9 @@ namespace nurbs {
             
             void incrementImpl()
             {
-                ++mSubElIntegrator;
-                if(mSubElIntegrator.isDone()) { // reached end of subcells within triangle
-                    mSubElIntegrator.restart();
+                ++subElem();
+                if(subElem().isDone()) { // reached end of subcells within triangle
+                    subElem().restart();
                     ++mGLIntegrator;
                 }
                 if(mGLIntegrator.isDone()) // reached end of quadrature points on triangle
@@ -130,9 +122,8 @@ namespace nurbs {
                     initPolarTerms();
             }
             
-            /// Calculate appropriate subdivsion intervals given
-            /// degenerate edge
-            void initSubCellRanges();
+            /// Initiate theta values and appropriate subcell divisions
+            void init();
             
             /// A wrapper function for calculating the current point and weight.
             /// Takes account of the source point lieing on edges.
@@ -150,10 +141,67 @@ namespace nurbs {
             }
             
             /// Subcell integrator
-            const ISubElem& subElem() const { return mSubElIntegrator; }
+            ISubElem& subElem() { return subElem(currentSubCellI()); }
+            
+            /// Subcell integrator
+            const ISubElem& subElem() const { return subElem(currentSubCellI()); }
             
             /// Subcell integrator for given triangle index
-            const ISubElem& subElem(const uint i) { return mSubElemVec.at(i); }
+            ISubElem& subElem(const uint i) { return mSubElemVec[i]; }
+            
+            /// Subcell integrator for given triangle index
+            const ISubElem& subElem(const uint i) const { return mSubElemVec.at(i); }
+            
+            // Get the range [\theta_1, \theta_2] that defines the triangular subcell
+            const std::pair<double, double>& thetaRange(const uint isubcell) const
+            {
+                return mThetaVec.at(isubcell);
+            }
+            
+            const double thetaMap(const double xi, const uint isubcell) const
+            {
+                const auto theta_pair = thetaRange(isubcell);
+                const auto t1 = theta_pair.first;
+                const auto t2 = theta_pair.second;
+                
+                return (t2 - t1) * 0.5 * xi + (t2 + t1) * 0.5;
+            }
+            
+            // Get xi given theta in a given subcell
+            const double inverseThetaMap(const double theta,
+                                         const uint isubcell) const
+            {
+                const auto t_range = thetaRange(isubcell);
+                const double t1 = t_range.first;
+                const double t2 = t_range.second;
+                return (theta - 0.5 * (t1 + t2)) / ((t2 - t1) * 0.5);
+            }
+            
+            const bool subCellHasZeroArea(const uint isubcell) const
+            {
+                switch(isubcell)
+                {
+                    case 0:
+                        if(approximatelyEqual(sourcePt().get(0), 1.0, TOL))
+                            return true;
+                        break;
+                    case 1:
+                        if(approximatelyEqual(sourcePt().get(1), 1.0, TOL))
+                            return true;
+                        break;
+                    case 2:
+                        if(approximatelyEqual(sourcePt().get(0), -1.0, TOL))
+                            return true;
+                        break;
+                    case 3:
+                        if(approximatelyEqual(sourcePt().get(1), -1.0, TOL))
+                            return true;
+                        break;
+                    default:
+                        throw std::runtime_error("Bad subcell in function 'subcellHasZeroArea()'");
+                }
+                return false;
+            }
             
             /// Location of singularity
             GPt2D mSPt;
@@ -167,11 +215,11 @@ namespace nurbs {
             /// Member instance of G-L integrator used in each subcell
             IElemIntegrate mGLIntegrator;
             
-            /// Member instance of subelement integrator
-            ISubElem mSubElIntegrator;
-            
             /// Vector of subelements
             std::vector<ISubElem> mSubElemVec;
+            
+            /// Values of theta that define the four triangles centred around the source point
+            std::vector<std::pair<double, double>> mThetaVec;
             
             /// Current quadrature point. Calculated in initPolarTerms()
             GPt2D mCurrentQPt;

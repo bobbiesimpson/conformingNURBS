@@ -294,7 +294,7 @@ namespace nurbs
         std::pair<bool, Edge> degenerateEdge() const
         {
             if(!degenerate())
-                return std::make_pair(false, Edge::EDGE2);
+                return std::make_pair(false, Edge::EDGE0);
             
             const double tol = 1.e-9;
             std::vector<Point3D> vcoords

@@ -29,20 +29,38 @@ namespace nurbs {
             
             const GPt2D qpt_old = subElem().get(currentInnerPt());
             GPt2D qpt = qpt_old;
+            const GPt2D old_inner_pt = currentInnerPt();
+            
             double tweight = 1.0;
+            
+            /// Variable Telles transformation
+//            if(3 == currentSubCellI() || currentSubCellI() == 1)
+//            {
+//                const double src = 0.0;
+//                const double s_d = src * src - 1.0;
+//                const double y_d = std::cbrt( src * s_d + std::abs( s_d ) )
+//                + std::cbrt( src * s_d - std::abs( s_d ) ) + src;
+//                tweight = 3.0 * (( qpt_old.s - y_d ) * ( qpt_old.s - y_d ) ) / ( 1.0 + 3.0 * y_d * y_d );
+//                qpt.s = ( std::pow( ( qpt_old.s - y_d ), 3 ) + y_d * ( y_d * y_d + 3.0 ) ) /
+//                ( 1.0 + 3.0 * y_d * y_d );
+//                
+//            }
+//            
+            
+            // Simple Telles transformation
             if(3 == currentSubCellI())
             {
                 if(currentSubSubCellI() == 1)
                 {
-                    qpt = GPt2D((1.0 - qpt_old.s * qpt_old.s) * 0.5  + qpt_old.s,
-                                qpt_old.t);
-                    tweight = (1.0 - qpt_old.s);
+                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * -0.5  + old_inner_pt.s,
+                                              old_inner_pt.t));
+                    tweight = (1.0 + old_inner_pt.s);
                 }
                 else if(currentSubSubCellI() == 0)
                 {
-                    qpt = GPt2D((1.0 - qpt_old.s * qpt_old.s) * -0.5  + qpt_old.s,
-                                qpt_old.t);
-                    tweight = (1.0 + qpt_old.s);
+                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * 0.5  + old_inner_pt.s,
+                                old_inner_pt.t));
+                    tweight = (1.0 - old_inner_pt.s);
                 }
             }
             
@@ -50,20 +68,20 @@ namespace nurbs {
             {
                 if(currentSubSubCellI() == 1)
                 {
-                    qpt = GPt2D((1.0 - qpt_old.s * qpt_old.s) * 0.5  + qpt_old.s,
-                                qpt_old.t);
-                    tweight = (1.0 - qpt_old.s);
+                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * -0.5  + old_inner_pt.s,
+                                old_inner_pt.t));
+                    tweight = (1.0 + old_inner_pt.s);
                 }
                 
                 else if(currentSubSubCellI() == 0)
                 {
-                    qpt = GPt2D((1.0 - qpt_old.s * qpt_old.s) * -0.5  + qpt_old.s,
-                                qpt_old.t);
-                    tweight = (1.0 + qpt_old.s);
+                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * 0.5  + old_inner_pt.s,
+                                old_inner_pt.t));
+                    tweight = (1.0 - old_inner_pt.s);
                 }
             }
             
-            
+        
             switch(currentSubCellI())
             {
                     // first triangle
@@ -106,6 +124,7 @@ namespace nurbs {
             mCurrentQPt.s = sourcePt().get(0) + rho * std::cos(theta);
             mCurrentQPt.t = sourcePt().get(1) + rho * std::sin(theta);
             mCurrentWeight = rho * polarjacob * currentInnerWt() * subElem().jacob() * tweight;
+            
         }
         
     }

@@ -77,6 +77,7 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/quadrature/IGaussQuadrature1D.h
         ${LIB_INCLUDE_DIR}/quadrature/IRegularQuadrature.h
         ${LIB_INCLUDE_DIR}/quadrature/IPolarIntegrate.h
+        ${LIB_INCLUDE_DIR}/quadrature/IPolarDegenerate.h
         ${LIB_INCLUDE_DIR}/quadrature/ISubElem.h
         ${LIB_INCLUDE_DIR}/quadrature/IVertexQuadrature.h
         ${LIB_INCLUDE_DIR}/MultiForest.h
@@ -129,6 +130,7 @@ set(libsrcs
         ${LIB_SOURCE_DIR}/quadrature/IGaussQuadrature1D.cpp
         ${LIB_SOURCE_DIR}/quadrature/IRegularQuadrature.cpp
         ${LIB_SOURCE_DIR}/quadrature/IPolarIntegrate.cpp
+        ${LIB_SOURCE_DIR}/quadrature/IPolarDegenerate.cpp
         ${LIB_SOURCE_DIR}/quadrature/ISubElem.cpp
         ${LIB_SOURCE_DIR}/quadrature/IVertexQuadrature.cpp
         ${libheaders})
