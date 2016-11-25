@@ -22,7 +22,8 @@ namespace nurbs
 			}
 
 			/// Construct with a specified number of points in each direction
-			IElemIntegrate(const UIntVec& orders, const uint offset = 0)
+			IElemIntegrate(const UIntVec& orders,
+                           const uint offset = 0)
             : mCurrentGP(0)
 			{
                 uint n = 1;

@@ -48,38 +48,38 @@ namespace nurbs {
 //            
             
             // Simple Telles transformation
-            if(3 == currentSubCellI())
-            {
-                if(currentSubSubCellI() == 1)
-                {
-                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * -0.5  + old_inner_pt.s,
-                                              old_inner_pt.t));
-                    tweight = (1.0 + old_inner_pt.s);
-                }
-                else if(currentSubSubCellI() == 0)
-                {
-                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * 0.5  + old_inner_pt.s,
-                                old_inner_pt.t));
-                    tweight = (1.0 - old_inner_pt.s);
-                }
-            }
-            
-            else if(1 == currentSubCellI())
-            {
-                if(currentSubSubCellI() == 1)
-                {
-                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * -0.5  + old_inner_pt.s,
-                                old_inner_pt.t));
-                    tweight = (1.0 + old_inner_pt.s);
-                }
-                
-                else if(currentSubSubCellI() == 0)
-                {
-                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * 0.5  + old_inner_pt.s,
-                                old_inner_pt.t));
-                    tweight = (1.0 - old_inner_pt.s);
-                }
-            }
+//            if(3 == currentSubCellI())
+//            {
+//                if(currentSubSubCellI() == 1)
+//                {
+//                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * -0.5  + old_inner_pt.s,
+//                                              old_inner_pt.t));
+//                    tweight = (1.0 + old_inner_pt.s);
+//                }
+//                else if(currentSubSubCellI() == 0)
+//                {
+//                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * 0.5  + old_inner_pt.s,
+//                                old_inner_pt.t));
+//                    tweight = (1.0 - old_inner_pt.s);
+//                }
+//            }
+//            
+//            else if(1 == currentSubCellI())
+//            {
+//                if(currentSubSubCellI() == 1)
+//                {
+//                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * -0.5  + old_inner_pt.s,
+//                                old_inner_pt.t));
+//                    tweight = (1.0 + old_inner_pt.s);
+//                }
+//                
+//                else if(currentSubSubCellI() == 0)
+//                {
+//                    qpt = subElem().get(GPt2D((1.0 - old_inner_pt.s * old_inner_pt.s) * 0.5  + old_inner_pt.s,
+//                                old_inner_pt.t));
+//                    tweight = (1.0 - old_inner_pt.s);
+//                }
+//            }
             
         
             switch(currentSubCellI())
@@ -103,7 +103,8 @@ namespace nurbs {
                     // third triangle
                 case 2:
                     theta1 = PI - std::atan((1.0 - sourcePt().get(1)) / (sourcePt().get(0) + 1.0));
-                    theta2 = PI + std::atan((sourcePt().get(1) + 1.0) / (sourcePt().get(0) + 1.0));
+                    theta2
+                    = PI + std::atan((sourcePt().get(1) + 1.0) / (sourcePt().get(0) + 1.0));
                     theta = 0.5 * (theta2 - theta1) * qpt.get(0) + 0.5 * (theta2 + theta1);
                     rhohat = -(1.0 + sourcePt().get(0)) / std::cos(theta);
                     break;
@@ -123,7 +124,7 @@ namespace nurbs {
             // get coordinates in parent coordinate system
             mCurrentQPt.s = sourcePt().get(0) + rho * std::cos(theta);
             mCurrentQPt.t = sourcePt().get(1) + rho * std::sin(theta);
-            mCurrentWeight = rho * polarjacob * currentInnerWt() * subElem().jacob() * tweight;
+            mCurrentWeight = rho * polarjacob /** currentInnerWt() * */*subElem().jacob() * tweight;
             
         }
         

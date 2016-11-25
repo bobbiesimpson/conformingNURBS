@@ -34,8 +34,13 @@ namespace nurbs
             
             // First fill up subcells with default 1 subcell per triangle
             mSubElemVec.clear();
-            for(size_t i = 0; i < 4; ++i)
+            for(size_t i = 0; i < subCellN(); ++i)
                 mSubElemVec.push_back(ISubElem(1,1));
+            
+            // and fill up integrators with default number of one per triangle
+            mTellesIntegratorVec.clear();
+            for(size_t i = 0; i < subCellN(); ++i)
+                mTellesIntegratorVec.push_back({ITellesIntegrate(orders())});
             
             // Compute
             if(Edge::EDGE0 == degenerateEdge() || Edge::EDGE1 == degenerateEdge())
@@ -46,6 +51,10 @@ namespace nurbs
                 {
                     const DoubleVec xivec_west{inverseThetaMap(PI, west)};
                     mSubElemVec[west] = ISubElem(xivec_west, {});
+                    mTellesIntegratorVec[west].clear();
+                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+                    
                 }
                 
                 // 'east' triangle
@@ -54,6 +63,9 @@ namespace nurbs
                 {
                     const DoubleVec xivec_east{inverseThetaMap(0.0, east)};
                     mSubElemVec[east] = ISubElem(xivec_east, {});
+                    mTellesIntegratorVec[east].clear();
+                    mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+                    mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
                 }
             }
             else if(Edge::EDGE2 == degenerateEdge() || Edge::EDGE3 == degenerateEdge())
@@ -64,6 +76,9 @@ namespace nurbs
                 {
                     const DoubleVec xivec_south{inverseThetaMap(3*PI/2.0, south)};
                     mSubElemVec[south] = ISubElem(xivec_south, {});
+                    mTellesIntegratorVec[south].clear();
+                    mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+                    mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
                 }
                 
                 // 'North' triangle
@@ -72,6 +87,9 @@ namespace nurbs
                 {
                     const DoubleVec xivec_north{inverseThetaMap(PI/2.0, north)};
                     mSubElemVec[north] = ISubElem(xivec_north, {});
+                    mTellesIntegratorVec[north].clear();
+                    mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+                    mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
                 }
             }
         }
@@ -89,17 +107,13 @@ namespace nurbs
                 return;
             double rhohat = 0.0;
             
-            const GPt2D qpt_old = subElem().get(currentInnerPt());
-            GPt2D qpt = qpt_old;
-            double tweight = 1.0;
-
+            const GPt2D qpt = subElem().get(currentInnerPt());
+            
             const double theta = thetaMap(qpt.get(0), currentSubCellI());
             const auto theta_range = thetaRange(currentSubCellI());
             const double theta1 = theta_range.first;
             const double theta2 = theta_range.second;
             
-            // now compute Telles transformation
-            // TODO
             
             switch(currentSubCellI())
             {
@@ -131,7 +145,7 @@ namespace nurbs
             // get coordinates in parent coordinate system
             mCurrentQPt.s = sourcePt().get(0) + rho * std::cos(theta);
             mCurrentQPt.t = sourcePt().get(1) + rho * std::sin(theta);
-            mCurrentWeight = rho * polarjacob * currentInnerWt() * subElem().jacob() * tweight;
+            mCurrentWeight = rho * polarjacob * currentInnerWt() * subElem().jacob();
         }
         
     }

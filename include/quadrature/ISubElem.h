@@ -3,6 +3,7 @@
 
 #include "base.h"
 #include "IElemIntegrate.h"
+#include <map>
 
 namespace nurbs
 {
@@ -28,12 +29,22 @@ namespace nurbs
             ISubElem(const nurbs::DoubleVec& sknots,
                      const nurbs::DoubleVec& tknots);
             
+            /// Create two subelements in specified direction
+            /// split at given coordinate in parent interval.
+            /// This will apply a Telles transformation
+            /// at the given parent coordinate.
+//            ISubElem(const double x,
+//                     const nurbs::ParamDir d);
+            
             
             /// get current subelement range
             DoubleVec getRange() const;
             
             /// get subelement jacobian from subelement space to parent space [-1,1] x [-1,1]
             double jacob() const;
+            
+            /// Get the transformed telles Jacobian
+//            double tellesJacob(const nurbs::GPt2D& gpt) const;
             
             /// convert gauss point to parent space (s,t)
             GPt2D get(const GPt2D& pt) const;
@@ -54,7 +65,20 @@ namespace nurbs
             /// Current sub cell index getter
             uint currentIndex() const { return mCurrentIndex;}
             
+            /// Total number of subcells
+            const uint subCellN() const { return mNSubEls; }
+            
+//            /// Is the Telles transform applied?
+//            const bool tellesTransformApplied() const { return mTellesTransformApplied.first; };
+            
         private:
+            
+            /// Given a parent coordinate, transform this
+            /// according to the Telles transform and the
+            /// present subcell
+//            const GPt2D transformTellesGPt(const GPt2D& gpt) const;
+//            
+//            const ParamDir tellesTransformDirection() const { return mTellesTransformApplied.second; }
             
             /// Number of subelements
             uint mNSubEls;
@@ -65,6 +89,10 @@ namespace nurbs
             /// Vectors of subelement ranges
             DoubleVecVec mRanges;
             
+            /// Flag which indicates if any subcells
+            /// have a Telles transform applied.
+//            const std::pair<bool, ParamDir> mTellesTransformApplied;
+
         };
     }
 }

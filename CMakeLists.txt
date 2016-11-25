@@ -69,6 +69,7 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/quadrature/IEdgePolarIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/IEdgeQuadrature.h
         ${LIB_INCLUDE_DIR}/quadrature/IElemIntegrate.h
+        ${LIB_INCLUDE_DIR}/quadrature/ITellesIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/ISubElemIntegrate.h
         ${LIB_INCLUDE_DIR}/quadrature/IEqualQuadrature.h
         ${LIB_INCLUDE_DIR}/quadrature/IEqualQuadratureTri.h
@@ -123,6 +124,7 @@ set(libsrcs
 	    ${LIB_SOURCE_DIR}/OutputVTK.cpp
         ${LIB_SOURCE_DIR}/quadrature/IEdgePolarIntegrate.cpp
         ${LIB_SOURCE_DIR}/quadrature/IEdgeQuadrature.cpp
+        ${LIB_SOURCE_DIR}/quadrature/ITellesIntegrate.cpp
         ${LIB_SOURCE_DIR}/quadrature/IElemIntegrate.cpp
         ${LIB_SOURCE_DIR}/quadrature/IEqualQuadrature.cpp
         ${LIB_SOURCE_DIR}/quadrature/IEqualQuadratureTri.cpp

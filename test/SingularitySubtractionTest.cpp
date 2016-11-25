@@ -72,14 +72,14 @@ int main(int argc, char* argv[]) {
             
             const auto sorder = p_sel->equalIntegrationOrder(offset);
             //const auto forder = p_fel->equalIntegrationOrder(offset + 1);
-            const nurbs::UIntVec forder{2*(offset + 1), offset + 1};
+            const nurbs::UIntVec forder{(offset + 1), offset + 1};
             std::cout << "Quadrature order: " << forder << "\n";
             
             nurbs::OutputVTK output("integrationOutput_" + std::to_string(offset));
             std::vector<double> data;
             std::vector<nurbs::GPt2D> pts;
             
-            const nurbs::GPt2D sparent(0.0, 0.0);
+            const nurbs::GPt2D sparent(1.0, 1.0);
             const auto x = p_fel->eval(sparent);
             const auto& t1_s = p_fel->tangent(sparent.s, sparent.t, nurbs::ParamDir::S);
             const auto& t2_s = p_fel->tangent(sparent.s, sparent.t, nurbs::ParamDir::T);
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
             
             
             uint nqpts = 0;
-            for(nurbs::IPolarIntegrate igpt_f(sparent, forder, {2,1}); !igpt_f.isDone(); ++igpt_f)
+            for(nurbs::IPolarIntegrate igpt_f(sparent, forder, {1,1}); !igpt_f.isDone(); ++igpt_f)
             {
                 nqpts += 1;
                 //                    const auto fparent = isubelem.get(igpt_f.get());
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
                 const auto ekernel = std::exp(-iconst * k * r) / (4.0 * nurbs::PI * r);
                 
                 
-                //                    if(igpt_f.currentSubCellI() == 1 && igpt_f.currentSubSubCellI() == 1)
+                                    if(igpt_f.currentSubCellI() == 3 && igpt_f.currentSubSubCellI() == 0)
                 //                    if(isubelem.currentIndex() == 0)
                 {
                     data.push_back(ekernel.real() * jdet_f * fw);

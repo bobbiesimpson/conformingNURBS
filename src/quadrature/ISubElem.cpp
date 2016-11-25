@@ -72,6 +72,34 @@ namespace nurbs
             }
         }
         
+//        ISubElem::ISubElem(const double x,
+//                           const nurbs::ParamDir d)
+//        :
+//        mNSubEls(2),
+//        mCurrentIndex(0),
+//        mTellesTransformApplied(std::make_pair(true, d))
+//        {
+//            if(ParamDir::S == d)
+//            {
+//                DoubleVec subcell1{-1.0, x, -1.0, 1.0};
+//                DoubleVec subcell2{x, 1.0, -1.0, 1.0};
+//                mRanges.push_back(subcell1);
+//                mRanges.push_back(subcell2);
+////                mTellesVec.push_back(std::make_pair(ParamDir::S, Sign::POSITIVE));
+////                mTellesVec.push_back(std::make_pair(ParamDir::S, Sign::NEGATIVE));
+//                
+//            }
+//            else
+//            {
+//                DoubleVec subcell1{-1.0, 1.0, -1.0, x};
+//                DoubleVec subcell2{-1.0, 1.0, x, 1.0};
+//                mRanges.push_back(subcell1);
+//                mRanges.push_back(subcell2);
+//            }
+////            mTellesVec.push_back(std::make_pair(ParamDir::S, Sign::POSITIVE));
+////            mTellesVec.push_back(std::make_pair(ParamDir::S, Sign::NEGATIVE));
+//        }
+        
         DoubleVec ISubElem::getRange() const
         {
             return mRanges[mCurrentIndex];
@@ -83,11 +111,34 @@ namespace nurbs
             return ( current_range[1] - current_range[0] ) / 2.0 * ( current_range[3] - current_range[2] ) / 2.0;
         }
         
+//        double ISubElem::tellesJacob(const nurbs::GPt2D& gpt) const
+//        {
+//            // NEEDS TESTING!!!!
+//            if(!tellesTransformApplied())
+//                return jacob();
+//            
+//            assert(currentIndex() < 2);
+//            
+//            const double coord = gpt.get(tellesTransformDirection());
+//            const double sign = (0 == currentIndex()) ? 1.0 : -1.0;
+//            
+//            return (1.0 - coord * sign) * jacob();
+//            
+//        }
+        
+        
         GPt2D ISubElem::get(const GPt2D& pt) const
         {
+            auto pt_copy = pt;
+            
+//            if(tellesTransformApplied())
+//            {
+//                // TODO
+//            }
+            
             DoubleVec current_range = getRange();
-            const double s =  (current_range[1] - current_range[0] ) / 2.0 * pt.get(0) + (current_range[0] + current_range[1] ) / 2.0;
-            const double t =  (current_range[3] - current_range[2] ) / 2.0 * pt.get(1) + ( current_range[2] + current_range[3] ) / 2.0;
+            const double s =  (current_range[1] - current_range[0] ) / 2.0 * pt_copy.get(0) + (current_range[0] + current_range[1] ) / 2.0;
+            const double t =  (current_range[3] - current_range[2] ) / 2.0 * pt_copy.get(1) + ( current_range[2] + current_range[3] ) / 2.0;
             return GPt2D(s,t);
         }
     }

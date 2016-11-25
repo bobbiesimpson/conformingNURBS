@@ -60,40 +60,6 @@ namespace nurbs
 	/// pi = 3.141...
 	const double PI = atan( 1.0 ) * 4.0;
     
-    /// A simple struct for holding a gauss point
-    struct GPt2D
-    {
-        GPt2D(const double s_in = 0.0,
-              const double t_in = 0.0)
-        :
-        s(s_in),
-        t(t_in) {}
-        
-        /// Access component values
-        double get(const uint i) const
-        {
-            if(i == 0)
-                return s;
-            else if(i == 1)
-                return t;
-            else {
-                error("Bad index specified for GaussPt struct");
-                return DOUBLE_ERROR;
-            }
-        }
-        
-        /// Components
-        double s;
-        double t;
-        
-    };
-    
-    /// Overload comparison operator
-    bool operator<(const GPt2D& g1, const GPt2D& g2);
-    
-    /// Overload output operator
-    std::ostream& operator<<(std::ostream& ost, const GPt2D& gpt);
-    
 	/// Specifies the order of a B-spline derivative
 	enum DerivOrder
 	{
@@ -116,6 +82,48 @@ namespace nurbs
     
     /// Cast uint to ParamDir type
     ParamDir ParamDirType(const uint d);
+    
+    /// A simple struct for holding a gauss point
+    struct GPt2D
+    {
+        GPt2D(const double s_in = 0.0,
+              const double t_in = 0.0)
+        :
+        s(s_in),
+        t(t_in) {}
+        
+        /// Access component values
+        double get(const uint i) const
+        {
+            if(i == 0)
+                return s;
+            else if(i == 1)
+                return t;
+            else {
+                error("Bad index specified for GaussPt struct");
+                return DOUBLE_ERROR;
+            }
+        }
+        
+        double get(nurbs::ParamDir d) const
+        {
+            if(nurbs::ParamDir::S == d)
+                return s;
+            else
+                return t;
+        }
+        
+        /// Components
+        double s;
+        double t;
+        
+    };
+    
+    /// Overload comparison operator
+    bool operator<(const GPt2D& g1, const GPt2D& g2);
+    
+    /// Overload output operator
+    std::ostream& operator<<(std::ostream& ost, const GPt2D& gpt);
 
 	/// Representing each of the carteisan components
 	enum CartesianComponent
