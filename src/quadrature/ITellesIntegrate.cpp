@@ -19,9 +19,10 @@ namespace nurbs
                     mEtaVals = std::make_pair(-1.0, 0.0);
                     break;
                 case Edge::EDGE3:
-                    mEtaVals = std::make_pair(0.0, 1.0);
+                    mEtaVals = std::make_pair(1.0, 0.0);
                     break;
             }
+            //mEtaVals = std::make_pair(0.0, 0.0);
         }
         
         

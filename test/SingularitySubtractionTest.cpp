@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
             std::vector<double> data;
             std::vector<nurbs::GPt2D> pts;
             
-            const nurbs::GPt2D sparent(1.0, 1.0);
+            const nurbs::GPt2D sparent(0.0, 0.0);
             const auto x = p_fel->eval(sparent);
             const auto& t1_s = p_fel->tangent(sparent.s, sparent.t, nurbs::ParamDir::S);
             const auto& t2_s = p_fel->tangent(sparent.s, sparent.t, nurbs::ParamDir::T);
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
             
             
             uint nqpts = 0;
-            for(nurbs::IPolarIntegrate igpt_f(sparent, forder, {1,1}); !igpt_f.isDone(); ++igpt_f)
+            for(nurbs::IPolarIntegrate igpt_f(sparent, forder, {2,1}); !igpt_f.isDone(); ++igpt_f)
             {
                 nqpts += 1;
                 //                    const auto fparent = isubelem.get(igpt_f.get());
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
                         //                                                              * jdet_s * jdet_f * sw * fw;
                         
                         //                                matrix[itest][itrial] -= 1.0 / (k * k) * div_s * div_f * ekernel * sw * fw * jdet_s * jdet_f;
-                        matrix[itest][itrial] -= 1.0 / (k * k) * (div_f * ekernel /*- div_s / (4.0 * nurbs::PI * rs) */) * fw * jdet_f;
+//                        matrix[itest][itrial] -= 1.0 / (k * k) * (div_f * ekernel /*- div_s / (4.0 * nurbs::PI * rs) */) * fw * jdet_f;
                     }
                 }
             }

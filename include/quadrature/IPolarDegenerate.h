@@ -118,6 +118,12 @@ namespace nurbs {
             /// Orders getter
             const UIntVec& orders() const { return mOrders; }
             
+            /// Base integrator const getter
+            const ITellesIntegrate& baseIntegrator() const { return mTellesIntegratorVec.at(currentSubCellI()).at(currentSubSubCellI()); }
+            
+            /// Base integrator non-const getter
+            ITellesIntegrate& baseIntegrator() { return mTellesIntegratorVec[currentSubCellI()][currentSubSubCellI()]; }
+            
         private:
             
             void incrementImpl()
@@ -181,11 +187,7 @@ namespace nurbs {
             /// Subcell integrator for given triangle index
             const ISubElem& subElem(const uint i) const { return mSubElemVec.at(i); }
             
-            /// Base integrator non-const getter
-            ITellesIntegrate& baseIntegrator() { return mTellesIntegratorVec[currentSubCellI()][currentSubSubCellI()]; }
-            
-            /// Base integrator const getter
-            const ITellesIntegrate& baseIntegrator() const { return mTellesIntegratorVec.at(currentSubCellI()).at(currentSubSubCellI()); }
+
             
             // Get the range [\theta_1, \theta_2] that defines the triangular subcell
             const std::pair<double, double>& thetaRange(const uint isubcell) const

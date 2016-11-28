@@ -54,6 +54,9 @@ namespace nurbs
                     mTellesIntegratorVec[west].clear();
                     mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
                     mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                    mTellesIntegratorVec[west].push_back({ITellesIntegrate(orders())});
+//                    mTellesIntegratorVec[west].push_back({ITellesIntegrate(orders())});
+                    
                     
                 }
                 
@@ -66,6 +69,8 @@ namespace nurbs
                     mTellesIntegratorVec[east].clear();
                     mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
                     mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                    mTellesIntegratorVec[east].push_back({ITellesIntegrate(orders())});
+//                    mTellesIntegratorVec[east].push_back({ITellesIntegrate(orders())});
                 }
             }
             else if(Edge::EDGE2 == degenerateEdge() || Edge::EDGE3 == degenerateEdge())
@@ -79,6 +84,8 @@ namespace nurbs
                     mTellesIntegratorVec[south].clear();
                     mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
                     mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                    mTellesIntegratorVec[south].push_back({ITellesIntegrate(orders())});
+//                    mTellesIntegratorVec[south].push_back({ITellesIntegrate(orders())});
                 }
                 
                 // 'North' triangle
@@ -90,6 +97,23 @@ namespace nurbs
                     mTellesIntegratorVec[north].clear();
                     mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
                     mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                    mTellesIntegratorVec[north].push_back({ITellesIntegrate(orders())});
+//                    mTellesIntegratorVec[north].push_back({ITellesIntegrate(orders())});
+                }
+                
+                // 'West' triangle
+                const uint west = 2;
+                if(!subCellHasZeroArea(west))
+                {
+                    const DoubleVec xivec_west{inverseThetaMap(PI, west)};
+                    mSubElemVec[west] = ISubElem(xivec_west, {});
+                    mTellesIntegratorVec[west].clear();
+                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+                    //                    mTellesIntegratorVec[west].push_back({ITellesIntegrate(orders())});
+                    //                    mTellesIntegratorVec[west].push_back({ITellesIntegrate(orders())});
+                    
+                    
                 }
             }
         }

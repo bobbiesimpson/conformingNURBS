@@ -47,6 +47,9 @@ namespace nurbs
             /// Get the gauss point
             GPt2D get() const;
             
+            /// Get the GL base point
+            GPt2D getBasePt() const { return mGLIntegrator.get(); }
+            
             /// Get the gauss point component
             double get( uint component ) const;
             

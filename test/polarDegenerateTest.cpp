@@ -8,6 +8,7 @@
 #include "IElemIntegrate.h"
 #include "OutputVTK.h"
 #include "HConformingForest.h"
+#include "IPolarIntegrate.h"
 #include "IPolarDegenerate.h"
 #include "ITellesIntegrate.h"
 
@@ -32,13 +33,17 @@ int main(int argc, char* argv[])
         if(!g.loadHBSFile(ifs))
             error("Failed to load geometry from hbs data");
         
+        std::ofstream ofs("degenerate_quadrature_results.dat");
+        if(!ofs)
+            throw std::runtime_error("Cannot open file for writing.");
+        
         Forest forest(g);
         HDivForest divforest(g);
         
         const auto p_fel = divforest.bezierElement(8);
         const auto degenerate_pair = p_fel->degenerateEdge();
         
-        const GPt2D sourcept(0.9, 0.9);     // hardcoded source point in parent domain
+        const GPt2D sourcept(-0.97, 0.0);     // hardcoded source point in parent domain
         const Point3D x = p_fel->eval(sourcept);
         
         // element connectivity
@@ -49,7 +54,7 @@ int main(int argc, char* argv[])
             if(degenerate_pair.first)
             {
                 // initiaite output variables
-                nurbs::OutputVTK output("polardegenerate_quadrature_" + std::to_string(order));
+                nurbs::OutputVTK output("degenerate_quadrature_" + std::to_string(order));
                 std::vector<double> data;
                 std::vector<nurbs::GPt2D> pts;
                 
@@ -63,6 +68,7 @@ int main(int argc, char* argv[])
                 for(size_t i = 0; i < matrix.size(); ++i)
                     matrix[i].resize(fconn.size());
                 
+                //for(IPolarIntegrate igpt(sourcept, forder); !igpt.isDone(); ++igpt)
                 for(IPolarDegenerate igpt(sourcept, degenerate_pair.second, forder); !igpt.isDone(); ++igpt)
                 {
                     const auto fparent = igpt.get();
@@ -74,9 +80,9 @@ int main(int argc, char* argv[])
                     const auto& t2 = p_fel->tangent(fparent.s, fparent.t, nurbs::ParamDir::T);
                     const double jdet_f = p_fel->jacDet(fparent, t1, t2);
                     const auto& basis_f = p_fel->basis(fparent.s, fparent.t, t1, t2);
-//                    const auto& ds_f = p_fel->localBasisDers(fparent.s, fparent.t, nurbs::DerivType::DS);
-//                    const auto& dt_f = p_fel->localBasisDers(fparent.s, fparent.t, nurbs::DerivType::DT);
-//                    const double jpiola_f = nurbs::cross(t1, t2).length();
+                    const auto& ds_f = p_fel->localBasisDers(fparent.s, fparent.t, nurbs::DerivType::DS);
+                    const auto& dt_f = p_fel->localBasisDers(fparent.s, fparent.t, nurbs::DerivType::DT);
+                    const double jpiola_f = nurbs::cross(t1, t2).length();
                     
                     // kernel entries
                     const double r = dist(x,y);
@@ -99,15 +105,16 @@ int main(int argc, char* argv[])
                                 matrix[itest][itrial] += ( ekernel * basis_f[itrial][i]) * jdet_f * fw;
                             
                             // divergence (field)
-//                            const double div_f = 1./jpiola_f * (ds_f[itrial][0] + dt_f[itrial][1]);
-                            //                            matrix[itest][itrial] -= 1.0 / (k * k) * (div_f * ekernel) * fw * jdet_f;
+                            const double div_f = 1./jpiola_f * (ds_f[itrial][0] + dt_f[itrial][1]);
+                            matrix[itest][itrial] -= 1.0 / (k * k) * (div_f * ekernel) * fw * jdet_f;
                         }
                     }
                     
-                    if(igpt.currentSubCellI() == 3 && igpt.currentSubSubCellI() == 0)
+                    if(igpt.currentSubCellI() == 2 && igpt.currentSubSubCellI() == 0)
                     {
-                        data.push_back(jdet_f * fw);
-                        pts.push_back(fparent);
+                        data.push_back(ekernel.real() * jdet_f * fw);
+                        pts.push_back(igpt.baseIntegrator().getBasePt());
+//                        pts.push_back(igpt.get());
                     }
                     
                     // remember area calculation
@@ -118,9 +125,10 @@ int main(int argc, char* argv[])
                 }
                 std::cout << std::setprecision(15) << "area = " << a << "\n";
                 std::cout << std::setprecision(15) << "integral = " << matrix[0][0].real() << "\n";
+                ofs << ngpts << "\t" << matrix[0][0].real() << "\n";
                 
                 // If we're on the highest order create an output of the integrand
-                if(max_order == order - 1)
+                if(max_order -1 == order)
                     output.ouputQuadratureData("polardegenerate_integrand", data, pts, forder[0], forder[1]);
 
             }

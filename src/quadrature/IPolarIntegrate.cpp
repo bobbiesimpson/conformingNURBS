@@ -124,7 +124,7 @@ namespace nurbs {
             // get coordinates in parent coordinate system
             mCurrentQPt.s = sourcePt().get(0) + rho * std::cos(theta);
             mCurrentQPt.t = sourcePt().get(1) + rho * std::sin(theta);
-            mCurrentWeight = rho * polarjacob /** currentInnerWt() * */*subElem().jacob() * tweight;
+            mCurrentWeight = rho * polarjacob * currentInnerWt() * subElem().jacob() * tweight;
             
         }
         
