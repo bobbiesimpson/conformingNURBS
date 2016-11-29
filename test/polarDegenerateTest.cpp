@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 {
     // Some constants
     const uint max_order = 30;                      // max order of quadrature that we loop unilt
-    const double k = 100.0;                         // wavenumber for emag kernel
+    const double k = 0.0;                         // wavenumber for emag kernel
     const std::complex<double> iconst(0.0, 1.0);    // imaginary number
     
     try
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
         const auto p_fel = divforest.bezierElement(8);
         const auto degenerate_pair = p_fel->degenerateEdge();
         
-        const GPt2D sourcept(-1.0, -1.0);     // hardcoded source point in parent domain
+        const GPt2D sourcept(0.96, -0.96);     // hardcoded source point in parent domain
         const Point3D x = p_fel->eval(sourcept);
         
         // element connectivity
@@ -108,16 +108,16 @@ int main(int argc, char* argv[])
                                 matrix[itest][itrial] += ( ekernel * basis_f[itrial][i]) * jdet_f * fw;
                             
                             // divergence (field)
-                            const double div_f = 1./jpiola_f * (ds_f[itrial][0] + dt_f[itrial][1]);
-                            matrix[itest][itrial] -= 1.0 / (k * k) * (div_f * ekernel) * fw * jdet_f;
+//                            const double div_f = 1./jpiola_f * (ds_f[itrial][0] + dt_f[itrial][1]);
+//                            matrix[itest][itrial] -= 1.0 / (k * k) * (div_f * ekernel) * fw * jdet_f;
                         }
                     }
                     
                     if(igpt.currentSubCellI() == 3 && igpt.currentSubSubCellI() == 0)
                     {
-                        data.push_back(ekernel.real() * jdet_f * fw);
-//                        pts.push_back(igpt.baseIntegrator().getBasePt());
-                        pts.push_back(fparent);
+                        data.push_back(ekernel.real() * jdet_f * fw / igpt.currentInnerWt());
+                        pts.push_back(igpt.baseIntegrator().getBasePt());
+//                        pts.push_back(fparent);
                     }
                     
                     // remember area calculation
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
                 std::cout << std::setprecision(15) << "integral = " << matrix[0][0].real() << "\n";
                 ofs << ngpts << "\t" << matrix[0][0].real() << "\n";
                 
-                // If we're on the highest order create an output of the integrand
+//                 If we're on the highest order create an output of the integrand
                 if(max_order -1 == order)
                     output.ouputQuadratureData("polardegenerate_integrand", data, pts, forder[0], forder[1]);
 

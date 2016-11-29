@@ -53,56 +53,6 @@ namespace nurbs
                 else
                     divideSubcell(PolarSubCell::SOUTH, DivisionType::EXTERNAL);
                 
-//                // 'West' triangle
-//                const uint west = 2;
-//                if(!subCellHasZeroArea(west))
-//                {
-//                    const DoubleVec xivec_west{inverseThetaMap(PI, west)};
-//                    mSubElemVec[west] = ISubElem(xivec_west, {});
-//                    mTellesIntegratorVec[west].clear();
-//                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-//                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                }
-//                
-//                // 'east' triangle
-//                const uint east = 0;
-//                if(!subCellHasZeroArea(east))
-//                {
-//                    const DoubleVec xivec_east{inverseThetaMap(0.0, east)};
-//                    mSubElemVec[east] = ISubElem(xivec_east, {});
-//                    mTellesIntegratorVec[east].clear();
-//                    mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-//                    mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                }
-//                
-//                // For points very close to the edge of the domain it is necessary to split triangles
-//                // into subcells that lie opposite the degenerate edge
-//                if(Edge::EDGE0 == degenerateEdge())
-//                {
-//                    // 'North' triangle
-//                    const uint north = 1;
-//                    if(!subCellHasZeroArea(north))
-//                    {
-//                        const DoubleVec xivec_north{inverseThetaMap(PI/2.0, north)};
-//                        mSubElemVec[north] = ISubElem(xivec_north, {});
-//                        mTellesIntegratorVec[north].clear();
-//                        mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                        mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-//                    }
-//                }
-//                else
-//                {
-//                    // 'South' triangle
-//                    const uint south = 3;
-//                    if(!subCellHasZeroArea(south))
-//                    {
-//                        const DoubleVec xivec_south{inverseThetaMap(3*PI/2.0, south)};
-//                        mSubElemVec[south] = ISubElem(xivec_south, {});
-//                        mTellesIntegratorVec[south].clear();
-//                        mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                        mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-//                    }
-//                }
             }
             else if(Edge::EDGE2 == degenerateEdge() || Edge::EDGE3 == degenerateEdge())
             {
@@ -113,61 +63,14 @@ namespace nurbs
                     divideSubcell(PolarSubCell::WEST, DivisionType::EXTERNAL);
                 else
                     divideSubcell(PolarSubCell::EAST, DivisionType::EXTERNAL);
-                
-//                // 'South' triangle
-//                const uint south = 3;
-//                if(!subCellHasZeroArea(south))
-//                {
-//                    const DoubleVec xivec_south{inverseThetaMap(3*PI/2.0, south)};
-//                    mSubElemVec[south] = ISubElem(xivec_south, {});
-//                    mTellesIntegratorVec[south].clear();
-//                    mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-//                    mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                }
-//                
-//                // 'North' triangle
-//                const uint north = 1;
-//                if(!subCellHasZeroArea(north))
-//                {
-//                    const DoubleVec xivec_north{inverseThetaMap(PI/2.0, north)};
-//                    mSubElemVec[north] = ISubElem(xivec_north, {});
-//                    mTellesIntegratorVec[north].clear();
-//                    mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-//                    mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                }
-//                
-//                if(Edge::EDGE3 == degenerateEdge())
-//                {
-//                    // 'West' triangle
-//                    const uint west = 2;
-//                    if(!subCellHasZeroArea(west))
-//                    {
-//                        const DoubleVec xivec_west{inverseThetaMap(PI, west)};
-//                        mSubElemVec[west] = ISubElem(xivec_west, {});
-//                        mTellesIntegratorVec[west].clear();
-//                        mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                        mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-//                    }
-//                }
-//                else
-//                {
-//                    // 'east' triangle
-//                    const uint east = 0;
-//                    if(!subCellHasZeroArea(east))
-//                    {
-//                        const DoubleVec xivec_east{inverseThetaMap(0.0, east)};
-//                        mSubElemVec[east] = ISubElem(xivec_east, {});
-//                        mTellesIntegratorVec[east].clear();
-//                        mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                        mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-//                    }
-//                }
             }
         }
         
         void IPolarDegenerate::initPolarTerms()
         {
-            if(subCellHasZeroArea(currentSubCellI()))
+//            if(subCellHasZeroArea(currentSubCellI()))
+//                restartNextSubCell();
+            while(currentSubCellI() < subCellN() && subCellHasZeroArea(currentSubCellI()))
                 restartNextSubCell();
             computeCurrentPtWt();
         }
@@ -184,7 +87,6 @@ namespace nurbs
             const auto theta_range = thetaRange(currentSubCellI());
             const double theta1 = theta_range.first;
             const double theta2 = theta_range.second;
-            
             
             switch(currentSubCellI())
             {

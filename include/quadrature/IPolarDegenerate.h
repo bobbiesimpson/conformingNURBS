@@ -56,7 +56,7 @@ namespace nurbs {
             :
             mSPt(spt),
             mDegenerateEdge(edge),
-            mOrders({2 * orders[0], orders[1]}),
+            mOrders({2*orders[0], orders[1]}),
             mCurrentSubCellI(0)
             {
                 init();
@@ -143,16 +143,16 @@ namespace nurbs {
                     baseIntegrator().restart();
                     ++subElem();
                 }
-                
                 if(subElem().isDone())
                 {
                     restartNextSubCell();
-                    initPolarTerms();
+                    
+                    if(!isDone())
+                        initPolarTerms();
                 }
                 
                 if(!isDone()) // prevent call to non-real triangle when finished
                     initPolarTerms();
-                
                 
             }
             
@@ -186,8 +186,6 @@ namespace nurbs {
             /// Subcell integrator for given triangle index
             const ISubElem& subElem(const uint i) const { return mSubElemVec.at(i); }
             
-
-            
             // Get the range [\theta_1, \theta_2] that defines the triangular subcell
             const std::pair<double, double>& thetaRange(const uint isubcell) const
             {
@@ -213,6 +211,7 @@ namespace nurbs {
                 return (theta - 0.5 * (t1 + t2)) / ((t2 - t1) * 0.5);
             }
             
+            /// Does the given subcell index have zero area in parent space?
             const bool subCellHasZeroArea(const uint isubcell) const
             {
                 switch(isubcell)
