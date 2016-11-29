@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
         const auto p_fel = divforest.bezierElement(8);
         const auto degenerate_pair = p_fel->degenerateEdge();
         
-        const GPt2D sourcept(-0.97, 0.0);     // hardcoded source point in parent domain
+        const GPt2D sourcept(-1.0, -1.0);     // hardcoded source point in parent domain
         const Point3D x = p_fel->eval(sourcept);
         
         // element connectivity
@@ -68,12 +68,15 @@ int main(int argc, char* argv[])
                 for(size_t i = 0; i < matrix.size(); ++i)
                     matrix[i].resize(fconn.size());
                 
+//                for(IElemIntegrate igpt(forder); !igpt.isDone(); ++igpt)
                 //for(IPolarIntegrate igpt(sourcept, forder); !igpt.isDone(); ++igpt)
                 for(IPolarDegenerate igpt(sourcept, degenerate_pair.second, forder); !igpt.isDone(); ++igpt)
                 {
                     const auto fparent = igpt.get();
                     const Point3D y = p_fel->eval(fparent);
                     const auto fw = igpt.getWeight();
+                    
+//                    std::cout << fparent << "\t" << fw << "\n";
                     
                     // cached tangent entries
                     const auto& t1 = p_fel->tangent(fparent.s, fparent.t, nurbs::ParamDir::S);
@@ -110,11 +113,11 @@ int main(int argc, char* argv[])
                         }
                     }
                     
-                    if(igpt.currentSubCellI() == 2 && igpt.currentSubSubCellI() == 0)
+                    if(igpt.currentSubCellI() == 3 && igpt.currentSubSubCellI() == 0)
                     {
                         data.push_back(ekernel.real() * jdet_f * fw);
-                        pts.push_back(igpt.baseIntegrator().getBasePt());
-//                        pts.push_back(igpt.get());
+//                        pts.push_back(igpt.baseIntegrator().getBasePt());
+                        pts.push_back(fparent);
                     }
                     
                     // remember area calculation

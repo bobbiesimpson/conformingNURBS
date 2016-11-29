@@ -178,6 +178,14 @@ namespace nurbs
         EDGE3 = 3
     };
     
+    /// ENUMERATION OF POLAR SUBCELLS (TRIANGULAR)
+    enum class PolarSubCell {
+        EAST = 0,
+        NORTH = 1,
+        WEST = 2,
+        SOUTH = 3
+    };
+    
     /// Overload output operator
     std::ostream& operator<<(std::ostream& ost, Edge e);
     

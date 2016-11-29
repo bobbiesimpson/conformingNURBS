@@ -24,6 +24,15 @@ namespace nurbs {
         /// sub (sub!) elements.
         ///
         
+        /// Enumeration which specifies if subcell division applies
+        /// Telles transformation to the internal edge or the external
+        /// edges
+        enum class DivisionType
+        {
+            INTERNAL,
+            EXTERNAL
+        };
+        
         class IPolarDegenerate : public IBaseIntegrate
         {
             
@@ -128,18 +137,6 @@ namespace nurbs {
             
             void incrementImpl()
             {
-//                ++subElem();
-//                if(subElem().isDone()) { // reached end of subcells within triangle
-//                    subElem().restart();
-//                    ++baseIntegrator();
-//                    ++mGLIntegrator;
-//                }
-//                if(mGLIntegrator.isDone()) // reached end of quadrature points on triangle
-//                    restartNextSubCell();
-//                
-//                if(!isDone()) // prevent call to non-real triangle when finished
-//                    initPolarTerms();
-                
                 ++baseIntegrator();
                 if(baseIntegrator().isDone())
                 {
@@ -150,6 +147,7 @@ namespace nurbs {
                 if(subElem().isDone())
                 {
                     restartNextSubCell();
+                    initPolarTerms();
                 }
                 
                 if(!isDone()) // prevent call to non-real triangle when finished
@@ -172,6 +170,7 @@ namespace nurbs {
             void restartNextSubCell()
             {
                 //baseIntegrator().restart();
+                //while(subCellHasZeroArea(currentSubCellI()))
                 ++mCurrentSubCellI;
             }
             
@@ -239,6 +238,11 @@ namespace nurbs {
                 }
                 return false;
             }
+            
+            /// Divide a triangular subcell such that the new boundary
+            /// is perpindicular to the parent element edges
+            void divideSubcell(const PolarSubCell pcell,
+                               const DivisionType dtype);
             
             /// Location of singularity
             GPt2D mSPt;

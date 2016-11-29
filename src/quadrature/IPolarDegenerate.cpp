@@ -45,76 +45,123 @@ namespace nurbs
             // Compute
             if(Edge::EDGE0 == degenerateEdge() || Edge::EDGE1 == degenerateEdge())
             {
-                // 'West' triangle
-                const uint west = 2;
-                if(!subCellHasZeroArea(west))
-                {
-                    const DoubleVec xivec_west{inverseThetaMap(PI, west)};
-                    mSubElemVec[west] = ISubElem(xivec_west, {});
-                    mTellesIntegratorVec[west].clear();
-                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                    mTellesIntegratorVec[west].push_back({ITellesIntegrate(orders())});
-//                    mTellesIntegratorVec[west].push_back({ITellesIntegrate(orders())});
-                    
-                    
-                }
+                divideSubcell(PolarSubCell::WEST, DivisionType::INTERNAL);
+                divideSubcell(PolarSubCell::EAST, DivisionType::INTERNAL);
                 
-                // 'east' triangle
-                const uint east = 0;
-                if(!subCellHasZeroArea(east))
-                {
-                    const DoubleVec xivec_east{inverseThetaMap(0.0, east)};
-                    mSubElemVec[east] = ISubElem(xivec_east, {});
-                    mTellesIntegratorVec[east].clear();
-                    mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-                    mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                    mTellesIntegratorVec[east].push_back({ITellesIntegrate(orders())});
-//                    mTellesIntegratorVec[east].push_back({ITellesIntegrate(orders())});
-                }
+                if(Edge::EDGE0 == degenerateEdge())
+                    divideSubcell(PolarSubCell::NORTH, DivisionType::EXTERNAL);
+                else
+                    divideSubcell(PolarSubCell::SOUTH, DivisionType::EXTERNAL);
+                
+//                // 'West' triangle
+//                const uint west = 2;
+//                if(!subCellHasZeroArea(west))
+//                {
+//                    const DoubleVec xivec_west{inverseThetaMap(PI, west)};
+//                    mSubElemVec[west] = ISubElem(xivec_west, {});
+//                    mTellesIntegratorVec[west].clear();
+//                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+//                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                }
+//                
+//                // 'east' triangle
+//                const uint east = 0;
+//                if(!subCellHasZeroArea(east))
+//                {
+//                    const DoubleVec xivec_east{inverseThetaMap(0.0, east)};
+//                    mSubElemVec[east] = ISubElem(xivec_east, {});
+//                    mTellesIntegratorVec[east].clear();
+//                    mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+//                    mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                }
+//                
+//                // For points very close to the edge of the domain it is necessary to split triangles
+//                // into subcells that lie opposite the degenerate edge
+//                if(Edge::EDGE0 == degenerateEdge())
+//                {
+//                    // 'North' triangle
+//                    const uint north = 1;
+//                    if(!subCellHasZeroArea(north))
+//                    {
+//                        const DoubleVec xivec_north{inverseThetaMap(PI/2.0, north)};
+//                        mSubElemVec[north] = ISubElem(xivec_north, {});
+//                        mTellesIntegratorVec[north].clear();
+//                        mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                        mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+//                    }
+//                }
+//                else
+//                {
+//                    // 'South' triangle
+//                    const uint south = 3;
+//                    if(!subCellHasZeroArea(south))
+//                    {
+//                        const DoubleVec xivec_south{inverseThetaMap(3*PI/2.0, south)};
+//                        mSubElemVec[south] = ISubElem(xivec_south, {});
+//                        mTellesIntegratorVec[south].clear();
+//                        mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                        mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+//                    }
+//                }
             }
             else if(Edge::EDGE2 == degenerateEdge() || Edge::EDGE3 == degenerateEdge())
             {
-                // 'South' triangle
-                const uint south = 3;
-                if(!subCellHasZeroArea(south))
-                {
-                    const DoubleVec xivec_south{inverseThetaMap(3*PI/2.0, south)};
-                    mSubElemVec[south] = ISubElem(xivec_south, {});
-                    mTellesIntegratorVec[south].clear();
-                    mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-                    mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                    mTellesIntegratorVec[south].push_back({ITellesIntegrate(orders())});
-//                    mTellesIntegratorVec[south].push_back({ITellesIntegrate(orders())});
-                }
+                divideSubcell(PolarSubCell::SOUTH, DivisionType::INTERNAL);
+                divideSubcell(PolarSubCell::NORTH, DivisionType::INTERNAL);
                 
-                // 'North' triangle
-                const uint north = 1;
-                if(!subCellHasZeroArea(north))
-                {
-                    const DoubleVec xivec_north{inverseThetaMap(PI/2.0, north)};
-                    mSubElemVec[north] = ISubElem(xivec_north, {});
-                    mTellesIntegratorVec[north].clear();
-                    mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-                    mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-//                    mTellesIntegratorVec[north].push_back({ITellesIntegrate(orders())});
-//                    mTellesIntegratorVec[north].push_back({ITellesIntegrate(orders())});
-                }
+                if(Edge::EDGE3 == degenerateEdge())
+                    divideSubcell(PolarSubCell::WEST, DivisionType::EXTERNAL);
+                else
+                    divideSubcell(PolarSubCell::EAST, DivisionType::EXTERNAL);
                 
-                // 'West' triangle
-                const uint west = 2;
-                if(!subCellHasZeroArea(west))
-                {
-                    const DoubleVec xivec_west{inverseThetaMap(PI, west)};
-                    mSubElemVec[west] = ISubElem(xivec_west, {});
-                    mTellesIntegratorVec[west].clear();
-                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
-                    mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
-                    //                    mTellesIntegratorVec[west].push_back({ITellesIntegrate(orders())});
-                    //                    mTellesIntegratorVec[west].push_back({ITellesIntegrate(orders())});
-                    
-                    
-                }
+//                // 'South' triangle
+//                const uint south = 3;
+//                if(!subCellHasZeroArea(south))
+//                {
+//                    const DoubleVec xivec_south{inverseThetaMap(3*PI/2.0, south)};
+//                    mSubElemVec[south] = ISubElem(xivec_south, {});
+//                    mTellesIntegratorVec[south].clear();
+//                    mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+//                    mTellesIntegratorVec[south].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                }
+//                
+//                // 'North' triangle
+//                const uint north = 1;
+//                if(!subCellHasZeroArea(north))
+//                {
+//                    const DoubleVec xivec_north{inverseThetaMap(PI/2.0, north)};
+//                    mSubElemVec[north] = ISubElem(xivec_north, {});
+//                    mTellesIntegratorVec[north].clear();
+//                    mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+//                    mTellesIntegratorVec[north].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                }
+//                
+//                if(Edge::EDGE3 == degenerateEdge())
+//                {
+//                    // 'West' triangle
+//                    const uint west = 2;
+//                    if(!subCellHasZeroArea(west))
+//                    {
+//                        const DoubleVec xivec_west{inverseThetaMap(PI, west)};
+//                        mSubElemVec[west] = ISubElem(xivec_west, {});
+//                        mTellesIntegratorVec[west].clear();
+//                        mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                        mTellesIntegratorVec[west].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+//                    }
+//                }
+//                else
+//                {
+//                    // 'east' triangle
+//                    const uint east = 0;
+//                    if(!subCellHasZeroArea(east))
+//                    {
+//                        const DoubleVec xivec_east{inverseThetaMap(0.0, east)};
+//                        mSubElemVec[east] = ISubElem(xivec_east, {});
+//                        mTellesIntegratorVec[east].clear();
+//                        mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE2, orders()));
+//                        mTellesIntegratorVec[east].push_back(ITellesIntegrate(Edge::EDGE3, orders()));
+//                    }
+//                }
             }
         }
         
@@ -172,5 +219,69 @@ namespace nurbs
             mCurrentWeight = rho * polarjacob * currentInnerWt() * subElem().jacob();
         }
         
+        void IPolarDegenerate::divideSubcell(const PolarSubCell pcell,
+                                             const DivisionType dtype)
+        {
+            // Idea is to encapsulate the division of triangular subcells
+            // within this function.
+            
+            const double tol = 1.0e-9;
+            
+            std::vector<Edge> edge_vec;
+            if(DivisionType::INTERNAL == dtype)
+                edge_vec = {Edge::EDGE3, Edge::EDGE2};
+            else
+                edge_vec = {Edge::EDGE2, Edge::EDGE3};
+            
+            // First naively create subcells
+            double xi;
+            uint ctype;
+            switch(pcell)
+            {
+                case PolarSubCell::EAST:
+                    ctype = 0;
+                    xi = inverseThetaMap(0.0, ctype);
+                    break;
+                case PolarSubCell::NORTH:
+                    ctype = 1;
+                    xi = inverseThetaMap(PI/2.0, ctype);
+                    break;
+                case PolarSubCell::WEST:
+                    ctype = 2;
+                    xi = inverseThetaMap(PI, ctype);
+                    break;
+                case PolarSubCell::SOUTH:
+                    ctype = 3;
+                    xi = inverseThetaMap(3*PI/2.0, ctype);
+                    break;
+            }
+            
+            if(subCellHasZeroArea(ctype))
+                return;
+            
+            mTellesIntegratorVec[ctype].clear();
+            
+            // We only need one sub-subcell
+            if(essentiallyEqual(xi, 1.0, tol))
+            {
+                mSubElemVec[ctype] = ISubElem(1,1);
+                mTellesIntegratorVec[ctype].push_back(ITellesIntegrate(edge_vec[0], orders()));
+                
+            }
+            // We only need one sub-subcell
+            else if(essentiallyEqual(xi, -1.0, tol))
+            {
+                mSubElemVec[ctype] = ISubElem(1,1);
+                mTellesIntegratorVec[ctype].push_back(ITellesIntegrate(edge_vec[1], orders()));
+                
+            }
+            // We need two sub-subcells
+            else
+            {
+                mSubElemVec[ctype] = ISubElem(DoubleVec{xi}, {});
+                for(size_t i = 0; i < edge_vec.size(); ++i)
+                    mTellesIntegratorVec[ctype].push_back(ITellesIntegrate(edge_vec[i], orders()));
+            }
+        }
     }
 }
