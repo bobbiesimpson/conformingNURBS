@@ -13,6 +13,8 @@
 #include "ITellesIntegrate.h"
 #include "IEqualQuadrature.h"
 #include "IEdgeQuadrature.h"
+#include "BezierVectorElement.h"
+#include "IVertexQuadrature.h"
 
 using namespace nurbs;
 
@@ -20,8 +22,8 @@ int main(int argc, char* argv[])
 {
     // Some constants
     const uint max_order = 12;                      // max order of quadrature that we loop unilt
-    const uint max_forder = 6;
-    const double k = 100.0;                         // wavenumber for emag kernel
+    const uint max_forder = 8;
+    const double k = 1.0;                         // wavenumber for emag kernel
     const std::complex<double> iconst(0.0, 1.0);    // imaginary number
     
     try
@@ -44,14 +46,45 @@ int main(int argc, char* argv[])
         
         std::cout << "contructed hdiv forest with " << divforest.elemN() << " elements\n";
         
+        
+        // Element #s 8, 17 degenerate.
+        // Element #7 next to #8 (non degenerate)
+
         const auto p_fel = divforest.bezierElement(8);
-        const auto p_sel = divforest.bezierElement(17);
+        const auto p_sel = divforest.bezierElement(26);
+        
+//        nurbs::VAnalysisElement* p_sel;
+//        Edge e1, e2;
+//        for(uint i = 0; i < divforest.elemN(); ++i)
+//        {
+//            p_sel = divforest.bezierElement(i);
+//            const auto p = p_fel->degenerateEdge();
+//            if(p.first)
+//                continue;
+//            if(nurbs::edgeConnected(*p_sel, *p_fel, e1, e2))
+//                break;
+//        }
+
         
         Edge e1, e2;
         if(nurbs::edgeConnected(*p_sel, *p_fel, e1, e2))
             std::cout << "Elements are edge connected\n";
         
-        const auto degenerate_pair = p_fel->degenerateEdge();
+        Vertex v1,v2;
+        if(nurbs::vertexConnected(*p_sel, *p_fel, v1, v2))
+            std::cout << "Elements are vertex connected\n";
+        v1 = Vertex::VERTEX1;
+        v2 = Vertex::VERTEX1;
+            
+        
+        const auto degenerate_field_pair = p_fel->degenerateEdge();
+        if(degenerate_field_pair.first)
+            std::cout << "Field element is degenerate\n";
+        
+        const auto degenerate_source_pair = p_sel->degenerateEdge();
+        if(degenerate_source_pair.first)
+            std::cout << "Source element is degenerate\n";
+        
         
         // element connectivity
         const auto fconn = p_fel->signedGlobalBasisFuncI();
@@ -95,8 +128,9 @@ int main(int argc, char* argv[])
 //                    const double jpiola_s = nurbs::cross(t1, t2).length();
 //                    const auto x = p_sel->eval(sparent);
 //                    
-//                    for(IPolarDegenerate igpt(nurbs::projectPt(sparent, e1, e2), degenerate_pair.second, forder); !igpt.isDone(); ++igpt)
-//                    //for(IElemIntegrate igpt(forder); !igpt.isDone(); ++igpt)
+//                    //for(IPolarDegenerate igpt(GPt2D(1.0, 0.0)/*nurbs::projectPt(sparent, e1, e2)*/, degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
+//                    //for(IPolarIntegrate igpt(GPt2D(1.0, 0.0)/*nurbs::projectPt(sparent, e1, e2)*/, forder); !igpt.isDone(); ++igpt)
+//                    for(IElemIntegrate igpt(forder); !igpt.isDone(); ++igpt)
 //                    //for(IPolarIntegrate igpt(sparent, forder); !igpt.isDone(); ++igpt)
 //                    //for(IPolarDegenerate igpt(sparent, degenerate_pair.second, forder); !igpt.isDone(); ++igpt)
 //                    {
@@ -157,7 +191,8 @@ int main(int argc, char* argv[])
 //                    }
 //                }
                 
-                for(nurbs::IEdgeQuadrature igpt(sorder, forder, e1, e2); !igpt.isDone(); ++igpt)
+                for(nurbs::IVertexQuadrature igpt(sorder, forder, v1, v2); !igpt.isDone(); ++igpt)
+//                for(nurbs::IEdgeQuadrature igpt(sorder, forder, e1, e2); !igpt.isDone(); ++igpt)
                 {
                     const auto gpt4d = igpt.get();
                     const auto sparent = gpt4d.srcPt();
@@ -217,7 +252,8 @@ int main(int argc, char* argv[])
                     }
                     ngpts += 1;
                 }
-                                    std::cout << std::setprecision(15) << "integral = " << matrix[0][0].real() << "\n";
+                
+                std::cout << std::setprecision(15) << "integral = " << matrix[0][0].real() << "\n";
                 ofs << ngpts << "\t" << std::setprecision(15) << matrix[0][0].real() << "\n";
             }
             

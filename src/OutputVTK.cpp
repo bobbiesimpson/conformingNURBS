@@ -32,7 +32,8 @@ namespace nurbs {
         
         uint sample_offset = 0;
         
-        std::vector<uint> evec{8,17};
+        std::vector<uint> evec{8,26};
+        
 //        for(uint i = 0; i < 18; ++i)
 //            evec.push_back(i);
         
