@@ -21,9 +21,9 @@ using namespace nurbs;
 int main(int argc, char* argv[])
 {
     // Some constants
-    const uint max_order = 12;                      // max order of quadrature that we loop unilt
+    const uint max_order = 10;                      // max order of quadrature that we loop unilt
     const uint max_forder = 8;
-    const double k = 1.0;                         // wavenumber for emag kernel
+    const double k = 100.0;                         // wavenumber for emag kernel
     const std::complex<double> iconst(0.0, 1.0);    // imaginary number
     
     try
@@ -47,10 +47,13 @@ int main(int argc, char* argv[])
         std::cout << "contructed hdiv forest with " << divforest.elemN() << " elements\n";
         
         
-        // Element #s 8, 17 degenerate.
-        // Element #7 next to #8 (non degenerate)
-
+        // Element #s 8, 17 degenerate (17 edge adjacent)
+        // Element #7 edge adjacent to #8 (non degenerate edge)
+        // Element #26 vertex adjacent to 8 (both degenerate)
+        
         const auto p_fel = divforest.bezierElement(8);
+        std::cout << "field element = 7 \n";
+        
         const auto p_sel = divforest.bezierElement(26);
         
 //        nurbs::VAnalysisElement* p_sel;
@@ -62,20 +65,65 @@ int main(int argc, char* argv[])
 //            if(p.first)
 //                continue;
 //            if(nurbs::edgeConnected(*p_sel, *p_fel, e1, e2))
-//                break;
+//                if(Edge::EDGE0  == e1)
+//                {
+//                    std::cout << "Source element = " << i << "\n";
+//                    break;
+//                }
 //        }
-
         
         Edge e1, e2;
         if(nurbs::edgeConnected(*p_sel, *p_fel, e1, e2))
             std::cout << "Elements are edge connected\n";
+        e1 = Edge::EDGE3;
+        e2 = Edge::EDGE3;
+        
+//        nurbs::VAnalysisElement* p_sel;
+//        Vertex v1, v2;
+//        for(uint i = 0; i < divforest.elemN(); ++i)
+//        {
+//            p_sel = divforest.bezierElement(i);
+//            const auto p = p_fel->degenerateEdge();
+//            if(p.first)
+//                continue;
+//            if(nurbs::vertexConnected(*p_sel, *p_fel, v1, v2))
+//                if(Vertex::VERTEX3 == v2)
+//                    break;
+//        }
         
         Vertex v1,v2;
         if(nurbs::vertexConnected(*p_sel, *p_fel, v1, v2))
             std::cout << "Elements are vertex connected\n";
         v1 = Vertex::VERTEX1;
         v2 = Vertex::VERTEX1;
-            
+        
+//        const auto centrept_f = p_fel->eval(0.0, 0.0);
+//        const auto h = p_fel->size();
+//        for(uint i = 0; i < divforest.elemN(); ++i)
+//        {
+//            p_sel = divforest.bezierElement(i);
+//            if(p_sel == p_fel)
+//                continue;
+//            Vertex v1, v2;
+//            if(nurbs::vertexConnected(*p_sel, *p_fel, v1, v2))
+//                continue;
+//            Edge e1, e2;
+//            if(nurbs::edgeConnected(*p_sel, *p_fel, e1, e2))
+//                continue;
+//            const auto x = p_sel->eval(0.0, 0.0);
+//            const auto d = nurbs::dist(x,centrept_f);
+//            const double C = d / h;
+//            if(C >9.9 && C < 10.1)
+//            {
+//                std::cout << "Element " << i << " with d/h ratio = " << C << "\n";
+//                break;
+//            }
+//            if(i==divforest.elemN() - 1)
+//            {
+//                std::cout << "reached element of element list.\n";
+//                return EXIT_FAILURE;
+//            }
+//        }
         
         const auto degenerate_field_pair = p_fel->degenerateEdge();
         if(degenerate_field_pair.first)
@@ -90,10 +138,10 @@ int main(int argc, char* argv[])
         const auto fconn = p_fel->signedGlobalBasisFuncI();
         const auto sconn = p_sel->signedGlobalBasisFuncI();
         
-        for(uint iforder = 2; iforder < max_forder + 1; ++iforder)
+        for(uint iforder = 3; iforder < max_forder + 1; ++iforder)
         {
-            const auto forder = UIntVec{iforder,iforder};//p_fel->equalIntegrationOrder();
-            //                    forder[0] *= 2;
+            auto forder = UIntVec{iforder,iforder};//p_fel->equalIntegrationOrder();
+//                                forder[0] *= 2;
             
             std::cout << "Field element quadrature order: " << forder << "\n";
             
@@ -101,7 +149,7 @@ int main(int argc, char* argv[])
             if(!ofs)
                 throw std::runtime_error("Cannot open file for writing.");
             
-            for(uint order = 2; order < max_order; ++order)
+            for(uint order = 3; order < max_order; ++order)
             {
                 const UIntVec sorder{order, order};
                 
@@ -129,7 +177,8 @@ int main(int argc, char* argv[])
 //                    const auto x = p_sel->eval(sparent);
 //                    
 //                    //for(IPolarDegenerate igpt(GPt2D(1.0, 0.0)/*nurbs::projectPt(sparent, e1, e2)*/, degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
-//                    //for(IPolarIntegrate igpt(GPt2D(1.0, 0.0)/*nurbs::projectPt(sparent, e1, e2)*/, forder); !igpt.isDone(); ++igpt)
+//                    //for(IPolarIntegrate igpt(nurbs::projectPt(sparent, e1, e2), forder); !igpt.isDone(); ++igpt)
+//                    //for(IPolarIntegrate igpt(nurbs::paramPt(v2), forder); !igpt.isDone(); ++igpt)
 //                    for(IElemIntegrate igpt(forder); !igpt.isDone(); ++igpt)
 //                    //for(IPolarIntegrate igpt(sparent, forder); !igpt.isDone(); ++igpt)
 //                    //for(IPolarDegenerate igpt(sparent, degenerate_pair.second, forder); !igpt.isDone(); ++igpt)
@@ -191,8 +240,8 @@ int main(int argc, char* argv[])
 //                    }
 //                }
                 
-                for(nurbs::IVertexQuadrature igpt(sorder, forder, v1, v2); !igpt.isDone(); ++igpt)
-//                for(nurbs::IEdgeQuadrature igpt(sorder, forder, e1, e2); !igpt.isDone(); ++igpt)
+                //for(nurbs::IVertexQuadrature igpt(sorder, forder, v1, v2); !igpt.isDone(); ++igpt)
+                for(nurbs::IEdgeQuadrature igpt(sorder, forder, e1, e2); !igpt.isDone(); ++igpt)
                 {
                     const auto gpt4d = igpt.get();
                     const auto sparent = gpt4d.srcPt();
@@ -252,7 +301,7 @@ int main(int argc, char* argv[])
                     }
                     ngpts += 1;
                 }
-                
+//
                 std::cout << std::setprecision(15) << "integral = " << matrix[0][0].real() << "\n";
                 ofs << ngpts << "\t" << std::setprecision(15) << matrix[0][0].real() << "\n";
             }
