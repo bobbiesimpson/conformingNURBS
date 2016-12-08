@@ -15,6 +15,7 @@
 #include "IEdgeQuadrature.h"
 #include "BezierVectorElement.h"
 #include "IVertexQuadrature.h"
+#include "IEqualQuadratureTri.h"
 
 using namespace nurbs;
 
@@ -22,8 +23,8 @@ int main(int argc, char* argv[])
 {
     // Some constants
     const bool polar = true;
-    const uint max_order = 12;                      // max order of quadrature that we loop unilt
-    const uint max_forder = 10;
+    const uint max_order = 10;                      // max order of quadrature that we loop unilt
+    const uint max_forder = 8;
     const double k = 100.0;                         // wavenumber for emag kernel
     const std::complex<double> iconst(0.0, 1.0);    // imaginary number
     
@@ -41,6 +42,8 @@ int main(int argc, char* argv[])
         
         Forest forest(g);
         HDivForest divforest(g);
+        //divforest.hrefine();
+        //divforest.graded_hrefine(1, 0.9);
         
         nurbs::OutputVTK output("nasa_almond");
         output.outputGeometry(forest);
@@ -52,8 +55,21 @@ int main(int argc, char* argv[])
         // Element #7 edge adjacent to #8 (non degenerate edge)
         // Element #26 vertex adjacent to 8 (both degenerate)
         
-        const auto p_fel = divforest.bezierElement(8);
-        const auto p_sel = divforest.bezierElement(17);
+        
+        uint idegenerate = 0;
+        for(uint i = 0; i < divforest.elemN(); ++i)
+            if(divforest.bezierElement(i)->degenerate())
+            {
+                idegenerate = i;
+                std::cout << "Working with degenerate element " << idegenerate << "\n";
+                const double aspectratio = divforest.bezierElement(i)->aspectRatio();
+                std::cout << "Field element aspect ratio " << aspectratio << "\n";
+                if(aspectratio < 4.0)
+                    break;
+            }
+        
+        const auto p_fel = divforest.bezierElement(idegenerate);
+        const auto p_sel = divforest.bezierElement(idegenerate);
         
         //        nurbs::VAnalysisElement* p_sel;
         //        Edge e1, e2;
@@ -93,8 +109,8 @@ int main(int argc, char* argv[])
         Vertex v1,v2;
         if(nurbs::vertexConnected(*p_sel, *p_fel, v1, v2))
             std::cout << "Elements are vertex connected\n";
-//        v1 = Vertex::VERTEX1;
-//        v2 = Vertex::VERTEX1;
+        v1 = Vertex::VERTEX1;
+        v2 = Vertex::VERTEX1;
         
         //        const auto centrept_f = p_fel->eval(0.0, 0.0);
         //        const auto h = p_fel->size();
@@ -126,11 +142,11 @@ int main(int argc, char* argv[])
         
         const auto degenerate_field_pair = p_fel->degenerateEdge();
         if(degenerate_field_pair.first)
-            std::cout << "Field element is degenerate\n";
+            std::cout << "Field element is degenerate on edge " << degenerate_field_pair.second << "\n";
         
         const auto degenerate_source_pair = p_sel->degenerateEdge();
         if(degenerate_source_pair.first)
-            std::cout << "Source element is degenerate\n";
+            std::cout << "Source element is degenerate on edge << " << degenerate_source_pair.second << "\n";
         
         
         // element connectivity
@@ -140,7 +156,7 @@ int main(int argc, char* argv[])
         for(uint iforder = 3; iforder < max_forder + 1; ++iforder)
         {
             auto forder = UIntVec{iforder,iforder};//p_fel->equalIntegrationOrder();
-            //                                forder[0] *= 2;
+                                            //forder[0] *= 2;
             
             std::cout << "Field element quadrature order: " << forder << "\n";
             
@@ -176,12 +192,12 @@ int main(int argc, char* argv[])
                         const double jpiola_s = nurbs::cross(t1, t2).length();
                         const auto x = p_sel->eval(sparent);
                         
-                        for(IPolarDegenerate igpt(nurbs::projectPt(sparent, e1, e2), degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
-                            //for(IPolarIntegrate igpt(nurbs::projectPt(sparent, e1, e2), forder); !igpt.isDone(); ++igpt)
+                        //for(IPolarDegenerate igpt(nurbs::projectPt(sparent, e1, e2), degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
+                        //for(IPolarIntegrate igpt(nurbs::projectPt(sparent, e1, e2), forder); !igpt.isDone(); ++igpt)
                         //for(IPolarDegenerate igpt(nurbs::paramPt(v2), degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
-                            //for(IElemIntegrate igpt(forder); !igpt.isDone(); ++igpt)
-                            //for(IPolarIntegrate igpt(sparent, forder); !igpt.isDone(); ++igpt)
-                            //for(IPolarDegenerate igpt(sparent, degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
+                        //for(IElemIntegrate igpt(forder); !igpt.isDone(); ++igpt)
+                        //for(IPolarIntegrate igpt(sparent, forder); !igpt.isDone(); ++igpt)
+                        for(IPolarDegenerate igpt(sparent, degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
                         {
                             
                             const auto fparent = igpt.get();
@@ -241,8 +257,9 @@ int main(int argc, char* argv[])
                     }
                 else
                     //for(nurbs::IVertexQuadrature igpt(sorder, forder, v1, v2); !igpt.isDone(); ++igpt)
-                    for(nurbs::IEdgeQuadrature igpt(sorder, forder, e1, e2); !igpt.isDone(); ++igpt)
-                        //for(nurbs::IEqualQuadrature igpt(sorder, forder); !igpt.isDone(); ++igpt)
+                    //for(nurbs::IEdgeQuadrature igpt(sorder, forder, e1, e2); !igpt.isDone(); ++igpt)
+                    //for(nurbs::IEqualQuadratureTri igpt(sorder, forder, degenerate_field_pair.second); !igpt.isDone(); ++igpt)
+                    for(nurbs::IEqualQuadrature igpt(sorder, forder); !igpt.isDone(); ++igpt)
                     {
                         const auto gpt4d = igpt.get();
                         const auto sparent = gpt4d.srcPt();
@@ -303,55 +320,55 @@ int main(int argc, char* argv[])
                         ngpts += 1;
                     }
                 
-                std::cout << std::setprecision(15) << "integral = " << matrix[20][20].real() << "\n";
-                ofs << ngpts << "\t" << std::setprecision(15) << matrix[20][20].real() << "\n";
+                std::cout << std::setprecision(15) << "integral = " << matrix[5][5].real() << "\n";
+                ofs << ngpts << "\t" << std::setprecision(15) << matrix[5][5].real() << "\n";
             }
-            
-            // And now output the integrand using the highest order quadrature
-            //        const GPt2D sourcept(0.96, -0.96);
-            //        const auto x = p_fel->eval(sourcept);
-            //        const UIntVec orders{max_order, max_order};
-            
-            //        IPolarDegenerate igpt(sourcept, degenerate_pair.second, {max_order, max_order});
-            //        IPolarIntegrate igpt(sourcept, orders);
-            //        std::map<std::pair<uint, uint>, std::vector<std::pair<double, GPt2D>>> data;
-            //
-            //        for(; !igpt.isDone(); ++igpt)
-            //        {
-            //            const auto ipair = std::make_pair(igpt.currentSubCellI(), igpt.currentSubSubCellI());
-            //
-            //            const GPt2D pt = igpt.get();
-            //            const double w = igpt.getWeight();
-            //            const double jdet_f = p_fel->jacDet(pt);
-            //            const auto y = p_fel->eval(pt);
-            //            const double r = dist(x,y);
-            //            const auto ekernel = std::exp(-iconst * k * r) / (4.0 * nurbs::PI * r);
-            //            const double integrand = ekernel.real() * jdet_f * w / igpt.currentInnerWt();
-            //
-            //            const auto sample_pt = igpt.get(); //igpt.baseIntegrator().getBasePt();
-            //            data[ipair].push_back(std::make_pair(integrand, sample_pt));
-            //        }
-            //
-            //        for(const auto& p : data)
-            //        {
-            //            const auto& isubcell = p.first.first;
-            //            const auto& isubsubcell = p.first.second;
-            //            const auto& data_vec = p.second;
-            //            std::vector<double> temp_dvec;
-            //            std::vector<GPt2D> temp_pvec;
-            //            for(const auto& p : data_vec)
-            //            {
-            //                temp_dvec.push_back(p.first);
-            //                temp_pvec.push_back(p.second);
-            //            }
-            //            nurbs::OutputVTK output("subcell_integrand"  + std::to_string(isubcell) + "_" + std::to_string(isubsubcell));
-            //            output.ouputQuadratureData("helmholtz integrand",
-            //                                       temp_dvec,
-            //                                       temp_pvec,
-            //                                       orders[0],
-            //                                       orders[1]);
-            //        }
         }
+        
+        // And now output the integrand using the highest order quadrature
+        //        const GPt2D sourcept(0.96, -0.96);
+        //        const auto x = p_fel->eval(sourcept);
+        //        const UIntVec orders{max_forder, max_forder};
+        //
+        //        IPolarDegenerate igpt(sourcept, degenerate_field_pair.second, {max_forder, max_forder});
+        //        //IPolarIntegrate igpt(sourcept, orders);
+        //        std::map<std::pair<uint, uint>, std::vector<std::pair<double, GPt2D>>> data;
+        //
+        //        for(; !igpt.isDone(); ++igpt)
+        //        {
+        //            const auto ipair = std::make_pair(igpt.currentSubCellI(), igpt.currentSubSubCellI());
+        //
+        //            const GPt2D pt = igpt.get();
+        //            const double w = igpt.getWeight();
+        //            const double jdet_f = p_fel->jacDet(pt);
+        //            const auto y = p_fel->eval(pt);
+        //            const double r = dist(x,y);
+        //            const auto ekernel = std::exp(-iconst * k * r) / (4.0 * nurbs::PI * r);
+        //            const double integrand = ekernel.real() * jdet_f * w / igpt.currentInnerWt();
+        //
+        //            const auto sample_pt = igpt.baseIntegrator().getBasePt();
+        //            data[ipair].push_back(std::make_pair(integrand, sample_pt));
+        //        }
+        //
+        //        for(const auto& p : data)
+        //        {
+        //            const auto& isubcell = p.first.first;
+        //            const auto& isubsubcell = p.first.second;
+        //            const auto& data_vec = p.second;
+        //            std::vector<double> temp_dvec;
+        //            std::vector<GPt2D> temp_pvec;
+        //            for(const auto& p : data_vec)
+        //            {
+        //                temp_dvec.push_back(p.first);
+        //                temp_pvec.push_back(p.second);
+        //            }
+        //            nurbs::OutputVTK output("subcell_integrand"  + std::to_string(isubcell) + "_" + std::to_string(isubsubcell));
+        //            output.ouputQuadratureData("helmholtz integrand",
+        //                                       temp_dvec,
+        //                                       temp_pvec,
+        //                                       orders[0],
+        //                                       orders[1]);
+        //        }
         return EXIT_SUCCESS;
     }
     catch(const std::exception& e)

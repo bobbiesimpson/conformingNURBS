@@ -143,6 +143,11 @@ namespace nurbs
 
         }
         
+        double aspectRatio() const
+        {
+            return dist(eval(-1.0, 0.0), eval(1.0, 0.0)) / dist(eval(0.0, -1.0), eval(0.0, 1.0));
+        }
+        
         /// Get the approximate min coordinate of this element
         /// based on the four vertex points
         Point3D approxLowerBound() const
