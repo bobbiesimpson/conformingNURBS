@@ -19,7 +19,6 @@ namespace nurbs {
         HDivForest(const Geometry& g) : MultiForest(g)
         {
             initSpaces({0,1},{1,0});
-//            std::cout << "Constructed HDivForest with " << elemN() << " elements\n";
         }
         
         /// Destructor
@@ -48,7 +47,9 @@ namespace nurbs {
         /// Construct with geometry. Initialise spaces with degrees:
         /// {p, p-1} x {p-1, p}
         HCurlForest(const Geometry& g) : MultiForest(g)
-        { initSpaces({1,0},{0,1}); }
+        {
+            initSpaces({1,0},{0,1});
+        }
         
         /// Destructor
         virtual ~HCurlForest() {}

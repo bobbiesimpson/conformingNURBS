@@ -29,7 +29,7 @@ namespace nurbs {
             
             const GPt2D qpt_old = subElem().get(currentInnerPt());
             GPt2D qpt = qpt_old;
-            const GPt2D old_inner_pt = currentInnerPt();
+//            const GPt2D old_inner_pt = currentInnerPt();
             
             double tweight = 1.0;
             
