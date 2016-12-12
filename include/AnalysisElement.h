@@ -208,19 +208,32 @@ namespace nurbs {
     };
     
     /// Are the given elements connected at an edge?
+    /// This implementation does not treat a degenerate shared edge
+    /// as a valid case
     template<typename T>
     bool edgeConnected(const AnalysisElement<T>& e1,
                        const AnalysisElement<T>& e2,
                        Edge& edg1,
                        Edge& edg2)
     {
+        const auto degen_pair1 = e1.degenerateEdge();
+        const auto degen_pair2 = e2.degenerateEdge();
+        
         for(uint edge1 = 0; edge1 < NEDGES; ++edge1) {
             const auto adj_e1 = e1.getEdgeConnectedEl(edgeType(edge1));
             if(nullptr == adj_e1) continue;
+            
+            // ignore degenerate edges
+            if(degen_pair1.first && degen_pair1.second == edgeType(edge1)) continue;
+            
             if(adj_e1 == &e2) { // The elements are edge connected
                 for(uint edge2 = 0; edge2 < NEDGES; ++edge2) {
                     const auto adj_e2 = e2.getEdgeConnectedEl(edgeType(edge2));
                     if(nullptr == adj_e2) return false; // is this correct?
+                    
+                    // ignore degenerate edge
+                    if(degen_pair2.first && degen_pair2.second == edgeType(edge2)) continue;
+                    
                     if(adj_e2 == &e1) {
                         edg1 = edgeType(edge1); edg2 = edgeType(edge2);
                         return true;

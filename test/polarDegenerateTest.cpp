@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
     const bool polar = true;
     const uint max_order = 10;                      // max order of quadrature that we loop unilt
     const uint max_forder = 8;
-    const double k = 100.0;                         // wavenumber for emag kernel
+    const double k = 146.70915;                         // wavenumber for emag kernel
     const std::complex<double> iconst(0.0, 1.0);    // imaginary number
     
     try
@@ -49,27 +49,51 @@ int main(int argc, char* argv[])
         output.outputGeometry(forest);
         
         std::cout << "contructed hdiv forest with " << divforest.elemN() << " elements\n";
-        
+            
         
         // Element #s 8, 17 degenerate (17 edge adjacent)
         // Element #7 edge adjacent to #8 (non degenerate edge)
         // Element #26 vertex adjacent to 8 (both degenerate)
         
+        Edge e1, e2;
         
         uint idegenerate = 0;
+        uint idegenerate2 = 0;
         for(uint i = 0; i < divforest.elemN(); ++i)
             if(divforest.bezierElement(i)->degenerate())
             {
                 idegenerate = i;
-                std::cout << "Working with degenerate element " << idegenerate << "\n";
-                const double aspectratio = divforest.bezierElement(i)->aspectRatio();
-                std::cout << "Field element aspect ratio " << aspectratio << "\n";
-                if(aspectratio < 4.0)
-                    break;
+                auto p_iel = divforest.bezierElement(i);
+                
+                //std::cout << "Working with degenerate element " << idegenerate << "\n";
+                const double aspectratio = p_iel->aspectRatio();
+//                std::cout << "Field element aspect ratio " << aspectratio << "\n";
+                for(uint j = 0; j < divforest.elemN(); ++j)
+                {
+                    idegenerate2 = j;
+                    auto p_jel = divforest.bezierElement(j);
+                    if(p_jel->degenerate())
+                    {
+                        if(nurbs::edgeConnected(*p_iel, *p_jel, e1, e2))
+                        {
+                            std::cout << "Elements: " << i << "\t" << j << " are edge connected\n";
+                            break;
+                        }
+                    }
+                }
+//                if(aspectratio < 4.0)
+                break;
             }
         
+        idegenerate = 8;
+        idegenerate2 = 161;
+        
         const auto p_fel = divforest.bezierElement(idegenerate);
-        const auto p_sel = divforest.bezierElement(idegenerate);
+        const auto p_sel = divforest.bezierElement(idegenerate2);
+        
+        if(nurbs::edgeConnected(*p_sel, *p_fel, e1, e2))
+            std::cout << "Edge connected\n";
+        
         
         //        nurbs::VAnalysisElement* p_sel;
         //        Edge e1, e2;
@@ -87,9 +111,7 @@ int main(int argc, char* argv[])
         //                }
         //        }
         
-        Edge e1, e2;
-        if(nurbs::edgeConnected(*p_sel, *p_fel, e1, e2))
-            std::cout << "Elements are edge connected\n";
+
         //        e1 = Edge::EDGE3;
         //        e2 = Edge::EDGE3;
         
@@ -192,12 +214,12 @@ int main(int argc, char* argv[])
                         const double jpiola_s = nurbs::cross(t1, t2).length();
                         const auto x = p_sel->eval(sparent);
                         
-                        //for(IPolarDegenerate igpt(nurbs::projectPt(sparent, e1, e2), degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
+                        for(IPolarDegenerate igpt(nurbs::projectPt(sparent, e1, e2), degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
                         //for(IPolarIntegrate igpt(nurbs::projectPt(sparent, e1, e2), forder); !igpt.isDone(); ++igpt)
                         //for(IPolarDegenerate igpt(nurbs::paramPt(v2), degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
                         //for(IElemIntegrate igpt(forder); !igpt.isDone(); ++igpt)
                         //for(IPolarIntegrate igpt(sparent, forder); !igpt.isDone(); ++igpt)
-                        for(IPolarDegenerate igpt(sparent, degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
+                        //for(IPolarDegenerate igpt(sparent, degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
                         {
                             
                             const auto fparent = igpt.get();
@@ -257,9 +279,9 @@ int main(int argc, char* argv[])
                     }
                 else
                     //for(nurbs::IVertexQuadrature igpt(sorder, forder, v1, v2); !igpt.isDone(); ++igpt)
-                    //for(nurbs::IEdgeQuadrature igpt(sorder, forder, e1, e2); !igpt.isDone(); ++igpt)
+                    for(nurbs::IEdgeQuadrature igpt(sorder, forder, e1, e2); !igpt.isDone(); ++igpt)
                     //for(nurbs::IEqualQuadratureTri igpt(sorder, forder, degenerate_field_pair.second); !igpt.isDone(); ++igpt)
-                    for(nurbs::IEqualQuadrature igpt(sorder, forder); !igpt.isDone(); ++igpt)
+                    //for(nurbs::IEqualQuadrature igpt(sorder, forder); !igpt.isDone(); ++igpt)
                     {
                         const auto gpt4d = igpt.get();
                         const auto sparent = gpt4d.srcPt();
