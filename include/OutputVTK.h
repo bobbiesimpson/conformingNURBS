@@ -7,7 +7,6 @@
 
 #include "base.h"
 
-
 namespace nurbs {
     
     /// Forward declarations

@@ -4,6 +4,7 @@
 #include "HCElement.h"
 #include "BezierVectorElement.h"
 #include "NedelecVectorElement.h"
+#include "NURBSCache.h"
 
 #include <cassert>
 #include <algorithm>
@@ -213,6 +214,8 @@ namespace nurbs
     
     void MultiForest::initConnectivity()
     {
+        nurbs::nurbshelper::NURBSCache::Instance().clear();
+        
         mConn.clear();
         mSignedConn.clear();
         mSignConn.clear();

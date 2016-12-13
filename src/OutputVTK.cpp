@@ -4,6 +4,11 @@
 #include "IElem.h"
 #include "algebra.h"
 
+#include <complex>
+#include <thread>
+#include <atomic>
+#include <vector>
+
 #include "vtkSmartPointer.h"
 #include "vtkUnstructuredGrid.h"
 #include "vtkDoubleArray.h"
@@ -12,11 +17,6 @@
 #include "vtkQuad.h"
 #include "vtkPointData.h"
 #include "vtkHexahedron.h"
-
-#include <complex>
-#include <thread>
-#include <atomic>
-#include <vector>
 
 #include <boost/math/special_functions.hpp>
 #include <gsl/gsl_sf_legendre.h>
@@ -37,8 +37,8 @@ namespace nurbs {
 //        for(uint i = 0; i < 18; ++i)
 //            evec.push_back(i);
         
-//        for(uint i = 0; i < f.elemN(); ++i)
-        for(const auto& i : evec)
+        for(uint i = 0; i < f.elemN(); ++i)
+        //for(const auto& i : evec)
         {
             const auto e = f.bezierElement(i);
             uint count = 0;
@@ -368,12 +368,12 @@ namespace nurbs {
         uint sample_offset = 0;
         const double degenerate_shift = 1.0e-6; // tolerance to shift sample points away from degenerate edges
         
-//        std::vector<uint> evec{1};
         
 //        for(const auto& i : evec)
         for(uint i = 0; i < f.elemN(); ++i)
         {
             const auto el = f.bezierElement(i);
+            
 //            const auto parent_el = el->parent();
             const auto gbasisivec = el->signedGlobalBasisFuncI();
 //            if(el->degenerate())

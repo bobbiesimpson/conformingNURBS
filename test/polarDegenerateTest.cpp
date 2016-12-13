@@ -22,7 +22,7 @@ using namespace nurbs;
 int main(int argc, char* argv[])
 {
     // Some constants
-    const bool polar = true;
+    const bool polar = false;
     const uint max_order = 10;                      // max order of quadrature that we loop unilt
     const uint max_forder = 8;
     const double k = 100.0;                         // wavenumber for emag kernel
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
         
         Forest forest(g);
         HDivForest divforest(g);
-        //divforest.hrefine();
+        divforest.hrefine(1);
         //divforest.graded_hrefine(1, 0.9);
         
         nurbs::OutputVTK output("nasa_almond");
@@ -64,38 +64,25 @@ int main(int argc, char* argv[])
             {
                 idegenerate = i;
                 auto p_iel = divforest.bezierElement(i);
-                
-                //std::cout << "Working with degenerate element " << idegenerate << "\n";
-                const double aspectratio = p_iel->aspectRatio();
-//                std::cout << "Field element aspect ratio " << aspectratio << "\n";
+                if(!p_iel->degenerate())
+                    continue;
                 for(uint j = 0; j < divforest.elemN(); ++j)
                 {
                     idegenerate2 = j;
                     auto p_jel = divforest.bezierElement(j);
-                    if(p_jel->degenerate())
-                    {
-                        if(nurbs::edgeConnected(*p_iel, *p_jel, e1, e2))
-                        {
-                            std::cout << "Elements: " << i << "\t" << j << " are edge connected\n";
-                            break;
-                        }
-                    }
+                    if(!p_jel->degenerate())
+                        continue;
+//                    if(i==j) continue;
+                    if(nurbs::edgeConnected(*p_iel, *p_jel, e1, e2))
+                        break;
+//                    if(nurbs::connectedAtDegeneratePt(*p_iel, *p_jel))
+//                        break;
                 }
-//                if(aspectratio < 4.0)
                 break;
             }
         
-        idegenerate = 8;
-        idegenerate2 = 26;
-        
         const auto p_fel = divforest.bezierElement(idegenerate);
         const auto p_sel = divforest.bezierElement(idegenerate2);
-        
-        if(nurbs::edgeConnected(*p_sel, *p_fel, e1, e2))
-            std::cout << "Edge connected\n";
-        
-        e1 = Edge::EDGE3;
-        e2 = Edge::EDGE3;
         
         
         //        nurbs::VAnalysisElement* p_sel;
