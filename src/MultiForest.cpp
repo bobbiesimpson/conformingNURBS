@@ -390,6 +390,9 @@ namespace nurbs
                     auto curr_el = element(ispace, i, j);
                     auto curr_bel = bezierElement(ispace, i, j);
                     
+                    const auto degen_el_pair = curr_el->degenerateEdge();   // pair which indicates if degenerate element
+                    const auto degen_bel_pair = curr_bel->degenerateEdge();
+                    
                     curr_el->setVertexConnectedEl(Vertex::VERTEX0, element(ispace, i-1, j-1));
                     curr_el->setVertexConnectedEl(Vertex::VERTEX1, element(ispace, i-1, j+1));
                     curr_el->setVertexConnectedEl(Vertex::VERTEX2, element(ispace, i+1, j-1));
@@ -411,8 +414,18 @@ namespace nurbs
                     // we're on Edge0
                     if(0 == i)
                     {
-                        curr_el->setEdgeConnectedEl(Edge::EDGE0, element(ge_map[Edge::EDGE0][j]));
-                        curr_bel->setEdgeConnectedEl(Edge::EDGE0, bezierElement(ge_map[Edge::EDGE0][j]));
+                        // if on a degenerate edge, we assume there are NO edge connected elements
+                        if(degen_el_pair.first && Edge::EDGE0 == degen_el_pair.second)
+                            curr_el->setEdgeConnectedEl(Edge::EDGE0, nullptr);
+                        else
+                            curr_el->setEdgeConnectedEl(Edge::EDGE0, element(ge_map[Edge::EDGE0][j]));
+                        
+                        // and likewise for bezier elements
+                        if(degen_bel_pair.first && Edge::EDGE0 == degen_bel_pair.second)
+                            curr_bel->setEdgeConnectedEl(Edge::EDGE0, nullptr);
+                        else
+                            curr_bel->setEdgeConnectedEl(Edge::EDGE0, bezierElement(ge_map[Edge::EDGE0][j]));
+                        
                         if(0 == j)
                         {
                             auto it = gv_map.find(Vertex::VERTEX0);
@@ -446,8 +459,18 @@ namespace nurbs
                     // we're on Edge1
                     if(nel_t - 1 == i)
                     {
-                        curr_el->setEdgeConnectedEl(Edge::EDGE1, element(ge_map[Edge::EDGE1][j]));
-                        curr_bel->setEdgeConnectedEl(Edge::EDGE1, bezierElement(ge_map[Edge::EDGE1][j]));
+                        // if on a degenerate edge, we assume there are NO edge connected elements
+                        if(degen_el_pair.first && Edge::EDGE1 == degen_el_pair.second)
+                            curr_el->setEdgeConnectedEl(Edge::EDGE1, nullptr);
+                        else
+                            curr_el->setEdgeConnectedEl(Edge::EDGE1, element(ge_map[Edge::EDGE1][j]));
+                        
+                        // and likewise for bezier elements
+                        if(degen_bel_pair.first && Edge::EDGE1 == degen_bel_pair.second)
+                            curr_bel->setEdgeConnectedEl(Edge::EDGE1, nullptr);
+                        else
+                            curr_bel->setEdgeConnectedEl(Edge::EDGE1, bezierElement(ge_map[Edge::EDGE1][j]));
+                        
                         if(0 == j)
                         {
                             auto it = gv_map.find(Vertex::VERTEX2);
@@ -480,8 +503,18 @@ namespace nurbs
                     }
                     if(0 == j)
                     {
-                        curr_el->setEdgeConnectedEl(Edge::EDGE2, element(ge_map[Edge::EDGE2][i]));
-                        curr_bel->setEdgeConnectedEl(Edge::EDGE2, bezierElement(ge_map[Edge::EDGE2][i]));
+                        // if on a degenerate edge, we assume there are NO edge connected elements
+                        if(degen_el_pair.first && Edge::EDGE2 == degen_el_pair.second)
+                            curr_el->setEdgeConnectedEl(Edge::EDGE2, nullptr);
+                        else
+                            curr_el->setEdgeConnectedEl(Edge::EDGE2, element(ge_map[Edge::EDGE2][i]));
+                        
+                        // and likewise for bezier elements
+                        if(degen_bel_pair.first && Edge::EDGE2 == degen_bel_pair.second)
+                            curr_bel->setEdgeConnectedEl(Edge::EDGE2, nullptr);
+                        else
+                            curr_bel->setEdgeConnectedEl(Edge::EDGE2, bezierElement(ge_map[Edge::EDGE2][i]));
+                        
                         if(0 == i)
                         {
                             auto it = gv_map.find(Vertex::VERTEX0);
@@ -513,8 +546,18 @@ namespace nurbs
                     }
                     if(nel_s - 1 == j)
                     {
-                        curr_el->setEdgeConnectedEl(Edge::EDGE3, element(ge_map[Edge::EDGE3][i]));
-                        curr_bel->setEdgeConnectedEl(Edge::EDGE3, bezierElement(ge_map[Edge::EDGE3][i]));
+                        // if on a degenerate edge, we assume there are NO edge connected elements
+                        if(degen_el_pair.first && Edge::EDGE3 == degen_el_pair.second)
+                            curr_el->setEdgeConnectedEl(Edge::EDGE3, nullptr);
+                        else
+                            curr_el->setEdgeConnectedEl(Edge::EDGE3, element(ge_map[Edge::EDGE3][i]));
+                        
+                        // and likewise for bezier elements
+                        if(degen_bel_pair.first && Edge::EDGE3 == degen_bel_pair.second)
+                            curr_bel->setEdgeConnectedEl(Edge::EDGE3, nullptr);
+                        else
+                            curr_bel->setEdgeConnectedEl(Edge::EDGE3, bezierElement(ge_map[Edge::EDGE3][i]));
+                        
                         if(0 == i)
                         {
                             auto it = gv_map.find(Vertex::VERTEX1);

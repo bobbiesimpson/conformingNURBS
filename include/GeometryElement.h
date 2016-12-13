@@ -314,9 +314,9 @@ namespace nurbs
                 return std::make_pair(true, Edge::EDGE0);
             else if(dist(vcoords[2], vcoords[3])< tol)
                 return std::make_pair(true, Edge::EDGE1);
-            else if(dist(vcoords[1], vcoords[2])< tol)
+            else if(dist(vcoords[1], vcoords[3])< tol)
                 return std::make_pair(true, Edge::EDGE3);
-            else if(dist(vcoords[3], vcoords[0])< tol)
+            else if(dist(vcoords[2], vcoords[0])< tol)
                 return std::make_pair(true, Edge::EDGE2);
             else
             {

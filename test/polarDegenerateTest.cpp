@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
     const bool polar = true;
     const uint max_order = 10;                      // max order of quadrature that we loop unilt
     const uint max_forder = 8;
-    const double k = 146.70915;                         // wavenumber for emag kernel
+    const double k = 100.0;                         // wavenumber for emag kernel
     const std::complex<double> iconst(0.0, 1.0);    // imaginary number
     
     try
@@ -86,13 +86,16 @@ int main(int argc, char* argv[])
             }
         
         idegenerate = 8;
-        idegenerate2 = 161;
+        idegenerate2 = 26;
         
         const auto p_fel = divforest.bezierElement(idegenerate);
         const auto p_sel = divforest.bezierElement(idegenerate2);
         
         if(nurbs::edgeConnected(*p_sel, *p_fel, e1, e2))
             std::cout << "Edge connected\n";
+        
+        e1 = Edge::EDGE3;
+        e2 = Edge::EDGE3;
         
         
         //        nurbs::VAnalysisElement* p_sel;
@@ -174,6 +177,7 @@ int main(int argc, char* argv[])
         // element connectivity
         const auto fconn = p_fel->signedGlobalBasisFuncI();
         const auto sconn = p_sel->signedGlobalBasisFuncI();
+    
         
         for(uint iforder = 3; iforder < max_forder + 1; ++iforder)
         {
@@ -214,10 +218,10 @@ int main(int argc, char* argv[])
                         const double jpiola_s = nurbs::cross(t1, t2).length();
                         const auto x = p_sel->eval(sparent);
                         
-                        for(IPolarDegenerate igpt(nurbs::projectPt(sparent, e1, e2), degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
+                        //for(IPolarDegenerate igpt(nurbs::projectPt(sparent, e1, e2), degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
                         //for(IPolarIntegrate igpt(nurbs::projectPt(sparent, e1, e2), forder); !igpt.isDone(); ++igpt)
                         //for(IPolarDegenerate igpt(nurbs::paramPt(v2), degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
-                        //for(IElemIntegrate igpt(forder); !igpt.isDone(); ++igpt)
+                        for(IElemIntegrate igpt(forder); !igpt.isDone(); ++igpt)
                         //for(IPolarIntegrate igpt(sparent, forder); !igpt.isDone(); ++igpt)
                         //for(IPolarDegenerate igpt(sparent, degenerate_field_pair.second, forder); !igpt.isDone(); ++igpt)
                         {
@@ -342,8 +346,8 @@ int main(int argc, char* argv[])
                         ngpts += 1;
                     }
                 
-                std::cout << std::setprecision(15) << "integral = " << matrix[5][5].real() << "\n";
-                ofs << ngpts << "\t" << std::setprecision(15) << matrix[5][5].real() << "\n";
+                std::cout << std::setprecision(15) << "integral = " << matrix[2][2].real() << "\n";
+                ofs << ngpts << "\t" << std::setprecision(15) << matrix[2][2].real() << "\n";
             }
         }
         

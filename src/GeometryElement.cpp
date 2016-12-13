@@ -56,10 +56,10 @@ namespace nurbs {
                 return eval(1.0,-1.0);
                 break;
             case Vertex::VERTEX2:
-                return eval(1.0, 1.0);
+                return eval(-1.0, 1.0);
                 break;
             case Vertex::VERTEX3:
-                return eval(-1.0, 1.0);
+                return eval(1.0, 1.0);
                 break;
             default:
                 error("Bad vertex enum");

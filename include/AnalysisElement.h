@@ -216,24 +216,14 @@ namespace nurbs {
                        Edge& edg1,
                        Edge& edg2)
     {
-        const auto degen_pair1 = e1.degenerateEdge();
-        const auto degen_pair2 = e2.degenerateEdge();
         
         for(uint edge1 = 0; edge1 < NEDGES; ++edge1) {
             const auto adj_e1 = e1.getEdgeConnectedEl(edgeType(edge1));
             if(nullptr == adj_e1) continue;
-            
-            // ignore degenerate edges
-            if(degen_pair1.first && degen_pair1.second == edgeType(edge1)) continue;
-            
             if(adj_e1 == &e2) { // The elements are edge connected
                 for(uint edge2 = 0; edge2 < NEDGES; ++edge2) {
                     const auto adj_e2 = e2.getEdgeConnectedEl(edgeType(edge2));
                     if(nullptr == adj_e2) return false; // is this correct?
-                    
-                    // ignore degenerate edge
-                    if(degen_pair2.first && degen_pair2.second == edgeType(edge2)) continue;
-                    
                     if(adj_e2 == &e1) {
                         edg1 = edgeType(edge1); edg2 = edgeType(edge2);
                         return true;
@@ -268,6 +258,56 @@ namespace nurbs {
             }
         }
         return false;
+    }
+    
+    template<typename T>
+    bool connectedAtDegeneratePt(const AnalysisElement<T>& e1,
+                                 const AnalysisElement<T>& e2)
+    {
+        const auto e1_pair = e1.degenerateEdge();
+        const auto e2_pair = e2.degenerateEdge();
+        
+        if(!e1_pair.first || !e2_pair.first)
+            return false;
+        const double tol = 1.e-9;
+        
+        Point3D p1;
+        switch(e1_pair.second)
+        {
+            case Edge::EDGE0:
+                p1 = e1.evalVertex(Vertex::VERTEX0);
+                break;
+            case Edge::EDGE1:
+                p1 = e1.evalVertex(Vertex::VERTEX3);
+                break;
+            case Edge::EDGE2:
+                p1 = e1.evalVertex(Vertex::VERTEX2);
+                break;
+            case Edge::EDGE3:
+                p1 = e1.evalVertex(Vertex::VERTEX1);
+                break;
+        }
+        
+        Point3D p2;
+        switch(e2_pair.second)
+        {
+            case Edge::EDGE0:
+                p2 = e2.evalVertex(Vertex::VERTEX0);
+                break;
+            case Edge::EDGE1:
+                p2 = e2.evalVertex(Vertex::VERTEX3);
+                break;
+            case Edge::EDGE2:
+                p2 = e2.evalVertex(Vertex::VERTEX2);
+                break;
+            case Edge::EDGE3:
+                p2 = e2.evalVertex(Vertex::VERTEX1);
+                break;
+        }
+        if(nurbs::dist(p1, p2) < tol)
+            return true;
+        else
+            return false;
     }
 
     /// Typedefs for nodal and vector analysis elements
