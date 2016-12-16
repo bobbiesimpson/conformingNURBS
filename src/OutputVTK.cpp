@@ -368,12 +368,36 @@ namespace nurbs {
         uint sample_offset = 0;
         const double degenerate_shift = 1.0e-6; // tolerance to shift sample points away from degenerate edges
         
+//        uint itest = 0;
+//        uint count = 0;
+//        for(uint i = 0; i < f.elemN(); ++i)
+//        {
+//            itest = i;
+//            if(f.bezierElement(i)->degenerate())
+////                ++count;
+////            if(count > 10)
+//                break;
+//        }
+//        
+//        uint itest = 15;
+//        
+//        const auto test_el = f.bezierElement(itest);
         
 //        for(const auto& i : evec)
         for(uint i = 0; i < f.elemN(); ++i)
         {
             const auto el = f.bezierElement(i);
             
+//            Edge e1, e2;
+//            if(!edgeConnected(*test_el, *el, e1, e2))
+//                continue;
+            
+//            Vertex v1, v2;
+//            if(!vertexConnected(*test_el, *el, v1, v2))
+//                continue;
+//            if(!connectedAtDegeneratePt(*test_el, *el))
+//                continue;
+//            
 //            const auto parent_el = el->parent();
             const auto gbasisivec = el->signedGlobalBasisFuncI();
 //            if(el->degenerate())
