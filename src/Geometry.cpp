@@ -239,6 +239,59 @@ namespace nurbs
         }
     }
     
+    void Geometry::rotate(const nurbs::CartesianComponent comp,
+                          const double theta)
+    {
+        // make a copy of all control points
+        auto cvec_copy = mCPts;
+        
+        // compute rotation matrix depending on given componet
+        DoubleVecVec rotmat;
+        switch (comp) {
+            case nurbs::CartesianComponent::X:
+                rotmat = DoubleVecVec
+                         {
+                             {1.0, 0.0, 0.0},
+                             {0.0, std::cos(theta), -std::sin(theta)},
+                             {0.0, std::sin(theta), std::cos(theta)}
+                         };
+                break;
+            case nurbs::CartesianComponent::Y:
+                rotmat = DoubleVecVec
+                        {
+                            {std::cos(theta),0.0, std::sin(theta)},
+                            {0.0, 1.0, 0.0},
+                            {-std::sin(theta), 0.0, std::cos(theta)}
+                        };
+                break;
+            case nurbs::CartesianComponent::Z:
+                rotmat = DoubleVecVec
+                        {
+                            {std::cos(theta), -std::sin(theta), 0.0},
+                            {std::sin(theta), std::cos(theta), 0.0},
+                            {0.0, 0.0, 1.0}
+                        };
+                break;
+        }
+        
+        // loop over all points and apply rotation matrix to each
+        for(auto& pt : cvec_copy)
+        {
+            const auto pt_copy = pt;
+            Point4D newpt;
+            newpt.setWeight(pt.getWeight());
+            for(uint i = 0; i < 3; ++i)
+            {
+                for(uint j = 0; j < 3; ++j)
+                    newpt[i] += rotmat[i][j] * pt_copy[j];
+            }
+            pt = newpt;
+        }
+        
+        // finally copy rotated points to member variable
+        mCPts = cvec_copy;
+    }
+    
     void Geometry::normalise()
     {
         const double max = std::numeric_limits<double>::max();

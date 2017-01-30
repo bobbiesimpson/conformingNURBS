@@ -486,23 +486,28 @@ namespace nurbs
         std::vector<Edge> e_types{Edge::EDGE0, Edge::EDGE1, Edge::EDGE2, Edge::EDGE3};
         
         uint edge_count = 0;
-        for(uint s = 0; s < spaceN(); ++s) {
+        for(uint s = 0; s < spaceN(); ++s)
+        {
             std::vector<uint> edge_conn; // edge connectivity for this space
             std::vector<uint> c_vertices;
-            for(const auto& e : e_types) {
+            for(const auto& e : e_types)
+            {
                 auto v_pair = globalVertexPairI(s, e);
                 auto e_conn = globalIVec(s, localBasisIVec(e, space(s)));
                 std::sort(e_conn.begin(), e_conn.end());
 
                 c_vertices.push_back(v_pair.first);
                 c_vertices.push_back(v_pair.second);
+                
                 if(v_pair.first > v_pair.second) // make sure ordering is +ve
                     v_pair = std::make_pair(v_pair.second, v_pair.first);
                 
                 auto search = edge_map.find(e_conn);
+                
                 if(search != edge_map.end())
                     edge_conn.push_back(search->second);
-                else {
+                else
+                {
                     edge_map[e_conn] = edge_count;
                     edge_conn.push_back(edge_count);
                     ++edge_count;

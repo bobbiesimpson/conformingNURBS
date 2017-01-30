@@ -111,6 +111,10 @@ namespace nurbs
         /// rescale geometry by a given factor.
         void rescale(const double sf);
         
+        /// Rotate the geometry around a given axis by an angle (in radians)
+        void rotate(const nurbs::CartesianComponent comp,
+                    const double rotation);
+        
         /// normalise to a unit length in the maximum dimension
         void normalise();
         
