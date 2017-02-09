@@ -537,8 +537,8 @@ namespace nurbs {
                 // BEWARE: HARDCODED ANALYTICAL SOLUTION!!
                 const auto& p = phys_coord;
                 double r = sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
-                double theta = acos(p[0] / r);
-                double phi = atan2(p[2], p[1]);
+                double theta = acos(p[2] / r);
+                double phi = atan2(p[1], p[0]);
                 
                 const auto j_vec = mieSurfaceCurrent(k, theta, phi);
                 
@@ -832,13 +832,13 @@ namespace nurbs {
         const double cp = std::cos(phi);
         const double sp = std::sin(phi);
         
-        //    return {ct * cp * jtheta - sp * jphi,
-        //        ct * sp * jtheta + cp * jphi,
-        //        -st * jtheta};
+            return {ct * cp * jtheta - sp * jphi,
+                ct * sp * jtheta + cp * jphi,
+                -st * jtheta};
         
-        return {-st * jtheta,
-            ct * cp * jtheta - sp * jphi,
-            ct * sp * jtheta + cp * jphi
-        };
+//        return {-st * jtheta,
+//            ct * cp * jtheta - sp * jphi,
+//            ct * sp * jtheta + cp * jphi
+//        };
     }
 }
