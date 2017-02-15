@@ -11,9 +11,12 @@ namespace nurbs {
     double hdivNorm(const MultiForest& f,
                     const std::vector<std::complex<double>>& phi);
     
-    /// Comptue the L2 graph norm
-    double L2graphNorm(const MultiForest& f,
-                       const std::vector<std::complex<double>>& soln);
+    /// Comptue the L2 graph norm for the Mie sphere scattering problem
+    /// assuming wave is travelling in +z direction and polarised in the
+    /// x-direction.
+    double L2graphNormMieSphere(const MultiForest& f,
+                                const double k,
+                                const std::vector<std::complex<double>>& soln);
 }
 
 #endif

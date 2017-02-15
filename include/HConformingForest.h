@@ -19,6 +19,7 @@ namespace nurbs {
         HDivForest(const Geometry& g) : MultiForest(g)
         {
             initSpaces({2,3},{3,2});
+            
         }
         
         /// Destructor
