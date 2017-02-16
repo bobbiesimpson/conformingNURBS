@@ -138,5 +138,10 @@ namespace nurbs {
                                                          const double theta,
                                                          const double phi);
     
+    /// analytical mie surface current expression
+    std::vector<std::complex<double> > mieSurfaceCurrent(const double k,
+                                                         const double theta,
+                                                         const double phi);
+    
 }
 #endif

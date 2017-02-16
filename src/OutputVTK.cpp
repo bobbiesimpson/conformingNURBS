@@ -772,7 +772,7 @@ namespace nurbs {
             result[i] += integral[i];
     }
     
-    std::vector<std::complex<double> > mieSurfaceCurrent( const double k,
+    std::vector<std::complex<double> > mieSurfaceCurrent(const double k,
                                                          const double theta,
                                                          const double phi)
     {
@@ -841,4 +841,6 @@ namespace nurbs {
 //            ct * sp * jtheta + cp * jphi
 //        };
     }
+    
+    
 }

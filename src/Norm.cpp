@@ -131,7 +131,7 @@ namespace nurbs {
             // Get the analytical surface divergence given a point on the sphere
             std::complex<double> surfacediv(const nurbs::Point3D& p) const
             {
-                /// TODO
+                
                 return std::complex<double>(0.0, 0.0);
             }
             
@@ -164,7 +164,8 @@ namespace nurbs {
                 const auto x = el->eval(gpt);
                 
                 // Generate 'exact' function in parametric space
-                auto exact_val = exactfunction(x);
+                const auto exact_val = exactfunction(x);
+                const auto exact_div = exactfunction.surfacediv(x);
                 
                 const auto& t1 = el->tangent(gpt.s, gpt.t, nurbs::ParamDir::S);
                 const auto& t2 = el->tangent(gpt.s, gpt.t,nurbs::ParamDir::T);
@@ -191,31 +192,32 @@ namespace nurbs {
 //                        fexact[i] += jpiola * jinv[j][i] * exact_val[j];
                 
 //
-//                const auto& ds = el->localBasisDers(gpt.s, gpt.t, nurbs::DerivType::DS);
-//                const auto& dt = el->localBasisDers(gpt.s, gpt.t, nurbs::DerivType::DT);
-//                const auto jacob_param = el->jacobParam(gpt.s, gpt.t);
+                const auto& ds = el->localBasisDers(gpt.s, gpt.t, nurbs::DerivType::DS);
+                const auto& dt = el->localBasisDers(gpt.s, gpt.t, nurbs::DerivType::DT);
+                const auto jacob_param = el->jacobParam(gpt.s, gpt.t);
                 
                 const auto econn = el->globalBasisFuncI();
                 
                 // interpolate numerical value
                 std::vector<std::complex<double>> j_h(3,0.0); // interpolated surface current
+                std::complex<double> j_div_h(3,0.0);
                 
                 for(uint ibasis = 0; ibasis < econn.size(); ++ibasis)
                 {
                     if(econn[ibasis] == -1)
                         continue;
                     
+                    // interpolate surface current
                     for(uint i = 0; i < 3; ++i)
                         j_h[i] += basis[ibasis][i] * soln[econn[ibasis]];
                     
-//                    for(size_t i = 0; i < 2; ++i)
-//                        f_h[i] += localbasis[ibasis][i] * soln[econn[ibasis]];
-                    
-//                    surface_div += 1./jpiola * (ds[ibasis][0] + dt[ibasis][1]) * soln[econn[ibasis]];
+                    // interpolate surface divergece
+                    j_div_h += 1./jpiola * (ds[ibasis][0] + dt[ibasis][1]) * soln[econn[ibasis]];
                 }
                 
-//                for(uint i = 0; i < 3; ++i)
+                for(uint i = 0; i < 3; ++i)
 //                    std::cout << exact_val[i] << "\t" << j_h[i] << "\n";
+                    std::cout << exact_val[i] << "\t" << j_h[i] << "\n";
                 
                 for(size_t i = 0; i < 3; ++i)
                 {
