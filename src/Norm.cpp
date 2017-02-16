@@ -132,7 +132,14 @@ namespace nurbs {
             std::complex<double> surfacediv(const nurbs::Point3D& p) const
             {
                 
-                return std::complex<double>(0.0, 0.0);
+                const double r = p.length();
+                const double theta = acos(p.getCoord(Z) / r);
+                const double phi = atan2(p.getCoord(Y), p.getCoord(X));
+                
+                const double k = wavenumber();
+                
+                /// Get mie surface current in cartesian coordinates
+                return mieSurfaceDivergence(k, theta, phi);
             }
             
         private:
@@ -147,7 +154,9 @@ namespace nurbs {
         
         // Initialise norm values
         double norm = 0.0;
+        double div_norm = 0.0;
         double exact_norm = 0.0;
+        double exact_div_norm = 0.0;
         
         for(uint ielem = 0; ielem < f.elemN(); ++ielem)
         {
@@ -199,8 +208,8 @@ namespace nurbs {
                 const auto econn = el->globalBasisFuncI();
                 
                 // interpolate numerical value
-                std::vector<std::complex<double>> j_h(3,0.0); // interpolated surface current
-                std::complex<double> j_div_h(3,0.0);
+                std::vector<std::complex<double>> j_h(3); // interpolated surface current
+                std::complex<double> j_div_h(0.0,0.0);
                 
                 for(uint ibasis = 0; ibasis < econn.size(); ++ibasis)
                 {
@@ -215,39 +224,27 @@ namespace nurbs {
                     j_div_h += 1./jpiola * (ds[ibasis][0] + dt[ibasis][1]) * soln[econn[ibasis]];
                 }
                 
-                for(uint i = 0; i < 3; ++i)
-//                    std::cout << exact_val[i] << "\t" << j_h[i] << "\n";
-                    std::cout << exact_val[i] << "\t" << j_h[i] << "\n";
+//                for(uint i = 0; i < 3; ++i)
+//                {
+////                    std::cout << exact_val[i] << "\t" << j_h[i] << "\n\n";
+//                    
+//                }
+                
+//                std::cout << exact_div << "\t" << j_div_h << "\n";
                 
                 for(size_t i = 0; i < 3; ++i)
                 {
                     const auto& phi = exact_val[i];
                     const auto& phi_h = j_h[i];
                     norm += std::norm(phi_h - phi) * jdet * w;
-                    exact_norm += std::norm(phi) * jdet * w;
-                }
-                
-//                for(size_t i = 0; i < 2; ++i)
-//                {
-//                    
-//                    norm += std::norm(f_h[i] - fexact[i]) * jdet * w;
-//                    exact_norm += std::norm(fexact[i]) * jdet * w;
-//                }
+                    div_norm +=  std::norm(j_div_h - exact_div) * jdet * w;
+                    exact_norm += std::norm(phi)  * jdet * w;
+                    exact_div_norm += std::norm(exact_div) * jdet * w;
 
-                
-                // now compute analytical surface divergence
-//                Point3D div_pt(function.div(x));
-//                const double exact_div_val = dot(div_pt, t1) + dot(div_pt, t2);
-//                
-//                
-//                div_pt -= dot(n, div_pt) * n;
-//                const double div = div_pt[0] + div_pt[1] + div_pt[2];
-//                std::cout << "Divergence (numerical/analytical): " << surface_div << "\t" << div << "\n";
-//                std::cout << div/ surface_div << "\n";
+                }
             }
         }
-//        std::cout << "squared error norm = " << norm << "\n";
-        return std::sqrt(norm) / std::sqrt(exact_norm);
+        return std::sqrt(norm) / std::sqrt(exact_norm) + std::sqrt(div_norm) / std::sqrt(exact_div_norm);
         
     }
 }

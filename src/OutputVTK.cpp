@@ -797,30 +797,41 @@ namespace nurbs {
             
             
             if(std::abs(theta) < 1.0e-7) {
-                const double tri_n = 0.5 * (n * n + n);
-                jtheta += std::cos(phi) * an * ( tri_n / Hbar_d
+                const double tri_n = -0.5 * (n * n + n);
+                jtheta += i * std::cos(phi) * an * ( tri_n / Hbar_d
                                                 + (i * -tri_n) / Hbar );
-                jphi += std::sin(phi) * an * (-tri_n /  Hbar_d
+                jphi += i * std::sin(phi) * an * (-tri_n /  Hbar_d
                                               - tri_n / (i * Hbar) );
             }
             else if(std::abs(theta - PI) < 1.0e-7) {
-                const double tri_n = 0.5 * (n * n + n) * std::pow(-1.0, n);
-                jtheta += std::cos(phi) * an * ( tri_n / Hbar_d
+                const double tri_n = -0.5 * (n * n + n) * std::pow(-1.0, n);
+                jtheta += i * std::cos(phi) * an * ( tri_n / Hbar_d
                                                 + (i * tri_n) / Hbar );
-                jphi += std::sin(phi) * an * (tri_n /  Hbar_d
+                jphi += i * std::sin(phi) * an * (tri_n /  Hbar_d
                                               - tri_n / (i * Hbar) );
             }
             else {
-                double l_d[n+1];
-                double l[n+1];
-                gsl_sf_legendre_Plm_deriv_array(n, 1, ct, l, l_d);
-                const auto P = l[n-1];
-                const auto Pd = l_d[n-1];
+                
+                const size_t array_size = gsl_sf_legendre_array_n(n);
+                
+                double l_d[array_size];
+                double l[array_size];
+                gsl_sf_legendre_deriv_array(GSL_SF_LEGENDRE_NONE,
+                                            n, ct, l, l_d);
                 
                 
-                jtheta += std::cos(phi) * an * ( (st * Pd) / Hbar_d
+                const auto P = l[gsl_sf_legendre_array_index(n,1)];
+                const auto Pd = l_d[gsl_sf_legendre_array_index(n,1)];
+                
+//                double l_d[n+1];
+//                double l[n+1];
+//                gsl_sf_legendre_Plm_deriv_array(n, 1, ct, l, l_d);
+//                const auto P = l[n-1];
+//                const auto Pd = l_d[n-1];
+                
+                jtheta += i * std::cos(phi) * an * ( (st * Pd) / Hbar_d
                                                 + (i * P) / (st * Hbar) );
-                jphi += std::sin(phi) * an * (P / (st * Hbar_d)
+                jphi += i * std::sin(phi) * an * (P / (st * Hbar_d)
                                               - (st * Pd) / (i * Hbar) );
             }
             prev_mag = curr_mag;
@@ -840,6 +851,90 @@ namespace nurbs {
 //            ct * cp * jtheta - sp * jphi,
 //            ct * sp * jtheta + cp * jphi
 //        };
+    }
+    
+    std::complex<double> mieSurfaceDivergence(const double k,
+                                              const double theta,
+                                              const double phi)
+    {
+        // hardcoded radius of sphere
+        const auto rho = 1.0;
+        
+        // Get the analytical surface current
+        const auto j = mieSurfaceCurrent(k, theta, phi);
+        
+        // Some trig values
+        const double ct = std::cos(theta);
+        const double st = std::sin(theta);
+        const double cp = std::cos(phi);
+        const double sp = std::sin(phi);
+        const double csc_t = 1.0 / st;  // cosec(theta)
+        const double cot_t = ct / st;
+        
+        const auto jtheta = ct * cp * j[0] + ct * sp * j[1] - st * j[2];
+        const auto metric = rho * rho * sp;
+        const auto grad_metric = std::vector<std::complex<double>>
+        {
+            rho * ct * (1.0 + sp * sp),
+            rho * st * (1.0 + sp * sp),
+            rho * sp * cp
+        };
+        
+        // The result will eventually return
+        std::complex<double> surface_div(0.0, 0.0);
+        
+//        for(size_t i = 0; i < 3; ++i)
+//            surface_div += 1.0 / metric * j[i] * grad_metric[i];
+        
+        // now compute divergence term (conventional divergence)
+        // where first we must compute \partial J / \partial \theta
+        // and \partial J / \partial \phi
+        
+        std::complex<double> jd_theta(0.0, 0.0);
+        std::complex<double> jd_phi(0.0, 0.0);
+        
+        double error = 100.0;
+        const double tol = 1.0e-10;
+        double curr_mag = 0.0;
+        double prev_mag;
+        unsigned n = 1;
+        
+        while(error > tol) {
+            const auto i = std::complex<double>(0.0, 1.0);
+            const auto an = 1.0 / k * std::pow(i, -n) * (2.0 * n + 1.0) / (n * (n + 1.0));
+            const auto h = boost::math::sph_hankel_2(n, k);
+            const auto Hbar = k * h;
+            const auto h_d = n / k * boost::math::sph_hankel_2(n,k) - boost::math::sph_hankel_2(n + 1, k);
+            const auto Hbar_d = k * h_d + h;
+
+            // Assume that we never sample near poles
+            const size_t array_size = gsl_sf_legendre_array_n(n);
+            
+            double l_dd[array_size];
+            double l_d[array_size];
+            double l[array_size];
+            gsl_sf_legendre_deriv2_array(GSL_SF_LEGENDRE_NONE,
+                                        n, ct, l, l_d, l_dd);
+            
+            const auto P = l[gsl_sf_legendre_array_index(n,1)];
+            const auto Pd = l_d[gsl_sf_legendre_array_index(n,1)];
+            const auto Pdd = l_dd[gsl_sf_legendre_array_index(n,1)];
+            
+            jd_phi += i* cp * an * (P / (st * Hbar_d)
+                                   - (st * Pd) / (i * Hbar) );
+
+            jd_theta += i* cp * an * ( 1.0 / Hbar_d * (-st * st * Pdd  + Pd * ct)
+                                      + i / Hbar * ( -st * csc_t * Pd - csc_t * cot_t * P));
+            prev_mag = curr_mag;
+            curr_mag = std::sqrt( std::abs(jd_theta) * std::abs(jd_theta)
+                                     + std::abs(jd_phi) * std::abs(jd_phi) );
+            error = std::abs(prev_mag - curr_mag);
+            ++n;
+        }
+        
+        surface_div += jd_theta + cot_t * jtheta + 1.0 / st * jd_phi;
+        
+        return surface_div;
     }
     
     

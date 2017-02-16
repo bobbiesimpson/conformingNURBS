@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
         nurbs::OutputVTK output(filename);
         output.outputComplexVectorFieldNedelec(divforest, "no_name", solnvec);
         
-        std::cout << "L2 graph norm: " << nurbs::L2graphNorm(divforest, solnvec) << "\n";
+//        std::cout << "L2 graph norm: " << nurbs::L2graphNorm(divforest, solnvec) << "\n";
         return EXIT_SUCCESS;
     }
     catch(const std::exception& e) {

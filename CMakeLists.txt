@@ -1,6 +1,8 @@
 project(confnurbs)
 cmake_minimum_required(VERSION 2.8)
 
+set(CMAKE_PREFIX_PATH /opt/ ${CMAKE_PREFIX_PATH})
+
 # C++11 required to build this library
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11")
 
@@ -29,8 +31,9 @@ endif()
 # find the gsl library
 FIND_PACKAGE(GSL REQUIRED)
 if(GSL_FOUND)
-include_directories(${GSL_INCLUDE_DIRS})
-set(THIS_LINK_LIBS ${THIS_LINK_LIBS} ${GSL_LIBRARIES})
+    message("Found GSL with version ${GSL_VERSION}")
+    include_directories(${GSL_INCLUDE_DIRS})
+    set(THIS_LINK_LIBS ${THIS_LINK_LIBS} ${GSL_LIBRARIES})
 endif()
 
 # look for VTK package

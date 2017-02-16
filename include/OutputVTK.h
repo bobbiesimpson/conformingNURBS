@@ -134,14 +134,15 @@ namespace nurbs {
     };
     
     /// analytical mie surface current expression
+    /// Result is returned in the cartesian coordinate system
     std::vector<std::complex<double> > mieSurfaceCurrent(const double k,
                                                          const double theta,
                                                          const double phi);
     
-    /// analytical mie surface current expression
-    std::vector<std::complex<double> > mieSurfaceCurrent(const double k,
-                                                         const double theta,
-                                                         const double phi);
+    /// Get the surface divergence of the analytical Mie series solution
+    std::complex<double> mieSurfaceDivergence(const double k,
+                                              const double theta,
+                                              const double phi);
     
 }
 #endif
