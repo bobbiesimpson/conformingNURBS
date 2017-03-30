@@ -1,11 +1,11 @@
 #include <iostream>
 #include <stdexcept>
 #include <iomanip>
+#include <complex>
 
 #include "Geometry.h"
 #include "OutputVTK.h"
 #include "IElemIntegrate.h"
-#include "IWangQuadrature.h"
 #include "IEqualQuadrature.h"
 #include "HConformingForest.h"
 #include "IRegularQuadrature.h"
@@ -27,9 +27,10 @@ int main(const int argc, const char* argv[])
             error("Failed to load geometry from hbs data");
         
         Forest forest(g);
+        HDivForest mforest(g);
 //        HDivForest mforest(g);
         
-        double integral = 0.0;
+        std::complex<double> integral = 0.0;
 
 //        for(uint iorder = 5; iorder < 31; iorder += 5)
 //        {
@@ -85,30 +86,68 @@ int main(const int argc, const char* argv[])
 //            std::cout << std::setprecision(15) << integral << "\n";
 //        }
 
-        const auto el = forest.bezierElement(0);
+        const auto el = mforest.bezierElement(8);
+        const uint maxorder = 13;
         
-        for(uint iorder = 2; iorder < 9; iorder += 2)
-        {
-            integral = 0.0;
-            
-            for(IEqualQuadrature igpt({iorder+1, iorder+1}, {iorder, iorder}); !igpt.isDone(); ++igpt)
-            {
-                const auto gpt = igpt.get();
-                const auto s_p = gpt.srcPt();
-                const auto x_p = gpt.fieldPt();
-                const auto w = igpt.getWeight();
-                
-                const auto s = el->eval(s_p);
-                const auto x = el->eval(x_p);
-                const auto R = dist(s,x);
-                const auto r = std::sqrt((s_p.s - x_p.s) * (s_p.s - x_p.s) +
-                                         (s_p.t - x_p.t) * (s_p.t - x_p.t));
-                integral += /*r/R*/ 1./R * el->jacDet(s_p) * el->jacDet(x_p) * w;
-            }
-            std::cout << "Suater singular integral " << integral << "\n";
-        }
-
+        const double k = 1.0;
+        const std::complex<double> iconst(0.0, 1.0);
+        const uint ibasis = 4;
         
+        std::ofstream ofs("sauter.dat");
+        if(!ofs)
+            throw std::runtime_error("Cannot open file for writing");
+        
+//        for(uint iorder = 2; iorder < maxorder; iorder += 2)
+//        {
+//            integral = 0.0;
+//            
+//            for(IEqualQuadrature igpt({iorder+2, iorder+2}, {iorder, iorder}); !igpt.isDone(); ++igpt)
+//            {
+//                const auto gpt = igpt.get();
+//                const auto s_p = gpt.srcPt();
+//                const auto x_p = gpt.fieldPt();
+//                const auto w = igpt.getWeight();
+//                
+//                const auto s = el->eval(s_p);
+//                const auto x = el->eval(x_p);
+//                const auto R = dist(s,x);
+//                const auto r = std::sqrt((s_p.s - x_p.s) * (s_p.s - x_p.s) +
+//                                         (s_p.t - x_p.t) * (s_p.t - x_p.t));
+//                
+//                const auto& t1_s = el->tangent(s_p.s, s_p.t, nurbs::ParamDir::S);
+//                const auto& t2_s = el->tangent(s_p.s, s_p.t, nurbs::ParamDir::T);
+//                const auto& basis_s = el->basis(s_p.s, s_p.t, t1_s, t2_s);
+//                const auto& ds_s = el->localBasisDers(s_p.s, s_p.t, nurbs::DerivType::DS);
+//                const auto& dt_s = el->localBasisDers(s_p.s, s_p.t, nurbs::DerivType::DT);
+//                const auto& jdet_s = el->jacDet(s_p, t1_s, t2_s);
+//                const auto& jpiola_s = nurbs::cross(t1_s, t2_s).length();
+//                
+//                // field point terms
+//                const auto& t1_f = el->tangent(x_p.s, x_p.t, nurbs::ParamDir::S);
+//                const auto& t2_f = el->tangent(x_p.s, x_p.t, nurbs::ParamDir::T);
+//
+//                const auto& basis_f = el->basis(x_p.s, x_p.t, t1_f, t2_f);
+//                const auto& ds_f = el->localBasisDers(x_p.s, x_p.t, nurbs::DerivType::DS);
+//                const auto& dt_f = el->localBasisDers(x_p.s, x_p.t, nurbs::DerivType::DT);
+//                const double jdet_f = el->jacDet(x_p, t1_f, t2_f);
+//                const double jpiola_f = nurbs::cross(t1_f, t2_f).length();
+//                
+//                const auto ekernel = std::exp(-iconst * R * r) / (4.0 * nurbs::PI * R);
+//                
+//               // integral += /*1./R * */el->jacDet(s_p) * el->jacDet(x_p) * w;
+//                
+//                const double div_s = 1./jpiola_s * (ds_s[ibasis][0] + dt_s[ibasis][1]);
+//                
+//                const double div_f = 1./jpiola_f * (ds_f[ibasis][0] + dt_f[ibasis][1]);
+//                
+//                for(uint i = 0; i < 3; ++i)
+//                    integral += ekernel * basis_s[ibasis][i] * basis_f[ibasis][i] * jdet_s * jdet_f * w;
+//                
+//                integral -= 1.0 / (k * k) * div_s * div_f * ekernel * w * jdet_s * jdet_f;
+//            }
+//            std::cout << "Suater singular integral " << std::setprecision(15) << integral << "\n";
+//            ofs << iorder << "\t" << integral << "\n";
+//        }
 
         
         // Wang quadrature
@@ -120,108 +159,108 @@ int main(const int argc, const char* argv[])
 //                                0.9577571422, 0.6550878207, 3.3758170913,0.9577571422,
 //                                0.6550878207, 0.9577571422, 0.9577571422,3.3758170913};
         
-        const uint worder = 3;
-        const DoubleVec scoords{0.7745966692, 0.0, -0.7745966692};
-        const DoubleVec fcoords{0.7071067812, 0.0, -0.7071067812};
-        const DoubleVec corner_vec{0.6969450722, 0.1633313861, 0.0871652173,
-                                        0.1633313861, 0.1420548753, 0.0809251162,
-                                        0.0871652173, 0.0809251162, 0.0649938701};
-        const DoubleVec edge_vec{0.3528197212, 1.1320652889, 0.3528197212,
-                                    0.2193171508, 0.2855264249, 0.2193171508,
-                                    0.1275419569, 0.1434352976, 0.1275419569};
-        const DoubleVec centre_vec{0.3592529166, 0.5977318272, 0.3592529166,
-                                        0.5977318272, 1.8488501076, 0.5977318272,
-                                        0.3592529166, 0.5977318272, 0.3592529166};
-        
-        const UIntVecVec corner_indices{ {0,1,2,3,4,5,6,7,8},
-            {2,1,0,5,4,3,8,7,6},
-            {6,7,8,3,4,5,0,1,2},
-            {8,7,6,5,4,3,2,1,0}};
-        
-        const UIntVecVec edge_indices{ {0,1,2,3,4,5,6,7,8},
-            {2,5,8,1,4,7,0,3,6},
-            {6,3,0,7,4,1,8,5,2},
-            {6,7,8, 3,4,5,0,1,2}};
-        
-        DoubleVec weight;
-        
-        for(const auto& v : corner_indices[0])
-            weight.push_back(corner_vec[v]);
-        
-        for(const auto& v : edge_indices[0])
-            weight.push_back(edge_vec[v]);
-        
-        for(const auto& v : corner_indices[1])
-            weight.push_back(corner_vec[v]);
-        
-        for(const auto& v : edge_indices[1])
-            weight.push_back(edge_vec[v]);
-        
-        for(const auto& v : centre_vec)
-            weight.push_back(v);
-        
-        for(const auto& v : edge_indices[2])
-            weight.push_back(edge_vec[v]);
-        
-        for(const auto& v : corner_indices[2])
-            weight.push_back(corner_vec[v]);
-        
-        for(const auto& v : edge_indices[3])
-            weight.push_back(edge_vec[v]);
-        
-        for(const auto& v : corner_indices[3])
-            weight.push_back(corner_vec[v]);
-
-//        const auto el = forest.bezierElement(20);
-        const uint maxcells = 10;
-        
-        for(uint nsubcell = 1; nsubcell < maxcells; nsubcell+=2)
-        {
-            integral = 0.0;
-            
-            for(uint ixi = 0 ; ixi < worder; ++ixi)
-                for(uint ieta = 0; ieta < worder; ++ieta)
-                {
-                    for(ISubElem isubelsource(nsubcell, nsubcell); !isubelsource.isDone(); ++isubelsource)
-                    {
-                        const GPt2D s_raw(scoords[ixi], scoords[ieta]);
-                        const GPt2D s = isubelsource.get(s_raw);
-                        
-                        const auto s_phy = el->eval(s);
-                        
-                        for(uint iu = 0; iu < worder; ++iu)
-                            for(uint iv = 0; iv < worder; ++iv)
-                            {
-                                const uint wcount = ixi * worder * worder * worder + ieta * worder * worder + iu * worder + iv;
-                                for(ISubElem isubelfield(nsubcell, nsubcell); !isubelfield.isDone(); ++isubelfield)
-                                {
-                                    
-                                    const GPt2D x_raw(fcoords[iu], fcoords[iv]);
-                                    const auto x = isubelfield.get(x_raw);
-                                    
-                                    const auto x_phy = el->eval(x);
-                                    
-                                    const auto R = dist(s_phy, x_phy);
-                                    
-                                    const double r = sqrt((s.get(0)- x.get(0)) * (s.get(0)- x.get(0))
-                                                          + (s.get(1)- x.get(1)) * (s.get(1)- x.get(1)));
-                                    
-                                    
-                                    const double w = weight[wcount] * isubelsource.jacob() * isubelfield.jacob();
-                                    
-                                    if(essentiallyEqual(r,0.0, 1.0e-10))
-                                        continue;
-                                        
-                                    integral += 1. * r / R * w * el->jacDet(s) * el->jacDet(x);
-                                }
-                            }
-                    }
-                }
-            
-            std::cout << "integral = " << std::setprecision(15) << integral << "\n";
-        }
-//        OutputVTK output("wang-test");
-//        output.outputGeometry(forest);
+//        const uint worder = 3;
+//        const DoubleVec scoords{0.7745966692, 0.0, -0.7745966692};
+//        const DoubleVec fcoords{0.7071067812, 0.0, -0.7071067812};
+//        const DoubleVec corner_vec{0.6969450722, 0.1633313861, 0.0871652173,
+//                                        0.1633313861, 0.1420548753, 0.0809251162,
+//                                        0.0871652173, 0.0809251162, 0.0649938701};
+//        const DoubleVec edge_vec{0.3528197212, 1.1320652889, 0.3528197212,
+//                                    0.2193171508, 0.2855264249, 0.2193171508,
+//                                    0.1275419569, 0.1434352976, 0.1275419569};
+//        const DoubleVec centre_vec{0.3592529166, 0.5977318272, 0.3592529166,
+//                                        0.5977318272, 1.8488501076, 0.5977318272,
+//                                        0.3592529166, 0.5977318272, 0.3592529166};
+//        
+//        const UIntVecVec corner_indices{ {0,1,2,3,4,5,6,7,8},
+//            {2,1,0,5,4,3,8,7,6},
+//            {6,7,8,3,4,5,0,1,2},
+//            {8,7,6,5,4,3,2,1,0}};
+//        
+//        const UIntVecVec edge_indices{ {0,1,2,3,4,5,6,7,8},
+//            {2,5,8,1,4,7,0,3,6},
+//            {6,3,0,7,4,1,8,5,2},
+//            {6,7,8, 3,4,5,0,1,2}};
+//        
+//        DoubleVec weight;
+//        
+//        for(const auto& v : corner_indices[0])
+//            weight.push_back(corner_vec[v]);
+//        
+//        for(const auto& v : edge_indices[0])
+//            weight.push_back(edge_vec[v]);
+//        
+//        for(const auto& v : corner_indices[1])
+//            weight.push_back(corner_vec[v]);
+//        
+//        for(const auto& v : edge_indices[1])
+//            weight.push_back(edge_vec[v]);
+//        
+//        for(const auto& v : centre_vec)
+//            weight.push_back(v);
+//        
+//        for(const auto& v : edge_indices[2])
+//            weight.push_back(edge_vec[v]);
+//        
+//        for(const auto& v : corner_indices[2])
+//            weight.push_back(corner_vec[v]);
+//        
+//        for(const auto& v : edge_indices[3])
+//            weight.push_back(edge_vec[v]);
+//        
+//        for(const auto& v : corner_indices[3])
+//            weight.push_back(corner_vec[v]);
+//
+////        const auto el = forest.bezierElement(20);
+//        const uint maxcells = 10;
+//        
+//        for(uint nsubcell = 1; nsubcell < maxcells; nsubcell+=2)
+//        {
+//            integral = 0.0;
+//            
+//            for(uint ixi = 0 ; ixi < worder; ++ixi)
+//                for(uint ieta = 0; ieta < worder; ++ieta)
+//                {
+//                    for(ISubElem isubelsource(nsubcell, nsubcell); !isubelsource.isDone(); ++isubelsource)
+//                    {
+//                        const GPt2D s_raw(scoords[ixi], scoords[ieta]);
+//                        const GPt2D s = isubelsource.get(s_raw);
+//                        
+//                        const auto s_phy = el->eval(s);
+//                        
+//                        for(uint iu = 0; iu < worder; ++iu)
+//                            for(uint iv = 0; iv < worder; ++iv)
+//                            {
+//                                const uint wcount = ixi * worder * worder * worder + ieta * worder * worder + iu * worder + iv;
+//                                for(ISubElem isubelfield(nsubcell, nsubcell); !isubelfield.isDone(); ++isubelfield)
+//                                {
+//                                    
+//                                    const GPt2D x_raw(fcoords[iu], fcoords[iv]);
+//                                    const auto x = isubelfield.get(x_raw);
+//                                    
+//                                    const auto x_phy = el->eval(x);
+//                                    
+//                                    const auto R = dist(s_phy, x_phy);
+//                                    
+//                                    const double r = sqrt((s.get(0)- x.get(0)) * (s.get(0)- x.get(0))
+//                                                          + (s.get(1)- x.get(1)) * (s.get(1)- x.get(1)));
+//                                    
+//                                    
+//                                    const double w = weight[wcount] * isubelsource.jacob() * isubelfield.jacob();
+//                                    
+////                                    if(essentiallyEqual(r,0.0, 1.0e-10))
+////                                        continue;
+//                                    
+//                                    integral += w * el->jacDet(s) * el->jacDet(x);
+//                                }
+//                            }
+//                    }
+//                }
+//            
+//            std::cout << "integral = " << std::setprecision(15) << integral << "\n";
+//        }
+        OutputVTK output("wang-test");
+        output.outputGeometry(forest);
         
     }
     catch(const std::exception& e) {

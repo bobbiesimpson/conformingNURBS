@@ -84,7 +84,6 @@ SET(libheaders
         ${LIB_INCLUDE_DIR}/quadrature/IPolarDegenerate.h
         ${LIB_INCLUDE_DIR}/quadrature/ISubElem.h
         ${LIB_INCLUDE_DIR}/quadrature/IVertexQuadrature.h
-        ${LIB_INCLUDE_DIR}/quadrature/IWangQuadrature.h
         ${LIB_INCLUDE_DIR}/MultiForest.h
         ${LIB_INCLUDE_DIR}/NedelecVectorElement.h
         ${LIB_INCLUDE_DIR}/NodalElement.h

@@ -38,7 +38,7 @@ namespace nurbs {
 //            evec.push_back(i);
         
         for(uint i = 0; i < f.elemN(); ++i)
-        //for(const auto& i : evec)
+//        for(const auto& i : evec)
         {
             const auto e = f.bezierElement(i);
             
