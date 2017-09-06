@@ -115,6 +115,9 @@ namespace nurbs
         void rotate(const nurbs::CartesianComponent comp,
                     const double rotation);
         
+        /// Translate geometry by given vector
+        void translate(const nurbs::Point3D& p);
+        
         /// normalise to a unit length in the maximum dimension
         void normalise();
         

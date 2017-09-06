@@ -292,6 +292,19 @@ namespace nurbs
         mCPts = cvec_copy;
     }
     
+    void Geometry::translate(const nurbs::Point3D& p)
+    {
+        auto cpvec_copy = mCPts;
+        
+        for(auto& cpt : cpvec_copy)
+        {
+            cpt[0] += p[0];
+            cpt[1] += p[1];
+            cpt[2] += p[2];
+        }
+        mCPts = cpvec_copy;
+    }
+    
     void Geometry::normalise()
     {
         const double max = std::numeric_limits<double>::max();

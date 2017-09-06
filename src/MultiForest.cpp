@@ -324,6 +324,11 @@ namespace nurbs
                     {
                         for(const auto& lindex : localBasisIVec(edgeType(e), sspace))
                             setSignedConn(ispace, lindex, DEGENERATE);
+                        
+//                        auto vec = localBasisIVec(edgeType(e), tspace);
+//                        const UIntVec erasevec{vec.front(), vec.back()};
+//                        for(const auto& lindex : erasevec)
+//                            setSignedConn(ispace, lindex + sspace.basisFuncN(), DEGENERATE);
                     }
                     else
                     {

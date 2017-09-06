@@ -400,6 +400,7 @@ namespace nurbs
         std::map<uint, std::vector<uint>> temp_conn;
         std::map<uint, std::vector<uint>> edge_map; // map from global edge index to global node indices
         std::map<uint, uint> vx_map; // map from geometry vertex index to new vertex index
+        
         uint current_index = 0; // the current global node index
         
         for(uint ispace = 0; ispace < spaceN(); ++ispace) {
@@ -422,19 +423,27 @@ namespace nurbs
             
             // Now assign edges that have been assigned previously
             for(uint iedge = 0; iedge < NEDGES; ++iedge) {
+                
                 const Edge edge = edgeType(iedge);
+                
+                // get global edge index
                 const uint global_iedge = globalEdgeI(ispace, iedge);
                 auto find = edge_map.find(global_iedge);
                 auto vpair = localBasisIPair(edge, s); // ordered local vertex indices on edge
+                
                 assert(vpair.first != vpair.second);
+                
                 const Sign sign = (gnode_vec[vpair.second] > gnode_vec[vpair.first]) ? Sign::POSITIVE : Sign::NEGATIVE;
                 //const Sign sign = globalEdgeDir(ispace, edge);
                 auto local_indices = localBasisIVec(edge, s);
                 if(Sign::NEGATIVE == sign)
                     std::reverse(local_indices.begin(), local_indices.end());
+                
                 if(find != edge_map.end()) { // the collocation indices are assigned on this edge
                     const auto glb_indices = find->second;
+                    
                     assert(local_indices.size() == glb_indices.size());
+                    
                     for(uint i = 0; i < local_indices.size(); ++i) {
                         if(gnode_vec[local_indices[i]] != -1)
                             continue;
@@ -443,7 +452,9 @@ namespace nurbs
                     }
                 }
                 else { // the edge node indices have not been assigned. Let's do it now.
+                    
                     std::vector<uint> gvec;
+                    
                     for(const auto& i : local_indices) {
                         if(gnode_vec[i] != -1)
                             gvec.push_back(gnode_vec[i]);   
@@ -455,6 +466,8 @@ namespace nurbs
                     }
 //                    if(Sign::NEGATIVE == sign) // make sure to store indices in positive order
 //                        std::reverse(gvec.begin(), gvec.end());
+                    
+                    // and store the new global edge connectivity
                     edge_map[global_iedge] = gvec;
                 }
             }
